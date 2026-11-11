@@ -1,0 +1,1 @@
+{"files":[{"pattern":"*.json","rules":[{"type":"regex","pattern":"/{\"json_class\":\"RPG::EventCommand\",\"@indent\":0,\"@code\":408,\"@parameters\":\\[\"([^\"]+)\"]},/g\n","captureGroups":"1"}]}]}

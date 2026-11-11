@@ -1,0 +1,8 @@
+o:RPG::System:@game_titleI"テストゲーム:ET:@currency_unitI"G;T:@elements[0I"物理;TI"炎;T:@skill_types[0I"魔法;T:@weapon_types[0I"剣;T:@armor_types[0I"鎧;T:@switches[0I"スイッチ;T:@variables[0I"変数;T:@wordso:RPG::System::Words:
+@goldI"	gold;T:@hpI"hp;T:@spI"sp;T:	@strI"str;T:	@dexI"dex;T:	@agiI"agi;T:	@intI"int;T:	@atkI"atk;T:
+@pdefI"	pdef;T:
+@mdefI"	mdef;T:@weaponI"weapon;T:@armor1I"armor1;T:@armor2I"armor2;T:@armor3I"armor3;T:@armor4I"armor4;T:@attackI"attack;T:@skillI"
+skill;T:@guardI"
+guard;T:
+@itemI"	item;T:@equipI"
+equip;T

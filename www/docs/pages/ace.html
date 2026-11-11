@@ -1,0 +1,64 @@
+<h1>RPG Maker VX Ace</h1>
+
+<p>VX Ace is an RGSS3 game: the database and maps are Ruby-marshaled files in the <code>Data</code> folder (<code>.rvdata2</code> extension), the scripts live inside <code>Data/Scripts.rvdata2</code>, and <code>Game.ini</code> names the RGSS3 runtime. SLR Translator converts this data with a bundled Ruby toolchain, so nothing needs to be installed. Start with <a href="#first-project">Your First Translation Project</a> for the general walkthrough.</p>
+
+<div class="note">Recommended workflow: <a href="#glossary">generate a glossary</a> → run the full <a href="#batch">Batch Translation</a> (dialogue is grouped scene-aware automatically via the <a href="#scene-graph">Scene Graph</a>) → review the flagged rows → <a href="#word-wrap">wrap the text automatically</a> → <a href="#first-project/inject">export</a>.</div>
+
+<h2 id="create-project">Creating the project</h2>
+
+<ol>
+	<li>In the wizard, choose <code>RPG Maker XP, VX, Ace, MV &amp; MZ Parser</code> and select the game's executable. <code>rmvxace</code> is detected from <code>Game.ini</code> (see <a href="#engine-detection">Engine Detection</a>).</li>
+	<li>If the game is packed as a <code>Game.rgss3a</code> archive, the wizard forces a development copy — the archive is decrypted into it automatically. See <a href="#encrypted-games">Encrypted &amp; Packed Games</a>.</li>
+	<li>Click <code>Create project!</code>. The data files are unpacked into YAML, the scripts into readable Ruby files, and the project opens in the editor.</li>
+</ol>
+
+<p><img src="../img/act1.png" alt="New Project wizard: selecting the RPG Maker parser for VX Ace" /></p>
+<p><em>Select the RPG Maker parser entry in the wizard.</em></p>
+
+<p><img src="../img/act2.png" alt="New Project wizard: selecting the VX Ace game executable" /></p>
+<p><em>Pick the VX Ace game executable; <code>rmvxace</code> is detected automatically.</em></p>
+
+<p><img src="../img/act3.png" alt="Project creation result with error review" /></p>
+<p><em>After creation: review any reported errors, then close the summary.</em></p>
+
+<p><img src="../img/vxex.png" alt="File structure of a VX Ace game with Game.rgss3a" /></p>
+<p><em>A VX Ace game folder — here with the data packed into <code>Game.rgss3a</code>.</em></p>
+
+<h2 id="what-is-extracted">What parsing extracts</h2>
+
+<ul>
+	<li><strong>Database files</strong> (<code>Actors</code>, <code>Classes</code>, <code>Skills</code>, <code>Items</code>, <code>Weapons</code>, <code>Armors</code>, <code>Enemies</code>, <code>Troops</code>, <code>States</code>, <code>System</code>, <code>CommonEvents</code>, <code>MapInfos</code> and every <code>Map###</code>): names, descriptions, messages, notes, and all event command lists — the same categories as the MV parser. <code>Animations</code> and <code>Tilesets</code> are skipped.</li>
+	<li><strong><code>Game.ini</code></strong>: the window title (which also names the project) and the other INI values.</li>
+	<li><strong>Scripts</strong>: each script section becomes an editable object of Ruby rows; translatable strings inside the script code are registered for translation.</li>
+</ul>
+
+<div class="note">RGSS games were built for Japanese Windows: their files may use legacy encodings. SLR Translator detects and converts encodings automatically — see <a href="#locale">Japanese Locale Configuration</a>.</div>
+
+<h2 id="scripts-and-main-injection">Scripts and the Main injection</h2>
+
+<p>Projects for VX and VX Ace contain a virtual <code>Scripts/!Main Injection</code> object. Whatever Ruby code you type into its translation cell is inserted at the very start of the <code>Main</code> script whenever the scripts are exported or a translation is applied. The placeholder suggests the classic example:</p>
+
+<pre><code>Font.default_size = 16</code></pre>
+
+<p>When the injected code sets <code>Font.default_name</code> to a font <em>file</em> (for example <code>Font.default_name = "MyFont.ttf"</code>), the matching file from SLR Translator's <code>fonts</code> collection folder — or the game's own <code>Fonts</code> folder — is copied into the export's <code>Fonts</code> folder automatically.</p>
+
+<p><img src="../img/act5.png" alt="Editor view reviewing Scripts sections in an RGSS project" /></p>
+<p><em>Reviewing the script sections of an RGSS project in the editor.</em></p>
+
+<h2 id="apply">Applying and exporting</h2>
+
+<p>Press <code>Export Project</code> and choose <code>Export to a folder</code> or <code>Export as a Zip file</code> (see <a href="#first-project/inject">Exporting the translation</a>). The <code>Export Options</code> dialog offers the tagged-rows filter and <strong>Word Wrap By Tag</strong> rules (export-time rules, distinct from the <a href="#word-wrap">Automatic Word Wrapping</a> button). On export, the translated data is written back: YAML is repacked into <code>.rvdata2</code> files, the scripts are recompiled, and <code>Game.ini</code> is rewritten — the original game folder stays untouched.</p>
+
+<p><img src="../img/act4.png" alt="Word wrap settings for an RGSS project" /></p>
+<p><em>Word wrap rules: pick the tags to wrap and the maximum line length.</em></p>
+
+<div class="note">Some protected RGSS games ship an encrypted <code>Data/main.rvdata2</code> script container. It is extracted with the bundled TES patcher during parsing and rebuilt on export — see <a href="#encrypted-games">Encrypted &amp; Packed Games</a>.</div>
+
+<div class="note">Selecting a row and opening the raw data viewer shows a decoded header (event name, page, command), the unpacked YAML with the row's text highlighted, and a data tree of the file — see <a href="#cell-info-panel/raw-tab">Cell Info Panel</a>.</div>
+
+<h2 id="ace-vs-others">Compared with other engines</h2>
+
+<ul>
+	<li>VX Ace uses RGSS3 and <code>.rvdata2</code> files; <a href="#vx">VX</a> uses RGSS2 (<code>.rvdata</code>) and <a href="#xp">XP</a> uses RGSS1 (<code>.rxdata</code>) — the translation workflow is identical for all three.</li>
+	<li>Unlike the JSON-based <a href="#mv">MV</a>/<a href="#mz">MZ</a> parsers, the RGSS pipeline converts data through YAML with a bundled Ruby runtime, so creating and applying takes a bit longer.</li>
+</ul>

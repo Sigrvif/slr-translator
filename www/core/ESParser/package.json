@@ -1,0 +1,15 @@
+{
+    "builtin": true,
+    "name": "esparser",
+    "description": "ECMAScript Parser for SLR Translator",
+    "main": "ESParser.js",
+    "homepage": "",
+    "version": "3.073 (Last Related Change)",
+	"icon": "icon.png",
+	"author" : {
+		"name":"",
+		"email": ""
+	},
+	"autoload" : false,
+	"load" : ["ESParser.js"]
+}

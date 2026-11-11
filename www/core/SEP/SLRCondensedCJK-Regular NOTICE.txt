@@ -1,0 +1,10 @@
+SLRCondensedCJK-Regular.ttf (formerly StintUltraCondensed-Unifont.ttf) is a merge
+between Stint Ultra Condensed - Regular and the GNU Unifont.
+As a result both licenses apply:
+UNIFONT LICENSE
+STINT OFL (see "STINT OFL.txt" in this folder)
+
+The merge is a Modified Version under the SIL Open Font License, so per OFL
+condition 3 the internal font name no longer uses the Reserved Font Name
+"Stint Ultra Condensed"; the family name is now "SLR Condensed CJK".
+The original copyright notice is kept in the font's name table.

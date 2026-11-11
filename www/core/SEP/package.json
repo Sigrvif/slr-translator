@@ -1,0 +1,19 @@
+{
+  "builtin": true,
+  "name": "SEP",
+  "title": "SEP",
+  "version": "3.073 (Last Related Change)",
+  "description": "Start a translation project by extracting text from image files with on-device OCR (PP-OCRv6 via ONNX Runtime), now with vertical-text (tategaki) recognition support. Automatically draws the translation on the pictures during export. Fully self-contained and offline — no Python.",
+  "main": "SEP.js",
+  "icon": "icon.png",
+  "optionsDisplay": "tab",
+  "optionsSectionTitle": "SEP",
+  "autoload": false,
+  "load": [
+    "SEP.js"
+  ],
+  "dependencies": {
+    "onnxruntime-node": "^1.27.0",
+    "opentype.js": "^1.3.4"
+  }
+}

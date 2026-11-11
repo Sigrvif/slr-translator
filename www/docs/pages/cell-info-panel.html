@@ -1,0 +1,71 @@
+<h1>Cell Info Panel</h1>
+
+<p>The pane below the grid is the <em>cell info panel</em>: a larger view of the selected row and its editor. It is shown by default and can be hidden with the <code>Toggle Active Cell Info</code> toggle in the editor toolbar. This page documents what it shows; for the grid itself see <a href="#editor-basics">Editor Basics</a>.</p>
+
+<p>The panel has two sides. The left side displays the source material of the selected row on two tabs, <code>Original</code> and <code>Raw</code>; the right side holds the translation editor on the tabs <code>Default translation</code> and <code>Context translation</code> (see <a href="#context-translation">Context Translation</a>).</p>
+
+<h2 id="original-tab">The Original tab — text and romaji</h2>
+
+<p>The <code>Original</code> tab shows the row's original Japanese text with a reading aid: the romaji transcription is rendered above each segment of the text, furigana-style, so the pronunciation of kanji compounds is available at a glance.</p>
+
+<ul>
+	<li>The readings are produced by the bundled MeCab analyzer running locally (through the application's built-in PHP helper) — fully offline, nothing is sent anywhere.</li>
+	<li>Readings are cached, so re-selecting a cell you have visited before is instant.</li>
+	<li>The header line above the text shows the row's info text (for example the speaker the line belongs to — see <a href="#editor-basics/row-header-info">row header info</a>).</li>
+	<li>The small toolbar offers <code>Resize Font</code>, a word-wrapping toggle for non-Japanese text, and <code>Copy original text into current cell</code> — the same thing <kbd>Ctrl+0</kbd> does in the editor (see <a href="#editor-basics">Editor Basics</a>).</li>
+</ul>
+
+<div class="note">For looking up whole words rather than readings, activate the <a href="#rikaikun">Japanese Dictionary Popup</a> and hover the text.</div>
+
+<h2 id="raw-tab">The Raw tab — the source data</h2>
+
+<p>The <code>Raw</code> tab shows where the selected row comes from in the game's original data. What exactly is shown depends on the engine:</p>
+
+<ul>
+	<li><strong>VX, VX Ace and XP projects:</strong> three parts, top to bottom:
+		<ul>
+			<li>a <em>metadata header</em> decoding the row's origin — the file, the event or database entry with its in-game name, the page and command number, and the command type (for example <code>Show Text (bottom, no picture)</code>);</li>
+			<li>a <em>source snippet</em> from the unpacked YAML data with the row's text highlighted and the surrounding commands visible. The line numbers are real, so right-clicking the snippet offers <code>Copy path to clipboard</code>, <code>Open folder</code>, <code>Open with external application</code>, and opening the exact line in <code>VS Code</code> or <code>Notepad++</code>;</li>
+			<li>a collapsible <em>data tree</em> of the whole file, expanded near the row's position. Large binary blobs such as the map tile table are collapsed to placeholders so the tree stays usable.</li>
+		</ul>
+		Rows from <code>Game.ini</code> show the metadata header and the snippet; rows from extracted scripts show the Ruby source snippet with the same right-click options as always.</li>
+	<li><strong>MV and MZ projects:</strong> the same metadata header, then a <em>beautified view</em> of the original JSON with the row's command highlighted. The view is reformatted for readability, so its line numbers do not match the file on disk — the right-click menu therefore offers <code>Copy path to clipboard</code>, <code>Open folder</code> and <code>Open with external application</code> but no editor jump. Below the snippet the JSON tree of the file is shown, expanded to the row's position. Plugin and script rows show the plain source snippet with full editor jump, as before.</li>
+	<li><strong>SEP projects:</strong> the source image with the row's detected text region highlighted, together with its OCR score — see <a href="#sep">SEP Picture Translation</a>.</li>
+</ul>
+
+<div class="note">Every selection starts the tab at the top, at the metadata header and snippet — scroll down for the data tree.</div>
+
+<h2 id="translation-editor">The translation editor</h2>
+
+<p>The <code>Default translation</code> tab is the main editor for the selected cell — whatever you type here goes into the cell the grid shows. While typing:</p>
+
+<ul>
+	<li>misspelled English words are underlined live by the offline <a href="#spellcheck">spell checker</a>;</li>
+	<li>an autocomplete offers words that already exist in the current file, plus known control codes (enter a backslash <code>\</code> to see them — see <a href="#escape-codes">Escape &amp; Text Codes</a>);</li>
+	<li><kbd>Ctrl+0</kbd> … <kbd>Ctrl+9</kbd> insert the content of grid column 0…9 at the caret.</li>
+</ul>
+
+<h2 id="editor-options">Current Cell Editor options</h2>
+
+<p>The gear button (<code>Current Cell Editor options</code>) on the editor's toolbar opens a small popup with two tabs:</p>
+
+<ul>
+	<li><strong>Markers</strong> — vertical marker lines drawn inside the editor at fixed character positions. For each marker you set the position (<code>Mark at</code>), the unit (<code>Half width character</code> for Latin text, <code>Full width character</code> for Japanese) and a color; <code>Add</code> and <code>Clear all</code> manage the list. Use markers to see where a line will visually end — for example at the wrap length you plan to use.</li>
+	<li><strong>Options</strong> — <code>Enable suggestion</code> turns the autocomplete described above on or off.</li>
+</ul>
+
+<h2 id="emblems">Row emblems</h2>
+
+<p>The strip between the two sides shows small emblems for the selected row:</p>
+
+<table>
+	<tr><th>Emblem</th><th>Meaning</th></tr>
+	<tr><td>comment</td><td>The cell has a comment (searchable — see <a href="#find-replace">Find &amp; Replace</a>).</td></tr>
+	<tr><td>organic content</td><td>The row's translation was written by a human, not produced by a translation engine.</td></tr>
+	<tr><td>visited</td><td>You have visited this cell before (when the visit trail is enabled — see <a href="#editor-basics/row-header-info">Editor Basics</a>).</td></tr>
+	<tr><td>first visit</td><td>This is the first time the cell is visited.</td></tr>
+</table>
+
+<h2 id="navigation">Navigating with coordinates</h2>
+
+<p>Next to the <code>Go to current cell</code> button there is a small coordinate input (title <code>Current coordinate</code>). Type a <code>row,column</code> pair into it — for example <code>120,2</code> — and the grid jumps to that cell. <code>Go to current cell</code> scrolls the grid back to the cell shown in the panel, useful after browsing the raw data or searching.</p>

@@ -1,0 +1,1 @@
+All files inside this folder are not part of the SLR Translator project, and are included solely for user convenience.

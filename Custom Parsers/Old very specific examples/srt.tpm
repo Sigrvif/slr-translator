@@ -1,0 +1,1 @@
+{"files":[{"pattern":"*.srt","rules":[{"type":"regex","pattern":"/\\d.*\\r\\n\\d.*\\r\\n(.+)/gi","captureGroups":"1"}]}]}

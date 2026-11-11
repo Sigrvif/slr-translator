@@ -1,0 +1,1 @@
+{"files":[{"pattern":"*.json","rules":[{"type":"regex","pattern":"/\"([^\"]*?\\\\C[^\"]*?)\"/g","captureGroups":"1"},{"type":"regex","pattern":"/\"([^\"]*?タイトル：[^\"]*?)\"/g","captureGroups":"1"}]}]}

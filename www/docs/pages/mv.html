@@ -1,0 +1,93 @@
+<h1>RPG Maker MV</h1>
+
+<p>MV games are HTML5 applications: the game data is plain JSON inside the <code>www/data</code> folder, scripts and plugins are JavaScript. SLR Translator parses those files directly, without external tools. If you have not created a project yet, start with <a href="#first-project">Your First Translation Project</a>.</p>
+
+<div class="note">Recommended workflow: <a href="#glossary">generate a glossary</a> → run the full <a href="#batch">Batch Translation</a> (dialogue is grouped scene-aware automatically via the <a href="#scene-graph">Scene Graph</a>) → review the flagged rows → <a href="#word-wrap">wrap the text automatically</a> → <a href="#first-project/inject">export</a>.</div>
+
+<h2 id="create-project">Creating the project</h2>
+
+<ol>
+	<li>Open the wizard with <code>Start a New Project</code> and choose <code>RPG Maker XP, VX, Ace, MV &amp; MZ Parser</code>.</li>
+	<li>Under <code>Select the game</code>, pick the game's executable or its <code>index.html</code>. The wizard reports <code>rmmv</code> under <code>Detected engine / type</code> — see <a href="#engine-detection">Engine Detection</a>.</li>
+	<li>Click <code>Create project!</code>. A staging copy of the game data is built, plugins are collected right after creation, and the project opens in the editor.</li>
+</ol>
+
+<p><img src="../img/mvt1.png" alt="New Project wizard: selecting the RPG Maker parser" /></p>
+<p><em>Select the RPG Maker parser entry in the wizard.</em></p>
+
+<p><img src="../img/mvt2.png" alt="New Project wizard: selecting the game executable" /></p>
+<p><em>Pick the MV game executable; the detected type appears automatically.</em></p>
+
+<p><img src="../img/mvt3.png" alt="Project creation result with error review" /></p>
+<p><em>After creation: review any reported errors, then close the summary.</em></p>
+
+<h2 id="what-is-extracted">What parsing extracts</h2>
+
+<p>Every JSON file in <code>www/data</code> is read (except <code>Animations.json</code> and <code>Tilesets.json</code>, which carry no translatable text):</p>
+
+<table>
+	<tr><th>Source</th><th>Extracted text</th></tr>
+	<tr><td><code>Actors.json</code></td><td>Names, nicknames, profiles, notes</td></tr>
+	<tr><td><code>Items.json</code>, <code>Armors.json</code>, <code>Weapons.json</code></td><td>Names, descriptions, notes</td></tr>
+	<tr><td><code>Skills.json</code></td><td>Names, descriptions, usage messages, notes</td></tr>
+	<tr><td><code>States.json</code></td><td>Names, message lines, notes</td></tr>
+	<tr><td><code>Classes.json</code>, <code>Enemies.json</code>, <code>MapInfos.json</code></td><td>Names and notes</td></tr>
+	<tr><td><code>Map###.json</code></td><td>Display names, notes, and every event page's command list: Show Text, Show Choices, Scrolling Text, comments, embedded scripts and plugin commands</td></tr>
+	<tr><td><code>Troops.json</code></td><td>Troop names and page event commands</td></tr>
+	<tr><td><code>CommonEvents.json</code></td><td>All common event command lists</td></tr>
+	<tr><td><code>System.json</code></td><td>Game title, currency unit, type and terms lists, switch and variable names</td></tr>
+	<tr><td>Any other <code>.json</code> in <code>data</code></td><td>Walked generically; every translatable string inside is registered</td></tr>
+</table>
+
+<p>Beyond the data folder, the parser also collects:</p>
+
+<ul>
+	<li><strong>Plugins</strong> — <code>js/plugins.js</code> is parsed as an object (only the <code>parameters</code> strings of each plugin entry become rows), and every enabled plugin file under <code>js/plugins/</code> is opened with the ECMAScript parser so translatable strings inside plugin code can be edited. See <a href="#script-editor">Script Editor</a>.</li>
+	<li><strong>The game font</strong> — the <code>GameFont</code> source URL inside <code>fonts/gamefont.css</code> becomes one editable row (tagged red and <code>font</code>). See Fonts below.</li>
+</ul>
+
+<div class="note">Selecting a row and opening the raw data viewer shows a decoded header (event, page, command), a beautified view of the original JSON with the row's command highlighted, and the JSON tree expanded to its position — useful to see where and how a line is used before translating it. See <a href="#cell-info-panel/raw-tab">Cell Info Panel</a>.</div>
+
+<h2 id="apply">Applying and exporting</h2>
+
+<p>Press <code>Export Project</code> in the toolbar and choose <code>Export to a folder</code> or <code>Export as a Zip file</code> (see <a href="#first-project/inject">Exporting the translation</a>). The <code>Export Options</code> dialog offers:</p>
+
+<ul>
+	<li><strong>What to do with tagged rows?</strong> — exclude rows by color tag from the exported translation (see <a href="#color-tags">Cell Color Tags</a>).</li>
+	<li><strong>Word Wrap By Tag</strong> — add rules of a color tag plus a maximum line length; translated rows with a matching tag are wrapped so long lines fit the game's message windows. These rules are applied at export time and are distinct from the <a href="#word-wrap">Automatic Word Wrapping</a> toolbar button.</li>
+</ul>
+
+<p><img src="../img/mvt5.png" alt="Word Wrap By Tag rules in the export options" /></p>
+<p><em>Word wrap rules: pick the tags to wrap and the maximum line length.</em></p>
+
+<p>The translated files are written into the export target under <code>www/data</code> (and <code>www/js</code> for plugins), pretty-printed unless disabled — audio, images and the executable are not copied, so export into your own game copy.</p>
+
+<p><img src="../img/mvt6.png" alt="Editor view of plugins.js after translation" /></p>
+<p><em>After translation, review <code>plugins.js</code> and the plugin files in the editor before exporting.</em></p>
+
+<h2 id="mv-fonts">Fonts</h2>
+
+<p>MV loads its main font through <code>fonts/gamefont.css</code>. To swap it for a font that fits translated text (for example a condensed one):</p>
+
+<ol>
+	<li>Put the font file into SLR Translator's own <code>fonts</code> collection folder — a condensed font (<code>sucr.ttf</code>) ships with the tool.</li>
+	<li>In the project, open the <code>fonts/gamefont.css</code> object and set the translation of the <code>GameFont</code> row to the font file name.</li>
+	<li>Apply or export. The modified <code>gamefont.css</code> is written into the export's fonts folder, and the font file is copied along automatically when it is found in the collection folder or the game's own <code>fonts</code> folder.</li>
+</ol>
+
+<p><img src="../img/mvfont1.png" alt="MV game fonts folder with a custom font added" /></p>
+<p><em>The game's <code>fonts</code> folder with an added font file.</em></p>
+
+<p><img src="../img/mvfont2.png" alt="Editing gamefont.css to reference the new font" /></p>
+<p><em>The <code>gamefont.css</code> entry referencing the new font file.</em></p>
+
+<div class="note">If the referenced font is found nowhere, the export continues but the game falls back to a default font — the apply log names the missing file.</div>
+
+<h2 id="mv-pitfalls">Pitfalls</h2>
+
+<ul>
+	<li><strong>Encrypted data files:</strong> some protected MV games replace the JSON files with encrypted containers. They are decrypted automatically when the encryption parameters can be read from the game's own scripts — see <a href="#encrypted-games">Encrypted &amp; Packed Games</a>. Files that cannot be decrypted are skipped.</li>
+	<li><strong>Encrypted audio and images</strong> (<code>.rpgmvo</code>, <code>.rpgmvm</code>, <code>.rpgmvp</code>) are not needed for text translation and are copied along untouched.</li>
+	<li><strong>Plugin parameters</strong> often contain settings, not prose. Translate them carefully; the color tags help you skip unsafe rows.</li>
+	<li><strong>Text codes</strong> inside message text (like text color or variable codes) must survive translation — see <a href="#escape-codes">Escape &amp; Text Codes</a>.</li>
+</ul>

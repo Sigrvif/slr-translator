@@ -1,0 +1,71 @@
+<h1>FAQ &amp; Tips</h1>
+
+<p>Short answers to common questions, each with a link to the page that covers the topic in depth. The documentation ships inside the application — press <code>F1</code> in the main window to open it at any time.</p>
+
+<h2 id="getting-started">Getting started</h2>
+
+<h3>Where do I start?</h3>
+<p>Create a new project, point it at the game executable, wait for parsing, then <a href="#glossary">generate a glossary</a> and run the full <a href="#batch">Batch Translation</a>, reviewing flagged rows afterwards. The whole walkthrough, including wrapping and exporting the translation, is on <a href="#first-project">Your First Translation Project</a>.</p>
+
+<h3>Which translation engine should I use?</h3>
+<p>A local Sugoi server or a local DSLR endpoint (LM Studio, KoboldCPP, Ollama) keeps everything offline; online OpenAI-compatible APIs work too but send text out of your machine. The trade-offs and setup steps are in <a href="#translator-setup">Translator Setup</a> and <a href="#engines-overview">Options Overview</a>.</p>
+
+<h3>Always create a backup of the game before patching it</h3>
+<p>Exporting a translation produces translated data files meant to replace the originals in your game copy — keep a pristine backup before you copy them in, and let SLR Translator back up your project file on every save (enabled by default in <a href="#general-settings">General Settings</a>). See also the warning in <a href="#first-project">Your First Translation Project</a>.</p>
+
+<h2 id="editing">Editing and the grid</h2>
+
+<h3>Why is only one of my translations used per row?</h3>
+<p>By design: on export and apply, the <strong>rightmost non-empty cell</strong> of a row wins. The columns form a workflow — machine translation first, corrections to its right — so a correction always overrides the generated text without deleting it. Details in <a href="#editor-basics">Editor Basics</a>.</p>
+
+<h3>A dialog says problematic cells were found — what now?</h3>
+<p>Open Find (<code>Ctrl+F</code>) and search for the text <code>SHISAYE</code>. Every hit is a row whose translation lost or broke something the game needs (control codes, placeholders, quotes). The <a href="#errors">Error Codes</a> page lists every code with its cause and fix.</p>
+
+<h3>What do the colored strips on the rows mean?</h3>
+<p>They are tags that record how safe a row is to translate and what the tools did with it — the batch translator and export filters read them. The full legend is in <a href="#color-tags">Cell Color Tags</a>.</p>
+
+<h2 id="games-and-engines">Games and engines</h2>
+
+<h3>The translated game shows boxes or garbled text, or crashes on startup</h3>
+<p>Two usual suspects: your system locale when <em>playing</em> the translated game (parsing and translation themselves are locale-safe — see <a href="#locale">Japanese Locale Configuration</a>), and fonts: English text needs more room than Japanese at the same size, so menus overflow or break. The font steps per engine are in <a href="#mv">RPG Maker MV</a> and <a href="#mz">RPG Maker MZ</a>.</p>
+
+<h3>Why does my translated text overflow the message window?</h3>
+<p>Japanese windows fit far more Japanese characters than English words at the same width. Run <a href="#word-wrap">Automatic Word Wrapping</a> after translating so lines are re-broken to fit, and consider a more condensed font for the game (see the font sections of <a href="#mv/mv-fonts">RPG Maker MV</a> and <a href="#mz/mz-fonts">RPG Maker MZ</a>).</p>
+
+<h3>The game folder has no readable data files</h3>
+<p>RGSS archives (<code>.rgss3a</code> and friends) and Enigma Virtual Box packed executables are decrypted and unpacked automatically during project creation. See <a href="#encrypted-games">Encrypted &amp; Packed Games</a>.</p>
+
+<h3>Can I translate the Linux version of an MV/MZ game?</h3>
+<p>Yes. Linux ports keep the same <code>data</code> and <code>js</code> folders as the Windows release, so both the Windows and the Linux edition of SLR Translator parse them: select the port's <code>nw</code> / <code>Game</code> binary or its <code>start.sh</code> launcher instead of <code>Game.exe</code> in the project wizard. Export or inject works the same way.</p>
+
+<h3>A script bit keeps getting broken during translation</h3>
+<p>That is the <code>Aggressive Splitting</code> patterns deciding where text may be split — add an entry for the fragment so it is never cut mid-code. See <a href="#custom-parsers">Custom Parsers &amp; Model Creator</a>; the background on what the codes are is in <a href="#escape-codes">Escape &amp; Text Codes</a>.</p>
+
+<h3>Names and terms are translated inconsistently</h3>
+<p>Run the glossary extractor before batch translating: it collects recurring names and terms so you can fix one translation per term, which the batch then applies everywhere. See <a href="#glossary">Glossary Extractor</a>.</p>
+
+<h2 id="tips">Tips</h2>
+
+<h3>Regex is your friend</h3>
+<p>Regular expressions look intimidating but save hours of tedious fixes — mass-rename terms, strip artifacts, or filter rows by pattern. See <a href="#find-replace">Find &amp; Replace</a>.</p>
+
+<h3>Use the context translation for tricky lines</h3>
+<p>For lines whose meaning depends on surrounding dialogue, translate the selection with context so the model sees the neighboring rows. See <a href="#context-translation">Context Translation</a>.</p>
+
+<h3>Check the spell checker before exporting</h3>
+<p>The offline English spell checker sweeps the translation columns and catches the typos bulk editing introduces. See <a href="#spellcheck">Spell Checking</a>.</p>
+
+<h2 id="housekeeping">Housekeeping</h2>
+
+<h3>Does SLR Translator need an internet connection?</h3>
+<p>The editor, parsing, OCR, spell checking and documentation are fully offline. Only the translation engine talks to the network, and with a local engine server even that stays on your machine. See <a href="#overview">Overview &amp; Requirements</a>.</p>
+
+<h3>Where are my project, backups and logs stored?</h3>
+<p>The project is a single <code>.slrproj</code> file you choose when saving; its automatic backups (<code>.1.bak</code>, <code>.2.bak</code>…) sit next to it. Logs go to <code>data/logs/</code>, and the working copy of game data lives in the staging directory — all locations are covered in <a href="#general-settings">General Settings</a>.</p>
+
+<h3>Where are the app settings stored?</h3>
+<p>Everything lives inside the app folder, so SLR Translator stays fully portable: your preferences are saved to <code>data/config.json</code>, and the browser profile that holds the remaining UI state (spell-check dictionaries, caches, crash reports) is kept in <code>data/profile/</code>. The app never writes to <code>~/.config</code> (Linux).</p>
+<p>One small inert exception exists on Windows: the browser engine's built-in crash reporter is hard-wired to <code>%LOCALAPPDATA%&lt;app name&gt;\User Data</code> and offers no setting to relocate it. That folder only stores crash diagnostics (about 1&nbsp;MB, written on a crash) — never settings, projects or translations — and can be deleted safely whenever the app is closed.</p> Because the profile is per-installation, copying the app folder to another machine or user account carries the settings with it; deleting the folder leaves nothing behind. Note that launching the executable from a different working directory is not supported: the relative <code>data/</code> paths are resolved from the app folder, so always start it in place (double-clicking the executable, or <code>SLR Translator.sh</code> on Linux).</p>
+
+<h3>How do I get help, or report a problem?</h3>
+<p>Press <code>F1</code> — the full documentation is bundled and searchable offline. If something is actually broken, report it (with the log file — see <a href="#general-settings">General Settings</a> for where logs live); problems that are never reported are problems that never get fixed. The distribution channels are listed in <a href="#about">About, Credits &amp; License</a>.</p>

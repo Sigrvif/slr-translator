@@ -1,0 +1,47 @@
+<h1>RPG Maker VX</h1>
+
+<p>VX is an RGSS2 game and follows the exact same pipeline as VX Ace: the data is Ruby-marshaled in the <code>Data</code> folder (with the <code>.rvdata</code> extension), the scripts live in <code>Data/Scripts.rvdata</code>, and <code>Game.ini</code> names the RGSS2 runtime. Read <a href="#ace">RPG Maker VX Ace</a> first — this page only lists what is specific to VX.</p>
+
+<div class="note">Recommended workflow: <a href="#glossary">generate a glossary</a> → run the full <a href="#batch">Batch Translation</a> (dialogue is grouped scene-aware automatically via the <a href="#scene-graph">Scene Graph</a>) → review the flagged rows → <a href="#word-wrap">wrap the text automatically</a> → <a href="#first-project/inject">export</a>.</div>
+
+<h2 id="create-project">Creating the project</h2>
+
+<ol>
+	<li>In the wizard, choose <code>RPG Maker XP, VX, Ace, MV &amp; MZ Parser</code> and select the game's executable. <code>rmvx</code> is detected from the <code>RGSS2</code> entry in <code>Game.ini</code> (see <a href="#engine-detection">Engine Detection</a>).</li>
+	<li>If the game is packed as a <code>Game.rgss2a</code> archive, the wizard forces a development copy and decrypts the archive into it — see <a href="#encrypted-games">Encrypted &amp; Packed Games</a>.</li>
+	<li>Click <code>Create project!</code>.</li>
+</ol>
+
+<p><img src="../img/vxt1.png" alt="New Project wizard: selecting the RPG Maker parser for VX" /></p>
+<p><em>Select the RPG Maker parser entry in the wizard.</em></p>
+
+<p><img src="../img/vxt2.png" alt="New Project wizard: selecting the VX game executable" /></p>
+<p><em>Pick the VX game executable; <code>rmvx</code> is detected automatically.</em></p>
+
+<p><img src="../img/vxt3.png" alt="Project creation result with error review" /></p>
+<p><em>After creation: review any reported errors, then close the summary.</em></p>
+
+<p><img src="../img/aceex.png" alt="File structure of a VX game with Game.rgss2a" /></p>
+<p><em>A VX game folder — here with the data packed into <code>Game.rgss2a</code>.</em></p>
+
+<h2 id="vx-specifics">VX specifics</h2>
+
+<ul>
+	<li><strong>Data files:</strong> the same database set as VX Ace, with the <code>.rvdata</code> extension (<code>Actors.rvdata</code>, <code>Map###.rvdata</code>, and so on). Names, descriptions, messages, notes and event command lists are extracted; <code>Animations</code> and <code>Tilesets</code> are skipped.</li>
+	<li><strong>Scripts:</strong> parsed into editable Ruby objects, and the virtual <code>Scripts/!Main Injection</code> object is available exactly as on VX Ace — including automatic font shipping for <code>Font.default_name</code> file assignments.</li>
+	<li><strong>Encoding:</strong> Japanese VX games often use legacy encodings; the tool converts them transparently — see <a href="#locale">Japanese Locale Configuration</a>.</li>
+</ul>
+
+<p><img src="../img/act5.png" alt="Editor view reviewing Scripts sections in an RGSS project" /></p>
+<p><em>Reviewing the script sections of an RGSS project in the editor.</em></p>
+
+<h2 id="apply">Applying and exporting</h2>
+
+<p>Identical to VX Ace: <code>Export Project</code> → <code>Export to a folder</code> or <code>Export as a Zip file</code>, with the tagged-rows filter and <strong>Word Wrap By Tag</strong> rules (export-time rules, distinct from the <a href="#word-wrap">Automatic Word Wrapping</a> button) in the <code>Export Options</code> dialog; on export the translated YAML is repacked into <code>.rvdata</code> files and the scripts are recompiled — see <a href="#ace/apply">RPG Maker VX Ace: Applying and exporting</a>.</p>
+
+<p><img src="../img/act4.png" alt="Word wrap settings for an RGSS project" /></p>
+<p><em>Word wrap rules: pick the tags to wrap and the maximum line length.</em></p>
+
+<div class="note">Some protected RGSS games ship an encrypted <code>Data/main.rvdata</code> script container. It is extracted with the bundled TES patcher during parsing and rebuilt on export — see <a href="#encrypted-games">Encrypted &amp; Packed Games</a>.</div>
+
+<div class="note">Selecting a row and opening the raw data viewer shows a decoded header (event name, page, command), the unpacked YAML with the row's text highlighted, and a data tree of the file — see <a href="#cell-info-panel/raw-tab">Cell Info Panel</a>.</div>

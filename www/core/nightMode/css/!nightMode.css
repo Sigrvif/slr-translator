@@ -1,0 +1,577 @@
+html {
+	filter: invert(92%);
+}
+
+/* Give the window a dark base background, so the canvas is dark rather than
+   following the OS theme (light on Windows, dark on a dark Linux desktop) or
+   showing white in any sliver of window surface exposed during a resize.
+   This is the right value for windows where only <body> carries the class:
+   there the background propagates to the canvas, which the html-level filter
+   does NOT invert, so it really renders as authored (dark). */
+.nightMode {
+	background-color: #1b1b1b;
+}
+
+/* Windows that include nightModeEarly.js carry the class on <html> as well.
+   There the background paints INSIDE the html-level invert(92%), so it must be
+   authored light to render dark (#fff -> about #141414); authored dark it
+   rendered near-white in every exposed sliver. It also broke the Find
+   window's unfocused dim (find.js sets body{opacity:.7} on blur): blending the
+   page 30% toward a dark-authored background darkens the pre-invert colours,
+   which the inversion then renders BRIGHTER, hazing the whole window light
+   grey. Blended toward a light-authored background the same dim renders
+   subtly darker, matching the light theme's behaviour. */
+html.nightMode,
+html.nightMode body {
+	background-color: #ffffff;
+}
+
+/* Double invert to revert to normal */
+
+/* Text selection is inverted once by the page's invert(92%) on ordinary
+   elements, so it takes an inverse (invert of the light-mode blue). */
+.nightMode ::selection {
+    background: #b47600;
+    text-shadow: 1px 1px 1px #ffffffaa;
+    color: #000;
+}
+
+/* Open <select> dropdown lists. Chromium paints the popup as its own widget, outside the
+   page's filter chain, so it stayed white while the rest of the window was dark. These
+   colours are therefore authored as the FINAL ones, not as an inverse of what we want to
+   see: unlike everything else in this file they are not passed through invert(92%). */
+.nightMode select option,
+.nightMode select optgroup {
+    background-color: #262626;
+    color: #e6e6e6;
+}
+.nightMode select option:checked {
+    background-color: #3d4a5c;
+    color: #ffffff;
+}
+
+/* Inline multi-select list boxes (the "Target column" pickers of Auto Padding
+   / Trim, the context selectors of Wrap / Context Tool) are painted INSIDE the
+   page inversion - unlike the open dropdown popup above - so those final
+   colours invert again (light list, dark text), and the focused row painted by
+   the UA (a system blue behind an !important rule that author CSS cannot
+   override, see trans.css ::selection history) turned orange. invert(100%) on
+   the select re-inverts the whole listbox: the authored option colours then
+   behave like ordinary page content (dark list, light text) and the UA's blue
+   focused row survives the double inversion as blue. */
+.nightMode select[multiple] {
+    filter: invert(100%);
+}
+
+/* Raw tab (RawViewer + Prism + JSONEditor). Their palettes are authored for
+   the light theme or for a dark editor surface; the page inversion turns the
+   accents orange and the syntax colours purple. Author the inverse of the
+   colour we want to SEE, so it renders correctly under invert(92%). */
+.nightMode #previewRawData .rawViewerWarn { color: #2d58f0; }      /* gold */
+.nightMode #previewRawData a { color: #b2754d; }                   /* link blue */
+.nightMode #previewRawData .rawMetaBlock { border-left-color: #b2754d; }
+.nightMode #previewRawData .rawTreeToggle { color: #b2754d; }
+.nightMode #previewRawData .token.comment,
+.nightMode #previewRawData .token.block-comment,
+.nightMode #previewRawData .token.prolog,
+.nightMode #previewRawData .token.doctype,
+.nightMode #previewRawData .token.cdata { color: #6a6a6a; }
+.nightMode #previewRawData .token.punctuation { color: #3f3f3f; }
+.nightMode #previewRawData .token.tag,
+.nightMode #previewRawData .token.attr-name,
+.nightMode #previewRawData .token.namespace,
+.nightMode #previewRawData .token.deleted { color: #2d8784; }
+.nightMode #previewRawData .token.function-name { color: #996d3f; }
+.nightMode #previewRawData .token.boolean,
+.nightMode #previewRawData .token.number,
+.nightMode #previewRawData .token.function { color: #2174ad; }
+.nightMode #previewRawData .token.property,
+.nightMode #previewRawData .token.class-name,
+.nightMode #previewRawData .token.constant,
+.nightMode #previewRawData .token.symbol { color: #1a45a3; }
+.nightMode #previewRawData .token.selector,
+.nightMode #previewRawData .token.important,
+.nightMode #previewRawData .token.atrule,
+.nightMode #previewRawData .token.keyword,
+.nightMode #previewRawData .token.builtin { color: #3f6a3e; }
+.nightMode #previewRawData .token.string,
+.nightMode #previewRawData .token.char,
+.nightMode #previewRawData .token.attr-value,
+.nightMode #previewRawData .token.regex,
+.nightMode #previewRawData .token.variable { color: #81446a; }
+.nightMode #previewRawData .token.operator,
+.nightMode #previewRawData .token.entity,
+.nightMode #previewRawData .token.url { color: #943e3f; }
+/* JSONEditor tree values: render as readable light-on-dark. */
+.nightMode #previewRawData div.jsoneditor-value.jsoneditor-string { color: #5b054f; }
+.nightMode #previewRawData div.jsoneditor-value.jsoneditor-number { color: #005b71; }
+.nightMode #previewRawData div.jsoneditor-value.jsoneditor-boolean { color: #002475; }
+.nightMode #previewRawData div.jsoneditor-value.jsoneditor-null { color: #712900; }
+/* Keep text readable where it sits on the blue .highlight background. */
+.nightMode #previewRawData .highlight { color: #ffffff !important; }
+
+/* The loading and intro overlays are authored dark. Their backdrop-filter was
+   removed because it stopped whatever was behind them from being inverted,
+   which broke night-mode colours (a selected file row came out orange). With
+   the page invert now applying to them, counter-invert them to keep the dark
+   look. */
+.nightMode #loadingOverlay,
+.nightMode #introWindow {
+    filter: invert(100%);
+}
+
+/* Selection does NOT follow the ordinary rule inside elements that carry their
+   own `filter` (.infoBlock, .warningBlock, the overlays, the Default
+   translation textarea #currentCellText): the paint is inverted TWICE there -
+   once by the element's own filter, once by the page's invert(92%) - so author
+   the final colour. #4b89ff then renders as the same night blue (#5387eb) the
+   generic rule produces on unfiltered content; the generic #b47600, doubled,
+   would come out orange (it did, in the Default translation textarea). */
+.nightMode .infoBlock ::selection,
+.nightMode .warningBlock ::selection,
+.nightMode .handsontable th ::selection,
+.nightMode .htItemWrapper .tag ::selection,
+.nightMode #loadingOverlay ::selection,
+.nightMode #introWindow ::selection,
+.nightMode #busyOverlay ::selection,
+.nightMode .statBlock ::selection,
+.nightMode #currentCellText::selection {
+    background: #4b89ff;
+    text-shadow: 1px 1px 1px #000000aa;
+    color: #fff;
+}
+
+/* HOT */
+
+.nightMode .handsontable th {
+    background-color: #101010;
+    color: #EEE;
+    text-align: center;
+    font-weight: 400;
+    white-space: nowrap;
+	filter: invert(100%);
+	
+}
+
+.nightMode .handsontable th {
+    border-right: 1px solid #333;
+    border-bottom: 1px solid #333;	
+}
+
+.nightMode .handsontable tbody th.ht__highlight, 
+.nightMode .handsontable thead th.ht__highlight {
+    background-color: #666;
+	color : #fff;
+}
+
+.nightMode .htMenu .htItemWrapper .tag {
+	filter: invert(100%);
+}
+
+.nightMode .handsontable tr:first-child td, 
+.nightMode .handsontable tr:first-child th {
+    border-top: 1px solid #333;
+}
+.nightMode .handsontable .htNoFrame+td, 
+.nightMode .handsontable .htNoFrame+th, 
+.nightMode .handsontable.htRowHeaders thead tr th:nth-child(2), 
+.nightMode .handsontable td:first-of-type, 
+.nightMode .handsontable th:first-child, 
+.nightMode .handsontable th:nth-child(2) {
+    border-left: 1px solid #333;
+}
+
+.nightMode .handsontable th:last-child {
+    border-right: 1px solid #333;
+    border-bottom: 1px solid #333;
+}
+
+.nightMode .handsontable tbody tr th:nth-last-child(2) {
+    border-right: 1px solid #333;
+}
+
+
+.nightMode .fileList .progress {
+    filter: invert(1);
+}
+
+/* The File Properties dialog paints its progress bar as an inline
+   blue-to-red gradient (ui.js openFileProperties), which the page inversion
+   turned yellow. Counter-invert the bar so its authored colours survive,
+   like the file-list progress bar above (the white % label survives too). */
+.nightMode .ui-dialog .translatedPercent {
+    filter: invert(100%);
+}
+
+.nightMode .colorTagSelector {
+	filter: invert(100%);
+}
+
+.ui-dialog .ui-dialog-titlebar-close.ui-state-hover {
+	filter: invert(100%);
+}
+
+
+.nightMode .userPicture {
+	filter: invert(100%);
+}
+
+.nightMode #currentCellText {
+	background: #131313;
+    color: #f9f9f9;
+    filter: invert(1);
+}
+
+.nightMode #currentCellText:read-only {
+	background: #2d2d2d;
+    color: #949494;
+    filter: invert(1);
+}
+
+.nightMode .panel-left .fileList .group-header {
+	background: #333333;
+}
+
+.nightMode .toolbar {
+	background: #f7f7f7;	
+}
+
+.nightMode .toolbar .menu-button:hover {
+	background: linear-gradient(to bottom, #E6E6E6 0%,#f6f6f6 47%,#ffffff 100%);
+}
+/* Split toolbar buttons (Save As, Find, grid info, ...) hover via their inner
+   <button>, which has its own higher-specificity rule in trans.css
+   (.toolbar .menu-button.buttonGroup > button:hover). The override above never
+   reached it, so it kept the light-theme blue-grey gradient - an orange-brown
+   after inversion. Re-state it with matching specificity. */
+.nightMode .toolbar .menu-button.buttonGroup > button:hover {
+	background: linear-gradient(to bottom, #E6E6E6 0%,#f6f6f6 47%,#ffffff 100%);
+}
+.nightMode .applicationBar .appBarIcon.appbarIcon-close:hover {
+	
+	background: #17eedc;
+    color: #000;
+}
+
+.nightMode input[type="color"] {
+    filter: invert(100%);
+    background: #111;
+    border-radius: 2px;
+}
+
+/* Native control accents - the tick of a checkbox, the dot of a radio, the fill of a range -
+   are drawn in the OS accent colour, which the page's invert(92%) turns orange. Counter-
+   inverting just those controls keeps their normal look. The custom controls (.flipSwitch,
+   .colorTagSelector) author their own night-safe colours and are excluded.
+   The main editor stylesheet carries the same rule; it is repeated here so windows that do
+   not load it (the runtime status window, Find, the editors) get the same treatment instead
+   of showing an orange tick. */
+.nightMode input[type="range"],
+.nightMode input[type="radio"],
+.nightMode input[type="checkbox"]:not(.flipSwitch):not(.colorTagSelector) {
+    filter: invert(100%);
+}
+
+.nightMode .ui-dialog.ui-widget {
+    padding: 0px;
+    border: 0px solid #fff;
+    box-shadow: 6px 6px 5px 0px rgb(255 255 255 / 50%);
+}
+
+.nightMode .ui-widget-content {
+    border: 1px solid #dddddd;
+    background: #f1f1f1;
+    color: #989898
+}
+
+/* The New Project dialog's title bar ("Start a new project") is authored light
+   in the base theme; under the page inversion it came out almost white and
+   clashed with the dark dialog. Author it light (like the content above) so it
+   renders dark, with the inherited #333 title text coming out light. */
+.nightMode .ui-dialog .ui-dialog-titlebar {
+    background: #f1f1f1 !important;
+    color: #000000 !important;
+    border-color: #dddddd !important;
+}
+
+/* The close button is part of the same black title-bar design (see
+   modules/jquery-ui/tpp.ver3.css), so it also inverts to white. Author it
+   light so it renders dark, with a light X. */
+.nightMode .ui-dialog .ui-dialog-titlebar-close {
+    background: #f1f1f1 !important;
+    color: #000000 !important;
+}
+.nightMode .ui-dialog .ui-dialog-titlebar-close.ui-state-hover {
+    /* inverse of the light-mode hover red #e81123 so it still renders red */
+    background: #28dccd !important;
+    color: #000000 !important;
+}
+
+.nightMode .panel-left .fileList .group-header {
+    color: #424242;
+    background: #e2e2e2;
+    position: sticky;
+    font-weight: bold;
+    padding-left: 4px;
+    display: block;
+    top: 0px;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.nightMode .cellInfoTabHeader .tabButtons .tabButton.active {
+    border-top: 2px solid #11ffff;
+}
+
+.nightMode .toolbar.tabsBarTop .menu-button.checked{
+    border-top: 2px solid #11ffff;
+}
+
+.nightMode .context-menu-list {
+    box-shadow: 0 2px 5px rgb(199 199 199 / 50%);
+}
+
+.nightMode .context-menu-item.context-menu-hover {
+    color: #fff;
+    cursor: pointer;
+    background-color: #d67f46;
+}
+
+.nightMode .context-menu-icon::before {
+    color: #d67f46;
+}
+
+/* The right-click highlight ring on file-list rows is authored in trans.css as
+   the final steel blue rgb(41,128,185); under the page inversion it rendered
+   orange. Author the exact inverse so the ring is blue again. */
+.nightMode li.data-selector.context-menu-active {
+    box-shadow: inset 0px 0px 0px 2px #e67f3b;
+}
+
+.nightMode .panel-left li.data-selector.hasCheck {
+    background: #eaddc9;
+}
+
+.nightMode .panel-left input[type=checkbox]:checked {
+    filter: invert(100%);
+}
+
+.nightMode .panel-left li:hover,
+.nightMode .panel-left li.data-selector:hover,
+.nightMode .panel-left li.data-selector.hasCheck:hover {
+    color: #808080;
+    background: #d4d4d4;
+}
+
+/* DragSelect's hover class on file rows. The light lavender #edeeff had no
+   night override (unlike .hasCheck) and rendered as a muddy olive that read as
+   a stale yellow highlight. Author the inverse of the same grey the li:hover
+   override above renders, so an in-drag highlight reads as a hover. */
+.nightMode .panel-left li.data-selector.ds-hover {
+    background: #d4d4d4;
+}
+
+.nightMode [aria-describedby="dialogNewProject"] .dialogSelection img {
+    filter: invert(100%);
+}
+
+/* Images */
+.nightMode .button-translatorplus > img{
+	content:url("/www/core/nightMode/img/icon.png");
+    filter: invert(100%);
+}
+
+.nightMode .menu-button.batch-translate > img{
+	content:url("/www/core/nightMode/img/translate_all.png");
+    filter: invert(100%);
+}
+
+.nightMode .menu-button.button-save-as > img{
+	content:url("/www/core/nightMode/img/save_as.png");
+    filter: invert(100%);
+}
+
+.nightMode .appLogo {
+	content:url("/www/core/nightMode/img/tpp-animated3.svg");
+}
+
+.nightMode .infoBlock {
+    border-radius: .5em;
+    border-top: 3px solid #639bc3;
+    color: #f1f1f1;
+    filter: invert(100%);
+}
+
+.nightMode .infoBlock.withIcon {
+    padding-left: 6em;
+    background: linear-gradient(rgb(109 109 109 / 30%), rgb(0 0 0 / 80%)), url(/www/img/info.png);
+    background-repeat: no-repeat;
+    background-size: auto,100px;
+}
+
+.nightMode .warningBlock {
+    border-radius: .5em;
+    border-top: 3px solid #fff25a;
+    color: #f1f1f1;
+    filter: invert(100%);
+}
+
+.nightMode .warningBlock.withIcon {
+    padding-left: 6em;
+    background: linear-gradient(rgb(109 109 109 / 30%), rgb(0 0 0 / 80%)), url(/www/img/warning.png);
+    background-repeat: no-repeat;
+    background-size: auto,100px;
+}
+
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
+    border: 1px solid #d67f46;
+    background: #acac0f;
+    font-weight: normal;
+    color: #ffffff;
+}
+
+.ui-menu.ui-widget {
+    box-shadow: 6px 6px 2px -4px rgb(247 247 247 / 50%);
+    min-width: 160px;
+}
+
+#currentRomaji > div.tbl span i {
+    color: #acac0f;
+}
+
+
+.nightMode .cellInfoPartsB .currentCellTextCtrl > button, 
+.nightMode .cellInfoPartsA .cellInfoCtrl > button {
+    background: linear-gradient(to bottom, #ffffff 0%,#f3f3f3 50%,#ededed 51%,#ffffff 100%);
+}
+
+/* The Find tab's matched-term chips sit inside .resultItem>div, which find.css
+   puts its own filter:invert(100%) on. Together with the page inversion the
+   chip paint is inverted TWICE, so authored colours come out as-authored:
+   author the final colours here. #4b89ff then renders as the same night blue
+   as the rest of the theme; the previous #acac0f (authored for a single
+   inversion) came out olive-yellow. */
+.nightMode[data-window="find"] .searchResult .resultContext .resultItem .highlight {
+    background: #4b89ff;
+    color: #ffffff;
+}
+
+/* The jumped-to result ("click to go") is marked .selected with the light-theme
+   lavender #dad8fb on the <li> itself (single page inversion), which rendered
+   as a muddy olive that read as a stale yellow highlight. Author the inverse
+   of the app's selection blue so it renders like the selected file rows. */
+.nightMode[data-window="find"] .searchResult .resultContext .resultItem.selected {
+    background: #d89f5a;
+}
+
+.nightMode[data-window="find"] .ui-state-active, 
+.nightMode[data-window="find"] .ui-widget-content .ui-state-active, 
+.nightMode[data-window="find"] .ui-widget-header .ui-state-active{
+    border: 1px solid #003eff;
+    background: #007fff;
+	filter: invert(100%);
+}
+.nightMode[data-window="find"] [type="checkbox"] {
+    filter: invert(100%);
+
+}
+
+.nightMode[data-window="find"] .application-menu-button {
+    color: #fff;
+    filter: invert(100%);    
+}
+
+.nightMode[data-window="find"] .application-menu-button:hover {
+    color: #fff;
+    background-color: #666;
+    filter: invert(100%);    
+}
+
+.nightMode[data-window="find"] .application-close-button {
+    color: #fff;
+    filter: invert(100%);
+}
+.nightMode[data-window="find"] .application-close-button:hover {
+    filter: invert(100%);
+}
+
+/* EXCEPTIONS */
+.nightMode .noInvert,
+.nightMode #introWindow,
+.nightMode #busyOverlay,
+.nightMode #loadingOverlay,
+.nightMode .ace_editor.ace-monokai.ace_dark,
+.nightMode .statBlock,
+.nightMode .flipSwitch,
+.nightMode .uiTagsWrapper,
+.nightMode .ui-tabs-active.ui-state-active
+{
+	filter: invert(100%);
+}
+
+/* addons */
+.nightMode .addonsAction .icon-toggle-on,
+.nightMode .addonsIcon
+{
+	filter: invert(100%);
+}
+
+/* Raw tab: Prism's dark backgrounds (#2d2d2d) get inverted to light by the
+   html-level filter:invert(92%). Since filter:invert(100%) on children doesn't
+   reliably double-invert, use the same approach as the blank background:
+   set LIGHT backgrounds + DARK text (!important) so the html invert produces
+   dark background + light text. Token colors on .token spans are NOT overridden
+   — they invert naturally to visible dark variants. */
+.nightMode #previewRawData {
+	background: #f5f5f5 !important;
+}
+.nightMode #previewRawData pre[class*="language-"],
+.nightMode #previewRawData code[class*="language-"],
+.nightMode #previewRawData .snippetData,
+.nightMode #previewRawData .snippetWrapper {
+	background: #f5f5f5 !important;
+	color: #333 !important;
+}
+.nightMode #previewRawData .snippetInfo {
+	background: #f0f0f0 !important;
+	color: #333 !important;
+}
+
+/* Context translation tab: its inner Handsontable (.wtHolder) has no explicit
+   background, so the browser default (white) shows. Set a light background
+   that inverts to dark via the html filter. */
+.nightMode #contextTranslation,
+.nightMode #contextTranslation .wtHolder,
+.nightMode #contextTranslation .handsontable {
+	background: #f5f5f5 !important;
+}
+
+/* Engine option section legends and the glossary editor table header are
+   authored dark for the light theme (legend[aria-expanded] #111/#f1f1f1 in
+   bootstrapparts.css; the glossary thead #333/white in GlossaryExtractor.js),
+   so the page inversion turned them near-white. Author the inverse so they
+   render dark under invert(92%). */
+.nightMode legend[aria-expanded] {
+	background: #dadada;
+	color: #000000;
+}
+.nightMode .slrGlossaryThead {
+	background: #dadada !important;
+	color: #000000 !important;
+}
+
+/* The glossary editor window authors a dark drop shadow (rgba(0,0,0,0.3))
+   which the inversion turns into a bright halo. Author a light shadow instead
+   so it renders as the dark shadow it is meant to be. */
+.nightMode .slrGlossaryWindow {
+	box-shadow: 0 4px 24px rgba(255, 255, 255, 0.22) !important;
+}
+
+/* File-list % badges are authored dark (#111/#eee, with light hover/selected
+   variants) for the light theme, so the page inversion turned the normal badge
+   near-white and only the hovered/selected one dark. Counter-invert the badge
+   so its authored dark/light scheme is preserved (the sibling .progress bar
+   already does this above). */
+.nightMode .panel-left li.data-selector span.percent {
+	filter: invert(100%);
+}

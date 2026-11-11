@@ -1,0 +1,23 @@
+{
+	"builtin": true,
+	"name": "rmrgss",
+	"title": "RMRGSS",
+	"description": "Utility for RGSS Based RPG Maker engines (RM XP, RM VX, VX Ace)",
+	"optionsDisplay": "hidden",
+	"main": "rmrgss.js",
+	"homepage": "",
+	"version": "3.076 (Last Related Change)",
+	"icon": "icon.png",
+	"author": {
+		"name": "Shisaye"
+	},
+	"autoload": false,
+	"load": [
+		"rmrgss.js"
+	],
+	"dependencies": {
+		"js-yaml": "^4.1.0",
+		"prismjs": "^1.29.0",
+		"yaml": "^1.10.2"
+	}
+}

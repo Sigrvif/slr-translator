@@ -1,0 +1,17 @@
+{
+	"builtin": true,
+	"name": "spellchecker",
+	"title": "Spell Checker",
+	"description": "Offline spell checking (English, en-US) for the cell text editor.",
+	"main": "main.js",
+	"version": "3.073 (Last Related Change)",
+	"author": {
+		"name": "Shisaye"
+	},
+	"autoload": true,
+	"optionsDisplay": "general",
+	"optionsSectionTitle": "Spell Checker",
+	"load": [
+		"main.js"
+	]
+}

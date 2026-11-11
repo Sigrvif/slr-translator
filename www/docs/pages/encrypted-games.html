@@ -1,0 +1,65 @@
+<h1>Encrypted &amp; Packed Games</h1>
+
+<p>Japanese RPG Maker games are often distributed in a protected form. SLR Translator handles the common protections during project creation, so the translation workflow itself stays the same. This page describes what happens for each kind of protection.</p>
+
+<h2 id="rgss-archives">Packed RGSS archives (XP, VX, VX Ace)</h2>
+
+<p>RPG Maker XP, VX and VX Ace games can pack the whole <code>Data</code> folder into a single archive next to the executable:</p>
+
+<table>
+	<tr><th>Archive</th><th>Engine</th></tr>
+	<tr><td><code>Game.rgss3a</code></td><td>RPG Maker VX Ace</td></tr>
+	<tr><td><code>Game.rgss2a</code></td><td>RPG Maker VX</td></tr>
+	<tr><td><code>Game.rgssad</code></td><td>RPG Maker XP</td></tr>
+</table>
+
+<p>When the wizard finds one of these, it enables <code>Create a development copy</code> marked <code>(required)</code> and you pick a <code>Set development directory</code>. After confirming the copy, the tool:</p>
+
+<ol>
+	<li>Copies the complete game into a <code>&lt;Game&gt; Unpacked</code> folder inside your development directory.</li>
+	<li>Decrypts every RGSS archive in that copy with the bundled decrypter command line tool, writing the extracted files back into the copy.</li>
+	<li>Removes the archive files from the copy, leaving an editable, unpacked game.</li>
+</ol>
+
+<p>The project is then created from the unpacked copy; the original packed game is never modified.</p>
+
+<div class="note">Choose the development directory outside the original game folder. A development copy inside the game's own directory causes problems when you later apply a translation into it — the wizard rejects such paths.</div>
+
+<h2 id="enigma">Enigma Virtual Box executables</h2>
+
+<p>Some games ship as a single executable packed with Enigma Virtual Box. Detection recognizes these executables by their <code>.enigma1</code> and <code>.enigma2</code> header sections, regardless of engine.</p>
+
+<p>For a packed executable the wizard also forces a development copy. After you confirm, the built-in unpacker extracts the embedded files into your development directory with a progress report, then the tool:</p>
+
+<ol>
+	<li>Finds the real game folder inside the extracted files.</li>
+	<li>Runs engine detection again on that folder.</li>
+	<li>Creates the project from the unpacked game.</li>
+</ol>
+
+<p>The unpacker is built into SLR Translator and works on Windows and Linux — no external unpacking tool is needed.</p>
+
+<h2 id="mv-mz-data-protection">Encrypted MV/MZ data files</h2>
+
+<p>Protection tools for MV and MZ can replace the JSON files in <code>data/</code> with encrypted containers. The parser recognizes these containers and:</p>
+
+<ul>
+	<li>Detects the encryption parameters automatically by reading the game's own script files (<code>rpg_managers.js</code> for MV, <code>rmmz_managers.js</code> for MZ), including WebAssembly-based variants.</li>
+	<li>Decrypts each file for parsing, and re-encrypts the translated files with the same parameters on export, so the applied copy keeps the game's original protection.</li>
+	<li>Skips files it cannot decrypt.</li>
+	<li>Feeds the decrypted data to the <a href="#scene-graph">Scene Graph</a> as well, so scene-aware batch translation and scene context work for protected MV/MZ games too.</li>
+</ul>
+
+<div class="note">Encrypted MV audio and images (<code>.rpgmvo</code>, <code>.rpgmvm</code>, <code>.rpgmvp</code> for MV; <code>.ogg_</code>, <code>.m4a_</code>, <code>.png_</code> for MZ) are irrelevant to text translation — they are copied along untouched. For translating text inside encrypted pictures, see <a href="#sep">SEP Picture Translation</a>.</div>
+
+<h2 id="tes-scripts">Encrypted RGSS script containers (TES)</h2>
+
+<p>Some protected RGSS games move their scripts into an encrypted <code>Data/main</code> data file (<code>main.rvdata2</code>, <code>main.rvdata</code> or <code>main.rxdata</code>, depending on the engine). When such a file is present, its contents are extracted with the bundled TES patcher during parsing, appear in the project like regular script files, and are rebuilt into the encrypted container when you export or apply the translation.</p>
+
+<h2 id="safety">Working safely</h2>
+
+<ul>
+	<li>All unpacking and decryption happens in the development copy or the staging area — keep the original distribution files untouched as your backup.</li>
+	<li>Before applying a translation into a directory, make sure it does not hold your only copy of the game.</li>
+	<li>Keep an eye on the progress log during project creation and apply: unpacking, decryption and repack steps are reported there, and errors offer to open the page for your game's engine.</li>
+</ul>

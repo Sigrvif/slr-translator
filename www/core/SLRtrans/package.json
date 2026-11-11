@@ -1,0 +1,25 @@
+{
+    "builtin": true,
+    "name": "SLR Engine Wrapper",
+    "title": "SLR",
+    "description": "Translation Engine.",
+    "version": "3.079 (Last Related Change)",
+    "icon": "icon.ico",
+    "author": {
+        "name": "Shisaye"
+    },
+    "homepage": "",
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "dependencies": {
+        "mtl-text-processor": "^0.7.0",
+        "module-alias": "^2.2.2"
+    },
+    "main": "lib/Main.js",
+    "autoload": false,
+    "load": [
+        "lib/Main.js"
+    ]
+}

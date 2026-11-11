@@ -1,0 +1,17 @@
+{
+    "builtin": true,
+    "name": "nightmode",
+	"title":"Night Mode",
+    "description": "Night mode for SLR Translator",
+    "optionsDisplay": "general",
+    "optionsSectionTitle": "Appearance",
+    "main": "main.js",
+    "homepage": "",
+    "version": "3.073 (Last Related Change)",
+	"icon": "icon.png",
+	"author" : {
+		"name":"Shisaye",
+		"email": ""
+	},
+	"autoload" : true
+}

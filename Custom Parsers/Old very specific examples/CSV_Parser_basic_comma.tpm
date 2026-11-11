@@ -1,0 +1,1 @@
+{"files":[{"pattern":"*.csv","rules":[{"type":"regex","pattern":"/(?<=^|,)([^,]*?[一-龠ぁ-ゔァ-ヴー々〆〤ヶﾚﾃﾞｨﾌｧｲｯ][^,]*?)(?=$|,)/gm","captureGroups":"1"}]}]}

@@ -1,0 +1,97 @@
+<h1>Automation Editor</h1>
+
+<p>The Automation Editor is the Script Editor window in <em>automation mode</em>: you write the body of a JavaScript function once, and SLR Translator executes it for every file, row or cell of the open project — batch-processing work that would be unbearably repetitive by hand. Scripts are plain <code>.js</code> files stored on disk, so they can be reused across projects and shared.</p>
+
+<h2 id="opening">Opening it</h2>
+
+<p>There is one entry point per workspace — the editor opens preconfigured for it:</p>
+
+<table>
+	<tr><th>Where</th><th>Workspace</th><th>Your code runs…</th></tr>
+	<tr>
+		<td><code>More Tools</code> menu → <em>Execute Global Script</em></td>
+		<td><code>global</code></td>
+		<td>once, with no iteration object.</td>
+	</tr>
+	<tr>
+		<td>File list context menu → <code>Create Automation</code> → <code>For each object</code></td>
+		<td><code>objectIterator</code></td>
+		<td>once per file (checked files, or all files when none are checked).</td>
+	</tr>
+	<tr>
+		<td>File list context menu → <code>Create Automation</code> → <code>For each row</code></td>
+		<td><code>rowIterator</code></td>
+		<td>once per row of every visited file.</td>
+	</tr>
+	<tr>
+		<td>Grid context menu → <code>Create Automation</code></td>
+		<td><code>gridSelection</code></td>
+		<td>once per cell in the selected range.</td>
+	</tr>
+	<tr>
+		<td>Find window: context menu on the search results</td>
+		<td><code>foundCells</code></td>
+		<td>once per found cell you selected in the results.</td>
+	</tr>
+</table>
+
+<p>The editor window title and footer always show the active workspace, so you can tell which iteration model you are editing for.</p>
+
+<h2 id="the-iteration-object">The iteration object</h2>
+
+<p>Your code is the body of an async function invoked once per item, with <code>this</code> bound to the current item. Everything below is also listed by the built-in <code>this</code> reference popup (click the highlighted <code>this</code> under the editor):</p>
+
+<table>
+	<tr><th>Member</th><th>Meaning</th></tr>
+	<tr><td><code>this.file</code></td><td>Id of the file being visited.</td></tr>
+	<tr><td><code>this.index</code> / <code>this.maxIndex</code> / <code>this.isLast</code></td><td>Progress through the run; <code>isLast</code> is true during the final iteration.</td></tr>
+	<tr><td><code>this.rowId</code></td><td>Row number within the file.</td></tr>
+	<tr><td><code>this.keyText</code></td><td>The original text of the current row (the key column).</td></tr>
+	<tr><td><code>this.cells</code></td><td>The row's cells as a mutable array — writing to it edits the grid (column 0 is the key column, the first translation column is 1).</td></tr>
+	<tr><td><code>this.tags</code></td><td>The row's <a href="#color-tags">color tags</a> as a mutable array.</td></tr>
+	<tr><td><code>this.parameters</code> / <code>this.context</code> / <code>this.comments</code></td><td>The row's parameters, context entries and cell comments.</td></tr>
+	<tr><td><code>this.text</code>, <code>this.colId</code>, <code>this.cellCoords</code>, <code>this.setText(text)</code></td><td>Cell workspaces only: the visited cell's text and coordinates; <code>setText</code> writes the visited cell (never the key column).</td></tr>
+	<tr><td><code>this.getBestTranslation()</code> / <code>this.getBestTranslationCol()</code></td><td>Row workspace only: the text (or column index) of the rightmost filled translation — the value export uses.</td></tr>
+	<tr><td><code>this.userInput</code></td><td>Values from the script's input form, if it defines one.</td></tr>
+</table>
+
+<p>Two helpers exist outside <code>this</code>: <code>session</code>, an object that starts empty on every run but survives across iterations (use it to keep counters or caches), and <code>die(message)</code>, which halts the whole run immediately. The full application API — the project, the UI layer, <code>common</code> helpers, <code>require</code> — is in scope as well.</p>
+
+<h2 id="running">Running</h2>
+
+<ul>
+	<li>Run with the <code>Run</code> button or <kbd>F10</kbd>. A confirmation offers to save the project first — recommended, since automations edit the grid directly.</li>
+	<li>A loading overlay with a <code>Stop Process</code> button appears; stopping takes effect after the current iteration. <code>die()</code> stops immediately.</li>
+	<li>All cell edits made through <code>this.cells</code> or <code>setText()</code> are recorded; when the run ends the grid refreshes and translation progress is recalculated automatically.</li>
+	<li>Script output and errors are printed to the developer console (the bug button opens DevTools on SDK builds).</li>
+</ul>
+
+<h2 id="saving-and-quick-launch">Saving and quick launch</h2>
+
+<ul>
+	<li>Scripts are saved as <code>.js</code> files under <code>data/custom-scripts/&lt;workspace&gt;/</code> inside the application folder — one folder per workspace. <code>New</code>, <code>Open</code>, <code>Save</code>, <code>Save As</code> and the file list next to the path field all operate there; the last opened file per workspace is reopened automatically.</li>
+	<li>The star button (<em>Create shortcut of the current script</em>) publishes the saved script to that workspace's <code>Run Automation</code> menu: the file list context menu for <em>For each object/row</em>, the grid context menu for cell scripts, and the Find results context menu for found-cell scripts. Invoking a published script asks for confirmation, then runs it without opening the editor.</li>
+</ul>
+
+<h2 id="input-forms">Input forms</h2>
+
+<p>The <code>Form Builder</code> button opens a visual form designer. The designed form is embedded into the script as a special comment, and when the script is executed the form is shown first — its values arrive in <code>this.userInput</code>. Canceling the form cancels the run. Use this to parameterize reusable scripts (a toggle, a number, a choice of column) without editing code.</p>
+
+<h2 id="examples">Examples</h2>
+
+<p>A row-iterator script that fills the first translation column with the original text whenever the row has no translation yet:</p>
+
+<pre><code>if (!this.getBestTranslation()) {
+	this.cells[1] = this.keyText;
+}</code></pre>
+
+<p>Stopping a long run from within the script:</p>
+
+<pre><code>if (this.index &gt; 200) die("Processed enough rows for now");</code></pre>
+
+<h2 id="related">Related</h2>
+
+<ul>
+	<li><a href="#script-editor">Script Editor</a> — the shared editor window and the per-project export hook.</li>
+	<li><a href="#find-replace">Find &amp; Replace</a> — selecting cells by search before running a found-cells automation.</li>
+</ul>

@@ -1,0 +1,67 @@
+<h1>Translator Setup</h1>
+
+<p>SLR Translator ships with two translation engines: <strong>SLR (SugoiV4 legacy)</strong> and <strong>DSLR (recommended)</strong> (an LLM endpoint). Both translate Japanese to English. This page explains where to select an engine and what each one needs before it can translate.</p>
+
+<h2 id="default-engine">Choosing the default engine</h2>
+
+<ol>
+	<li>Open the <code>Options</code> window from the <code>More Tools</code> menu (or press the <code>Translation Setup</code> toolbar button, which opens it on the DSLR engine panel).</li>
+	<li>Open the <code>Translator &amp; Language</code> tab.</li>
+	<li>Pick an engine under <code>Default Translator Engine</code>.</li>
+</ol>
+
+<p>The default engine is used whenever you press <code>Ctrl+G</code> on selected cell(s) to <strong>g</strong>enerate a translation. It is stored in the global configuration and applies to every project that does not pick its own engine.</p>
+
+<h2 id="per-project">Choosing an engine per project</h2>
+
+<p>A single project can use a different engine:</p>
+
+<ol>
+	<li>Open <code>More Tools</code> → <code>Project Properties</code>.</li>
+	<li>Set the <code>Translator</code> field. Leave it empty (<code>-use default-</code>) to follow the global setting.</li>
+</ol>
+
+<div class="note">If <code>Translator</code> is not defined in the project, the global default is used.</div>
+
+<h2 id="available-engines">Available engines</h2>
+
+<h3>SLR (SugoiV4 legacy)</h3>
+
+<p>Listed in the engine picker as <code>SLR (SugoiV4 legacy)</code> (internally still engine id <code>slr</code>). Translates through one or more Sugoi Translator servers using the original <strong>Sugoi V4 NMT</strong> models — this is not the newer "Sugoi" LLMs.</p>
+
+<ul>
+	<li>Runs against a Sugoi Translator server, by default on your own machine at <code>localhost:14366</code>. With a local server the whole pipeline is offline.</li>
+	<li>Key options: <code>Sugoi Translator URLs</code> (one URL per line — load is balanced across servers), <code>Request Character Limit</code>, and <code>Maximum Request Count</code>.</li>
+	<li>This engine predates the LLM support and is kept for existing setups. For new projects prefer the DSLR engine below.</li>
+</ul>
+
+<p>Details: <a href="#sugoi">Sugoi Translator</a>.</p>
+
+<h3>DSLR (recommended) — LLM endpoint</h3>
+
+<p>Listed in the engine picker as <code>DSLR (recommended)</code>. Translates through an OpenAI-compatible chat endpoint, local or online.</p>
+
+<ul>
+	<li>Point <code>API URL</code> at your endpoint. The default (<code>127.0.0.1:1234</code>) matches a local LM Studio server; other local backends and online API providers work too. To use several endpoints at once (for example multiple accounts at one provider), add them with <code>+ Add Endpoint</code> in the engine options — see <a href="#dslr/parallel-endpoints">Parallel endpoints and fallback</a>.</li>
+	<li>Set <code>API Key</code> if your provider requires one (leave blank for most local servers), and <code>Model</code> to the model the endpoint should use.</li>
+	<li>Optional: a fallback LLM that takes over when the primary model gets stuck, plus sampling options such as <code>temperature</code>.</li>
+</ul>
+
+<p>The quickest way there is the <code>Translation Setup</code> button in the main toolbar, which opens this window directly on the DSLR engine panel. Its <strong>Quick Start</strong> box at the top has just the three fields you need — <code>API URL</code>, <code>API Key</code> and <code>Model</code> — plus a <code>Test connection</code> button that sends a one-token request to confirm they work. The shipped defaults are only an example LM Studio setup with a weak model, so change them unless you really are running LM Studio locally. Every other option is optional.</p>
+
+<p>Details: <a href="#dslr">DSLR Translator</a> and <a href="#llm-apis">LLM &amp; Online APIs</a>.</p>
+
+<h2 id="engine-options">Configuring an engine</h2>
+
+<p>In the <code>Options</code> window, every engine gets its own settings page with its full option form, listed under <code>Translator &amp; Language</code>. Options are saved automatically, and you can store several named configurations per engine and switch between them from that page.</p>
+
+<h2 id="offline-or-online">Offline or online?</h2>
+
+<ul>
+	<li><strong>Fully offline:</strong> SLR with a local Sugoi server, or DSLR with a local endpoint such as LM Studio. Nothing leaves your machine.</li>
+	<li><strong>Needs a connection:</strong> DSLR pointed at an online API provider (or Sugoi servers hosted elsewhere). The network is only used to reach the engine you configured — parsing, editing and applying translations never require it.</li>
+</ul>
+
+<div class="note">The source and target languages are controlled globally in <code>Options</code> under <code>General</code> (<code>Japanese Source Language</code> / <code>English Target Language</code>). SLR Translator is optimized for Japanese to English; other pairs are experimental and require adjusting the engine prompts.</div>
+
+<p>Once an engine works, continue with <a href="#first-project">Your First Translation Project</a>, or read <a href="#batch">Batch Translation</a> to translate whole projects automatically.</p>

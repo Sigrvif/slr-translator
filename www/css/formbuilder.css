@@ -1,0 +1,65 @@
+#builder {
+    box-sizing: border-box;
+    padding-right: 1em;
+    margin-top: 1em;
+}
+
+.navbar {
+    box-sizing: border-box;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+#footer {
+    position: fixed;
+    bottom: 1px;
+    width: 100vw;
+    padding-right: 1em;
+}
+
+#previewPane {
+    display: flex;
+    width: 100%;
+    flex-flow: nowrap;
+}
+
+#previewPane >div {
+    width: 50%;
+    box-sizing: border-box;
+    padding: 8px;
+}
+
+#jsonSchema {
+    height: calc(100vh - 108px);
+}
+
+#jsonFormSchema {
+    height: calc(100vh - 164px);
+}
+
+#builder {
+    box-sizing: border-box;
+    padding-right: 1em;
+    margin-top: 1em;
+    height: calc(100vh - 178px);
+    /* border: 1px solid; */
+}
+
+#builder .formcomponents{
+    overflow: auto;
+    height: calc(100vh - 178px);
+}
+
+#builder #builder-sidebar-ebnqd4m{
+    overflow: hidden;
+}
+
+#builder .formarea {
+    overflow: auto;
+    height: calc(100vh - 178px);
+}
+
+/* Adding padding for the bottom's menu bar */
+body {
+    /* padding-bottom: 5.5em; */
+}

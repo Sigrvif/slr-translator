@@ -1,0 +1,1 @@
+﻿{"files":[{"pattern":"*.scr","rules":[{"type":"regex","pattern":"/(^[＜<｛｟⟨〔〖〘〚〝〞”｢〈《「『[【（　？！、。…―一-龠ぁ-ゔァ-ヴー々〆〤ヶﾚﾃﾞｨﾌｧｲｯ]*[一-龠ぁ-ゔァ-ヴー々〆〤ヶﾚﾃﾞｨﾌｧｲｯ].*(?:\\r\\n?(?!\\r\\n).*)*)/gm","captureGroups":"1"}],"options":{"writeEncoding":"Shift_JIS","readEncoding":"Shift_JIS"}}]}

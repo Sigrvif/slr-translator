@@ -1,0 +1,44 @@
+<h1>Japanese Dictionary Popup</h1>
+
+<p>The built-in Rikai dictionary (a rikaikun-style popup) shows the reading and English definition of Japanese words when you hover over Japanese text in the editor — look up a word without leaving the grid. It works fully offline: the word, name and kanji dictionaries are bundled with the application.</p>
+
+<h2 id="activating">Activating the dictionary</h2>
+
+<ul>
+	<li>The Rikai button in the toolbar toggles the dictionary. When active, the button appears checked and a help popup with the key bindings appears once.</li>
+	<li>The dictionary is enabled automatically on application start unless you disable <code>Enable on startup</code> in the button's side menu.</li>
+	<li>The side menu also offers <code>Never unload dictionaries from RAM</code>: by default the dictionary data is released from memory when you deactivate the dictionary, and reloading it takes a moment. Keeping it loaded makes re-activation instant at the cost of memory — the bundled dictionary data is large.</li>
+</ul>
+
+<h2 id="using">Using the popup</h2>
+
+<p>With the dictionary active, pause the mouse over any Japanese text in the main window — a cell in the grid, text in the cell editor — and a popup appears after a short delay, showing the word under the cursor with its reading and English definitions. Double-click the popup to close it.</p>
+
+<p>The popup keys, once it is visible:</p>
+
+<table>
+	<tr><th>Key</th><th>Action</th></tr>
+	<tr><td><kbd>Alt+R</kbd></td><td>Disable / enable the dictionary</td></tr>
+	<tr><td><kbd>A</kbd></td><td>Alternate popup location</td></tr>
+	<tr><td><kbd>Y</kbd></td><td>Move popup location down</td></tr>
+	<tr><td><kbd>C</kbd></td><td>Copy word data to the clipboard</td></tr>
+	<tr><td><kbd>D</kbd></td><td>Hide / show definitions</td></tr>
+	<tr><td><kbd>Shift</kbd>+<kbd>Enter</kbd></td><td>Switch dictionaries</td></tr>
+	<tr><td><kbd>B</kbd></td><td>Previous character</td></tr>
+	<tr><td><kbd>M</kbd></td><td>Next character</td></tr>
+	<tr><td><kbd>N</kbd></td><td>Next word</td></tr>
+	<tr><td><kbd>J</kbd></td><td>Scroll definitions back</td></tr>
+	<tr><td><kbd>K</kbd></td><td>Scroll definitions forward</td></tr>
+</table>
+
+<p>The popup shows up to seven dictionary entries per lookup. Hovering a kanji character and switching dictionaries cycles through the word dictionary, the kanji dictionary and the name dictionary.</p>
+
+<h2 id="dictionary-contents">Dictionary contents</h2>
+
+<ul>
+	<li><strong>Word dictionary:</strong> Japanese words with readings and English definitions. Conjugated verb and adjective forms are looked up through a de-inflection table, so hovering a conjugated form still finds the dictionary entry.</li>
+	<li><strong>Character dictionary:</strong> per-character information for kanji — readings, meanings and reference codes from several kanji reference systems (Heisig, Nelson, Halpern, Henshall, Tuttle, PinYin, Unicode and more).</li>
+	<li><strong>Name dictionary:</strong> Japanese personal and place names.</li>
+</ul>
+
+<div class="note">The dictionary popup is a reading aid for the translator, not a translation feature: nothing it shows is written into the project. For checking the English side of your work, see <a href="#spellcheck">Spell Checking</a>.</div>

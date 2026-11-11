@@ -1,0 +1,66 @@
+<h1>Escape &amp; Text Codes</h1>
+
+<p>RPG Maker games do not display message text verbatim. The engine interprets <strong>control codes</strong> — short sequences starting with a backslash, like <code>\C[2]</code> for a text color or <code>\n[1]</code> for an actor's name — and replaces them with colors, icons, variable values and names while the game runs. RGSS-based engines (XP/VX/VX Ace) additionally use C-style format tokens such as <code>%s</code> and <code>%d</code> inside scripts, which the game fills with values at runtime.</p>
+
+<p>These codes must reach the game <em>exactly</em> as the developer wrote them. A translation that drops a <code>%s</code>, swaps <code>%s</code> with <code>%d</code>, or leaves a stray backslash can crash the game or garble its text. SLR Translator therefore recognizes these codes, hides them from the translator while preserving them, and checks after every translation that they survived — anything suspicious is flagged with an <a href="#errors">error code</a>.</p>
+
+<h2 id="mv-mz-codes">Common MV and MZ codes</h2>
+
+<p>The codes below are the ones SLR Translator handles explicitly — they are replaced with safe placeholder tokens before the text is sent to a DSLR translation model, and restored afterwards. <code>n</code> stands for a number.</p>
+
+<table>
+	<tr><th>Code</th><th>What the game does with it</th><th>Token sent to the model</th></tr>
+	<tr><td><code>\n[n]</code> / <code>\N[n]</code></td><td>Shows actor n's name</td><td><code>{PERSONn}</code></td></tr>
+	<tr><td><code>\nw[n]</code> / <code>\NW[n]</code></td><td>Shows character n's name (name-window plugins)</td><td><code>{NAMEn}</code></td></tr>
+	<tr><td><code>\i[n]</code> / <code>\I[n]</code></td><td>Shows icon n</td><td><code>{In}</code></td></tr>
+	<tr><td><code>\v[n]</code> / <code>\V[n]</code></td><td>Shows the value of variable n</td><td><code>{Vn}</code></td></tr>
+	<tr><td><code>\C[n]</code> / <code>\c[n]</code></td><td>Changes the text color to n</td><td><code>{Cn}</code></td></tr>
+	<tr><td><code>@n</code></td><td>Protected numeric placeholder used by the translation pipeline</td><td><code>{%n}</code></td></tr>
+</table>
+
+<p>Other codes are passed through untouched, for example:</p>
+
+<ul>
+	<li><code>\G</code> — the currency unit.</li>
+	<li><code>\!</code> — waits for a key press; <code>\.</code> — short pause. During the batch fix-up pass these two are protected internally so their backslash cannot be eaten by surrounding fixes.</li>
+	<li><code>%1</code>, <code>%2</code>… — choice-window placeholders that MV/MZ fills with the selected entry's number.</li>
+	<li>Plain newlines inside a cell are the message's line breaks; plugins that use <code>\n</code>-style line breaks are handled as literal text sequences.</li>
+</ul>
+
+<div class="note">Plugins add their own codes on top of the engine's built-ins (<code>\fs[n]</code> font size, <code>\p[n]</code>, <code>\M[n]</code>, <code>\VS[…]</code>, <code>\NA[…]</code>, picture-name codes like <code>\picn[…]</code> and many more). SLR Translator's checks are aware of a long list of these, but a game with unusual plugin codes can still produce <code>UNKNOWNCOMMAND</code> flags — treat them as “check this cell”, not as a certain error.</div>
+
+<h2 id="rgss-codes">Common RGSS codes (XP / VX / VX Ace)</h2>
+
+<p>RGSS games keep most translatable text inside Ruby scripts, so the tokens that matter are format specifiers and script placeholders:</p>
+
+<table>
+	<tr><th>Token</th><th>What the game does with it</th></tr>
+	<tr><td><code>%s</code></td><td>Filled with a string value at runtime (names, items, numbers as text)</td></tr>
+	<tr><td><code>%d</code></td><td>Filled with an integer value at runtime</td></tr>
+	<tr><td><code>\G</code></td><td>The currency unit, used inside formatted strings (e.g. <code>%s\G 手に入れた</code>)</td></tr>
+	<tr><td><code>@n</code>, <code>#n</code></td><td>Placeholder styles some scripts use; recognized and preserved like <code>%s</code></td></tr>
+</table>
+
+<p>Two rules matter when translating these: every token from the original must appear in the translation (<code>MISSINGPLACEHOLDER</code> otherwise), and their order must not change (<code>S.NEEDSTOBEBEFORE.D</code> / <code>D.NEEDSTOBEBEFORE.S</code>) — the game fills them in the original order regardless of where the translation moved them. See <a href="#errors">Error Codes</a>.</p>
+
+<h2 id="how-slr-preserves-them">How SLR Translator preserves codes</h2>
+
+<p>Three layers work together so the translator model never has to “translate” a control code:</p>
+
+<ul>
+	<li><strong>Placeholder swapping (DSLR engine).</strong> Before a line is sent, the six code families in the MV/MZ table above are swapped for word-like tokens such as <code>{PERSON1}</code>. The tokens are configurable in the DSLR engine options (Placeholders category) — each must keep the <code>$1</code> that carries the number, and changing them invalidates the translation cache. A separate set exists for the fallback model. After the model answers, the codes are restored from the tokens.</li>
+	<li><strong>Sentence-safe splitting.</strong> Text is split into sentences before translation; the splitter treats color spans (<code>\C[…]</code>…<code>\C[…]</code>), leading codes and trailing symbols as boundaries, so a code never ends up cut in half between two sentences. Many placeholder styles are recognized natively (<code>%1</code>, <code>@1</code>, <code>#1</code>, <code>&lt;1&gt;</code>, <code>{1}</code>, <code>@@1@</code> and more).</li>
+	<li><strong>Recovery and checking.</strong> If the model loses a placeholder anyway, the engine re-inserts it — at the start or end of the sentence, or at the best-guess middle position (marked <code>SHISAYE.LOSTPLACEHOLDERMIDDLE</code> so you can verify it). Afterwards the fix-up pass compares every translation against its original and records anything broken in the <code>Errors</code> column.</li>
+</ul>
+
+<h2 id="escaped-rows">Escaped rows and the blue tag</h2>
+
+<p>Rows that the parser classified as comments or escaped developer text — not text the game shows to the player — carry the <code>blue</code> cell tag. Blue rows are skipped by the batch translator by default. See <a href="#color-tags">Cell Color Tags</a> for the full tag system.</p>
+
+<h2 id="when-codes-break">When codes break anyway</h2>
+
+<ul>
+	<li>Every detected breakage lands in the row's <code>Errors</code> column as a <code>SHISAYE.*</code> code — the full list with causes and fixes is on the <a href="#errors">Error Codes</a> page.</li>
+	<li>If a script fragment keeps getting broken mid-sentence, the <code>Aggressive Splitting</code> patterns in the translation engine options control where text may be split — adding an entry for the problematic fragment stops it from being cut. See <a href="#custom-parsers">Custom Parsers &amp; Model Creator</a>.</li>
+	<li>For files with unusual code formats entirely, a custom parser can describe how to extract and protect the text before translation: see <a href="#custom-parsers">Custom Parsers &amp; Model Creator</a>.</li>
+</ul>

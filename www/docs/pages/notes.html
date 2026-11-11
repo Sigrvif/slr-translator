@@ -1,0 +1,32 @@
+<h1>File Notes</h1>
+
+<p>Every entry in the <code>Objects</code> panel — every parsed file of the project — has its own note: a free-text memo with an optional color. Use notes to record where you stopped, what still needs checking in that file, or anything else worth remembering next time you open the project.</p>
+
+<h2 id="opening">Opening and editing a note</h2>
+
+<ol>
+	<li>Select a file in the <code>Objects</code> panel.</li>
+	<li>Click the note button (the speech-bubble icon) in the toolbar. A small <code>Note</code> window opens for the selected file — its title bar shows the file it belongs to. Clicking the button again closes the window.</li>
+	<li>Type your note. It is saved into the project as you edit; there is no separate save button. A note holds up to 4096 characters.</li>
+	<li>The trash button at the top of the window clears the note and its color.</li>
+</ol>
+
+<p>The window stays open while you work; switching to another file in the <code>Objects</code> panel switches the note window to that file's note.</p>
+
+<h2 id="colors">Note colors</h2>
+
+<p>The <code>-Default-</code> selector at the top of the note window picks a named color for the note. The color is only a visual marker — it does not change any behavior — but it is shown wherever the note is indicated, so you can use it to flag priority at a glance.</p>
+
+<h2 id="where-visible">Where notes are visible</h2>
+
+<ul>
+	<li>Files with a note show a comment icon next to their name in the <code>Objects</code> panel, tinted with the note's color if one was set.</li>
+	<li>Hovering such a file entry shows the note text in a tooltip, so you can read it without opening the note window.</li>
+	<li>The note button in the toolbar reflects the state of the currently selected file.</li>
+</ul>
+
+<h2 id="storage">Where notes are stored</h2>
+
+<p>Notes are part of the project data and are saved into the project file together with everything else — they survive closing and reopening the project, and they are included when you share a <code>.slrproj</code> file.</p>
+
+<div class="note">Notes are per file. For remarks attached to a single cell, use cell comments instead: right-click the cell in the grid and choose <code>Add comment</code>. Cell comments can be searched from the Find window with <code>Target: Comment</code> — see <a href="#find-replace">Find &amp; Replace</a>.</div>

@@ -1,0 +1,68 @@
+<h1>Glossary Extractor</h1>
+
+<p>The glossary extractor builds a list of the proper nouns in a project — character names, places, organizations, skills, items — with translations and notes, and feeds that list to the DSLR engine during translation so names stay consistent across thousands of lines. It is a DSLR feature: it uses the DSLR glossary endpoint settings and only DSLR injects the result into its prompts.</p>
+
+<p>It is started from the <code>Glossary</code> button in the main toolbar's translation group (the button before <code>Start Translation</code>). If a glossary already exists in the session, the same button opens it in the editor instead of starting over.</p>
+
+<div class="note">The glossary is an <strong>optional</strong> quality step: it costs extra tokens and is worth it mainly on a capable model. If you use it, generate it <strong>before</strong> batch translating. The DSLR option <code>Auto-Inject Glossary</code> (on by default) "automatically appends the generated glossary to the system prompt during translation. Generate a glossary first using the 'Glossary' button in the toolbar." — a glossary created after the run has nothing to stabilize. See <a href="#batch">Batch Translation</a> for the recommended order.</div>
+
+<h2 id="how-extraction-works">How extraction works</h2>
+
+<p>Generation runs in three phases:</p>
+
+<ol>
+	<li><strong>Local extraction.</strong> The whole project is scanned with language-specific patterns: nameplate codes (<code>\N[1]</code> style placeholders and <code>\n&lt;Name&gt;</code> nameplates), katakana words (a built-in list filters common UI loanwords), and names quoted in Japanese brackets. Everything found at least twice becomes a candidate; frequent character IDs are collected separately.</li>
+	<li><strong>LLM extraction.</strong> The source text is split into chunks and each chunk is sent to the LLM with the glossary extraction prompts. The LLM returns new terms as JSON, must ignore generic words and template strings, guesses genders for character placeholders from speech patterns, and sees the already-collected terms so it does not re-extract them. Which endpoint is used is all-or-nothing and driven by <code>Glossary API URL</code>: while it is blank, the main translation endpoint (Endpoint 1) is used with all of its options; once a glossary URL is set, ONLY the glossary endpoint, key, model and sampling options are used (a blank glossary field is sent as blank, never copied from the main endpoint).</li>
+	<li><strong>Merging.</strong> Local and LLM results are merged, role/profile information from the game's actor data is attached to character entries, and the editor opens.</li>
+</ol>
+
+<h2 id="the-editor">The glossary editor</h2>
+
+<p>The editor is a table with one row per term:</p>
+
+<table>
+	<tr><th>Column</th><th>Meaning</th></tr>
+	<tr><td><code>Original</code></td><td>The Japanese term. Clear this field to delete the term on save.</td></tr>
+	<tr><td><code>Translation</code></td><td>The English rendering to use consistently.</td></tr>
+	<tr><td><code>Type</code></td><td>Category such as female character, male character, monster, location, organization, skill, item — or your own types via <code>Glossary Custom Types</code>.</td></tr>
+	<tr><td><code>Source</code></td><td>Where the term came from (local scan, LLM, manual, imported) and how often it was seen.</td></tr>
+	<tr><td><code>Role / Profile</code></td><td>Free-text role description the LLM sees — for example a character's occupation or relationships.</td></tr>
+	<tr><td><code>Note</code></td><td>Free-text notes, also sent to the LLM.</td></tr>
+</table>
+
+<p>Once a term has a translation, translations are checked against it: if a source line contains the term but the English drops or renames it (for example <code>Aida</code> rendered as <code>Ada</code>), the line is rejected and retried with the missing terms listed. Character and name entries also accept a matching pronoun or gendered word, and any term can be authorized with a different rendering by appending <code>GLOSSARYDIFF</code> at the end of the response. Matching is stem-based, so an inflected form of the term (<code>brainwashed</code> for <code>Brainwashing</code>, <code>transformed</code> for <code>Transformation</code>) still counts. This runs with no model call, so it works even when Review (QC/judge) is off; entries typed <code>unknown</code> and entries without a translation are never enforced. See <a href="#dslr/retry-and-quality">Reject Missing Glossary Terms</a> for the details.</p>
+
+<p>A glossary translation must be a single usable rendering, so auto-extraction drops any term whose English offers alternatives (<code>Charm/talisman</code>, <code>Charm or talisman</code>), contains parentheses or leftover Japanese, or reads as a definition. The extraction prompt asks for one universally-usable rendering and the term is discarded if the model still returns alternatives, since an ambiguous entry would only make the consistency check reject correct translations. When extraction finishes, the editor opens with a reminder to skim the generated terms and delete any that still look wrong before saving.</p>
+
+<p>Buttons along the bottom:</p>
+
+<ul>
+	<li><code>Save Glossary</code> applies your edits and activates the glossary; <code>Cancel</code> keeps the unedited version.</li>
+	<li><code>+ Add Term</code> adds a manual row.</li>
+	<li><code>Export</code> / <code>Import</code> write and read the glossary as a JSON file — including a merge-or-replace choice on import.</li>
+	<li><code>Generate New</code> discards everything and extracts from scratch; <code>Build From Existing</code> re-runs extraction using the current terms as the base; <code>Resume Generation</code> continues a paused run from the last finished chunk.</li>
+</ul>
+
+<div class="note">The glossary lives in the session only — nothing is written to disk unless you export it. Export the JSON to keep a project's glossary across sessions, then import it the next time.</div>
+
+<h2 id="pause-and-resume">Pause and resume</h2>
+
+<ul>
+	<li>During generation the progress overlay offers <code>Pause</code> and <code>Abort</code>. Progress is checkpointed after every chunk, so pausing (or a provider error such as an expired key) loses nothing: a <code>Resume Generation</code> button continues from the exact chunk where it stopped, and a paused run opens the editor with the partial results.</li>
+	<li>Chunk size, line deduplication, code-stripping before dedup and which tag groups feed extraction are configurable in the DSLR options (<code>Glossary Chunk Size</code>, <code>Glossary Deduplicate Lines</code>, <code>Glossary Strip Codes for Dedup</code>, <code>Glossary Include Dialogue Tags</code> / <code>Glossary Include Script Tags</code> — rows with always-excluded tags such as red or blue are never sent).</li>
+	<li>Japanese-specific local patterns can be disabled with <code>Disable Japanese Extraction</code> for non-Japanese projects.</li>
+</ul>
+
+<h2 id="how-it-is-applied">How it is applied</h2>
+
+<ul>
+	<li><code>Auto-Inject Glossary</code> (default on) appends the glossary to the DSLR system prompt during every translation — manual <code>Ctrl+G</code> and <a href="#batch">batch translation</a> alike.</li>
+	<li><code>Smart Glossary Filter</code> (default on) sends only the terms that actually appear in the current request, saving tokens on small-context models; disable it to always send the full list.</li>
+	<li>The injected block is built from the <code>Glossary Prompt Format</code> template (the placeholder <code>GLOSSARYTEXT</code> marks where the terms go) and lists terms grouped under type headers as <code>- 'japanese' = 'english'</code> lines with profile and note appended. Terms with no translation, profile or note are omitted.</li>
+	<li>While a glossary is active, the DSLR Clean Cache stops writing (and those entries are not reused) — glossary-dependent translations are project-specific.</li>
+	<li>Glossary extraction uses the main translation endpoint while <code>Glossary API URL</code> is blank, or its own glossary endpoint, sampling, retry-delay, custom headers/parameters and reasoning options once a glossary URL is set. The global <code>Repetition Loop Threshold</code> options apply to glossary streaming too — for glossary responses the entries tier counts repeated term definitions, which can never legitimately repeat (see <a href="#dslr">DSLR Translator</a>).</li>
+</ul>
+
+<h2 id="related-options">Related options</h2>
+
+<p>Everything glossary-related is configured in <code>Options</code> → <code>Translator &amp; Language</code> → <code>DSLR (recommended)</code>: endpoint and model, temperature, JSON schema / <code>json_object</code> response modes in the <code>Glossary</code> groups of the <code>Connection &amp; Model</code> and <code>Sampling &amp; Generation</code> sections; max tokens, the absolute token cap and the context length limit in <code>Batching &amp; Limits</code>; chunk filter behavior in the <code>Glossary Extraction</code> section; and the extraction prompts themselves in <code>Prompts</code>. See <a href="#dslr">DSLR Translator</a> for the shared endpoint concepts.</p>

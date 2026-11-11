@@ -1,0 +1,70 @@
+<h1>RPG Maker MZ</h1>
+
+<p>MZ is the successor of MV and uses the same parser: HTML5 technology, all game data in JSON files, scripts and plugins in JavaScript. The differences that matter for translation are the folder layout, the font configuration, and a few MZ-only data structures. Start with <a href="#first-project">Your First Translation Project</a> for the general walkthrough, and read <a href="#mv">RPG Maker MV</a> alongside this page — everything there applies to MZ as well.</p>
+
+<div class="note">Recommended workflow: <a href="#glossary">generate a glossary</a> → run the full <a href="#batch">Batch Translation</a> (dialogue is grouped scene-aware automatically via the <a href="#scene-graph">Scene Graph</a>) → review the flagged rows → <a href="#word-wrap">wrap the text automatically</a> → <a href="#first-project/inject">export</a>.</div>
+
+<h2 id="create-project">Creating the project</h2>
+
+<ol>
+	<li>In the wizard, choose <code>RPG Maker XP, VX, Ace, MV &amp; MZ Parser</code>.</li>
+	<li>Under <code>Select the game</code>, pick the game's executable or its <code>index.html</code>. The wizard reports <code>rmmz</code> under <code>Detected engine / type</code> — MZ is identified by its <code>js/rmmz_core.js</code> file (see <a href="#engine-detection">Engine Detection</a>).</li>
+	<li>Click <code>Create project!</code>. Parsing, plugin collection and staging work exactly as for MV.</li>
+</ol>
+
+<p><img src="../img/mzt1.png" alt="New Project wizard: selecting the RPG Maker parser for MZ" /></p>
+<p><em>Select the RPG Maker parser entry in the wizard.</em></p>
+
+<p><img src="../img/mzt2.png" alt="New Project wizard: selecting the MZ game executable" /></p>
+<p><em>Pick the MZ game executable; <code>rmmz</code> is detected automatically.</em></p>
+
+<p><img src="../img/mvt3.png" alt="Project creation result with error review" /></p>
+<p><em>After creation: review any reported errors, then close the summary.</em></p>
+
+<h2 id="differences-from-mv">Differences from MV</h2>
+
+<ul>
+	<li><strong>Folder layout:</strong> MZ games keep lowercase <code>data</code> and <code>js</code> folders next to the executable — there is no <code>www</code> wrapper folder. The parser finds the data either way.</li>
+	<li><strong>Same data files:</strong> the JSON files under <code>data/</code> are read with the same rules as MV — including maps, database entries, <code>CommonEvents.json</code> and <code>System.json</code>; <code>Animations.json</code> and <code>Tilesets.json</code> are skipped.</li>
+	<li><strong>MZ plugin commands:</strong> event commands of the MZ plugin command type have their argument texts parsed, including strings embedded as JSON in the arguments.</li>
+	<li><strong>Encrypted resources:</strong> MZ encrypted audio and images use the <code>.ogg_</code>, <code>.m4a_</code> and <code>.png_</code> extensions instead of MV's <code>.rpgmvo</code> family. The text pipeline does not need them; picture translation can read them — see <a href="#sep">SEP Picture Translation</a>.</li>
+</ul>
+
+<p><img src="../img/mzex.png" alt="File structure of an RPG Maker MZ game" /></p>
+<p><em>MZ: lowercase <code>data</code> and <code>js</code> folders next to the executable.</em></p>
+
+<h2 id="mz-fonts">Fonts</h2>
+
+<p>MZ does not use <code>gamefont.css</code>. Its main and number fonts are configured in the <code>advanced</code> section of <code>data/System.json</code>:</p>
+
+<ol>
+	<li>Put the replacement font file into SLR Translator's own <code>fonts</code> collection folder — a condensed font (<code>sucr.ttf</code>) ships with the tool.</li>
+	<li>In the project, open the <code>System.json</code> object and set the translations of the <code>mainFontFilename</code> and <code>numberFontFilename</code> rows (both tagged red and <code>font</code>) to the font file name.</li>
+	<li>Apply or export. The modified <code>System.json</code> is written, and the font file is copied into the export's <code>fonts</code> folder automatically when it is found in the collection folder or the game's own <code>fonts</code> folder.</li>
+</ol>
+
+<p><img src="../img/mzfont.png" alt="MZ game fonts folder with a custom font added" /></p>
+<p><em>The game's <code>fonts</code> folder with an added font file.</em></p>
+
+<p><img src="../img/mzfont1.png" alt="Editing System.json in the MZ game's data folder" /></p>
+<p><em>Font settings live in the <code>advanced</code> section of <code>data/System.json</code>.</em></p>
+
+<p><img src="../img/mzfont2.png" alt="System.json font filename entries" /></p>
+<p><em>The font filename entries inside <code>System.json</code>.</em></p>
+
+<div class="note">If a referenced font is found nowhere, the export continues but the game falls back to a default font — the apply log names the missing file.</div>
+
+<h2 id="apply">Applying and exporting</h2>
+
+<p>The export flow is the same as for MV: <code>Export Project</code> → <code>Export to a folder</code> or <code>Export as a Zip file</code>, then the <code>Export Options</code> dialog with its tagged-rows filter and <strong>Word Wrap By Tag</strong> rules (export-time rules, distinct from the <a href="#word-wrap">Automatic Word Wrapping</a> button — see <a href="#mv/apply">RPG Maker MV: Applying and exporting</a>). Translated files are written into the export target's <code>data</code> and <code>js</code> folders; encrypted MZ data files are re-encrypted when the original game was encrypted.</p>
+
+<p><img src="../img/mvt5.png" alt="Word Wrap By Tag rules in the export options" /></p>
+<p><em>Word wrap rules: pick the tags to wrap and the maximum line length.</em></p>
+
+<h2 id="mz-pitfalls">Pitfalls</h2>
+
+<ul>
+	<li><strong>Encrypted data files:</strong> protected MZ games replace the JSON files with encrypted containers, sometimes driven by a WebAssembly module (<code>rmmz_core.dat</code>). The parser detects the encryption parameters from the game's own scripts, decrypts the files for translation and re-encrypts them on export — see <a href="#encrypted-games">Encrypted &amp; Packed Games</a>. Files that cannot be decrypted are skipped.</li>
+	<li><strong>Plugin parameters and plugin code</strong> follow the MV workflow; review <code>plugins.js</code> in the editor before exporting.</li>
+	<li><strong>Text codes</strong> inside message text must survive translation — see <a href="#escape-codes">Escape &amp; Text Codes</a>.</li>
+</ul>

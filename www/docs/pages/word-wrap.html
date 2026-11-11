@@ -1,0 +1,74 @@
+<h1>Automatic Word Wrapping</h1>
+
+<p>Japanese message windows are sized for Japanese text: RPG Maker MV's default message window fits about 28 full-width characters per line, and 24 when a face picture is shown. English translations are set in proportional fonts where the same number of characters takes far more room — unwrapped translated lines overflow the window, run off the screen or collide with the next line. Automatic Word Wrapping re-breaks the translated lines so they fit the window.</p>
+
+<p>The alternative — shipping a more condensed font and/or a smaller font size — is covered on the engine pages: <a href="#mv/mv-fonts">RPG Maker MV fonts</a> and <a href="#mz/mz-fonts">RPG Maker MZ fonts</a>. The two approaches work together: wrapping fixes the message windows, a condensed font helps where wrapping cannot (menu text may still escape the screen — but wrapped is always better than unwrapped).</p>
+
+<h2 id="the-button">The toolbar button</h2>
+
+<p>Automatic Word Wrapping runs from the labelled <code>Word Wrap</code> button in the main toolbar's translation group (after <code>Start Translation</code>). Its tooltip states the contract:</p>
+
+<div class="note">Automatic Word Wrapping (Only works with English in column 1 and 2, and will replace column 3.)</div>
+
+<p>That means: the source text must already be English (a Japanese original is not translated or wrapped), and the tool writes its result into <code>Wrapped translations [3]</code>, replacing whatever that column held. Run it after translating, before exporting.</p>
+
+<h2 id="the-prompt">The wrap prompt</h2>
+
+<p>Clicking the button asks: <em>Please enter the maximum monospace character amount per line. -4 for Avatar picture contexts.</em> Accepting the default produces a best-effort wrap at the configured lengths (24/20 with the default options); the default value itself can be changed in the options. Everything the prompt accepts:</p>
+
+<table>
+	<tr><th>Input</th><th>Effect</th></tr>
+	<tr><td>a number</td><td>Wrap to that many monospace characters per line. Contexts with a face picture get 4 characters less (the <code>-4 for Avatar picture contexts</code> note) when the value is above 5.</td></tr>
+	<tr><td>the default</td><td>Best-effort wrap using the <code>Short Length</code> / <code>Long Length</code> option values — 24/20 characters with the defaults. Recommended when no font changes are planned outside the tool.</td></tr>
+	<tr><td><code>stint</code></td><td>Best-effort wrap for the Stint Ultra Condensed font: 52/46 characters.</td></tr>
+	<tr><td><code>size</code></td><td>Best-effort wrap for a font size of 16: 40/36 characters.</td></tr>
+	<tr><td><code>pstint</code> / <code>psize</code></td><td>The same two profiles with a <code>p</code> prefix, for unusually small dialogue boxes the picture context does not mark: 46/46 and 36/36 characters.</td></tr>
+	<tr><td><code>clear</code></td><td>Empties every cell in <code>Wrapped translations [3]</code>.</td></tr>
+	<tr><td><code>nuke</code></td><td>Empties the cells of all translation columns in all rows. Caution: this cannot be undone.</td></tr>
+	<tr><td><code>cwrapable</code></td><td>Copies <code>Original Text [0]</code> into <code>Initial Translations [1]</code> for rows with wrappable contexts — useful when the source text is already English and only needs wrapping. Rows with anything in columns 1–4 are skipped.</td></tr>
+	<tr><td><code>ceverything</code></td><td>The same copy for all rows regardless of context (same skip rule: columns 1–4 filled are left alone).</td></tr>
+	<tr><td><code>ignoreallerrors</code></td><td>Clears the <code>Errors [4]</code> cells so previously error-flagged rows are wrapped again on the next run.</td></tr>
+</table>
+
+<h2 id="columns">Which columns are read and written</h2>
+
+<ul>
+	<li><strong>Read:</strong> the English is taken from <code>Translation Corrections [2]</code>, falling back to <code>Initial Translations [1]</code> when column 2 is empty.</li>
+	<li><strong>Written:</strong> the wrapped result goes into <code>Wrapped translations [3]</code>, replacing its previous content. Columns 1 and 2 are left untouched.</li>
+	<li><strong>Skipped:</strong> rows without context information, and rows carrying an entry in <code>Errors [4]</code> — a flagged translation is never wrapped over.</li>
+</ul>
+
+<p>The column choice is what makes wrapping safe: the export rule ships the <strong>rightmost non-empty cell</strong> of a row (see <a href="#editor-basics/export-rule">Editor Basics</a>), so the wrapped text in column 3 automatically outranks the raw translation in columns 1 and 2. An entry in <code>Errors [4]</code> or <code>Overwrite [5]</code> still wins over column 3 — <code>Overwrite [5]</code> is never modified by wrapping and keeps the final say at export.</p>
+
+<h2 id="measurement">How width is measured</h2>
+
+<p>The wrap does not blindly count characters. Text is rendered off-screen in a hidden 24&nbsp;px element set to the <code>Font Family</code> option's font (default <code>mplus-1m-regular</code>), and lines are broken by measured pixel width. Lengths are expressed in full-width (monospace Japanese) character units because proportional fonts change width per character: with the defaults, 28 such characters fit a default MV message window line without a picture, 24 with one — the option defaults (24/20) wrap a little tighter than that.</p>
+
+<div class="note">Set <code>Font Family</code> to a font that looks as similar as possible to the game's actual text font. If the measuring font is wider or narrower than the game's, the wrapped lines will not match what the game renders.</div>
+
+<h2 id="wrap-options">Wrap context options</h2>
+
+<p>Each grid row knows the context it came from (message window, description, scrolling text, …). The wrap options decide how each context is treated; they live in the Options window, in the <code>SLR Batch</code> section:</p>
+
+<table>
+	<tr><th>Option</th><th>Default</th><th>Meaning</th></tr>
+	<tr><td><code>Font Family</code></td><td><code>mplus-1m-regular</code></td><td>The font used to measure line widths — pick one that looks as similar as possible to the game's.</td></tr>
+	<tr><td><code>Merge Wrap Contexts</code></td><td><code>description</code></td><td>Contexts where the remainder of a line is merged into the start of the next line instead of forcing a break — fewer lines overall, for windows that cannot grow a second page.</td></tr>
+	<tr><td><code>Always Merge</code></td><td>off</td><td>Applies that merging to every wrappable context, for compact text.</td></tr>
+	<tr><td><code>Short Contexts</code></td><td><code>hasPicture</code></td><td>Contexts wrapped to the short length — face pictures and other smaller message boxes.</td></tr>
+	<tr><td><code>Short Length</code></td><td>20</td><td>Target line length for short contexts, in full-width character units.</td></tr>
+	<tr><td><code>Long Wrap Contexts</code></td><td><code>dialogue</code>, <code>message1</code>, <code>message2</code>, <code>message3</code>, <code>description</code>, <code>message</code>, <code>noPicture</code>, <code>scrollingMessage</code>, <code>Show Text</code></td><td>Contexts wrapped to the long length — full-width message windows.</td></tr>
+	<tr><td><code>Long Length</code></td><td>24</td><td>Target line length for long contexts.</td></tr>
+	<tr><td><code>Text Commands to Process</code></td><td><code>\C[SHISAYE_INT]</code></td><td>RPG Maker text commands detected during wrapping and replaced by their actual text to measure accurate line lengths (one pattern per line; <code>SHISAYE_INT</code> stands for numbers/variables).</td></tr>
+	<tr><td><code>Text Command Replacements</code></td><td><code>,</code></td><td>The replacement text for each command from the list above, per command index, used in the width calculation.</td></tr>
+</table>
+
+<h2 id="other-wrap-tools">Two other wrapping mechanisms</h2>
+
+<p>Automatic Word Wrapping is one of <strong>three</strong> wrapping features in the tool — they are separate mechanisms and are configured separately:</p>
+
+<ul>
+	<li><strong>Automatic Word Wrapping</strong> (this page) — the toolbar button. Runs over the whole project on demand, writes <code>Wrapped translations [3]</code>, measures widths in pixels with the <code>SLR Batch</code> options above. The recommended default after a batch translation.</li>
+	<li><strong>Word Wrap By Tag</strong> — rules of a color tag plus a maximum line length, set in the export options dialog (see <a href="#first-project/inject">Exporting the translation</a>). They are applied at <em>export time</em> to rows carrying the matching tag, regardless of column 3 — useful to wrap exactly the tag groups you choose as the files leave the tool.</li>
+	<li><strong>Wrap texts</strong> (legacy) — a <code>Wrap texts</code> entry in the <code>Objects</code> panel context menu opens the old <code>Wrap text</code> dialog and wraps the selected files per-file with its own settings. It predates the automatic button; prefer the button unless you need its per-file behavior.</li>
+</ul>

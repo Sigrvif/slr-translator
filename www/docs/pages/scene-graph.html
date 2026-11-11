@@ -1,0 +1,59 @@
+<h1>Scene Graph</h1>
+
+<p>The Scene Graph is the tool's dialogue tracing: it reconstructs how the game's text is actually played. Every extracted row is mapped to a <strong>scene</strong> (a contiguous block of dialogue in play order), its position inside that scene, and its <strong>speaker</strong> — including links across files, such as a map event calling a common event that shows the rest of the conversation. The graph is built from <code>Map*.json</code> and <code>CommonEvents.json</code> for MV and MZ projects, and from the staged YAML data for XP, VX and VX Ace projects. Protected MV/MZ games whose <code>data/</code> files are encrypted containers are decrypted automatically for the graph build (see <a href="#encrypted-games">Encrypted &amp; Packed Games</a>).</p>
+
+<p>Its main job is invisible: during <a href="#batch">Batch Translation</a> it keeps dialogue that belongs together in one translation request, so the engine sees whole conversations instead of shuffled single lines.</p>
+
+<div class="note">The Scene Graph supports all built-in RPG Maker engines: MV, MZ, XP, VX and VX Ace. XP/VX/VX Ace projects need their staged YAML data (created automatically when the project is made through the RPG Maker XP, VX, Ace, MV &amp; MZ parser), so projects imported through other routes translate normally but without scene tracing.</div>
+
+<h2 id="building">When it is built</h2>
+
+<ul>
+	<li>The graph is built automatically every time a project is created or opened — there is no build button and nothing to configure.</li>
+	<li>After project creation the <strong>Scene Graph</strong> panel opens on its own, so you can see the traced structure right away. On later opens it stays closed until you call it up.</li>
+</ul>
+
+<h2 id="the-panel">The Scene Graph panel</h2>
+
+<p>Open it any time with the <code>View Scene Graph (dialogue tracing)</code> button in the extra toolbar (the share icon). The panel is a floating, draggable window that shows the traced scenes with their rows in dialogue order and the speaker of each line, plus a summary line of the form <em>X scenes · Y rows mapped</em>.</p>
+
+<ul>
+	<li>Click a scene or a line to jump straight to that row in the grid — a quick way to see a conversation in context before translating it.</li>
+	<li>The scene and speaker information also feeds the DSLR engine's prompt when its <code>Scene Context</code> option is on (see below).</li>
+</ul>
+
+<h2 id="batch-integration">Scene-aware batch translation</h2>
+
+<p>During Batch Translation the Scene Graph works automatically — there is no toggle. For every run on a supported engine:</p>
+
+<ul>
+	<li>Rows are re-sorted into dialogue order, so batches follow the flow of the game instead of file order.</li>
+	<li>Batches are then built in four streams:
+		<ol>
+			<li><strong>Big scenes</strong> are sent whole, isolated in their own requests — a coherent large request gives the model the full conversation and is actually less likely to fail than a fragmented one.</li>
+			<li><strong>Small related scenes</strong> are grouped to fill sensible requests. Scenes count as related when they share an event or event page, are linked by a common-event call, call each other, or connect through map transfers.</li>
+			<li><strong>Single-line scenes</strong> (one-off NPC remarks, object descriptions) carry almost no internal context, so they are packed densely without hurting quality.</li>
+			<li><strong>Non-scene rows</strong> — menus, items, skills, system terms — are batched last.</li>
+		</ol>
+	</li>
+</ul>
+
+<p>This is why running the full project through <a href="#batch">Batch Translation</a> is the recommended default rather than translating line by line: the model sees each line with its conversation around it, which single-line requests can never provide.</p>
+
+<h2 id="dslr-scene-options">DSLR scene options</h2>
+
+<p>The size limits of the four streams are DSLR engine options (they mainly matter for DSLR runs; other engines use safe fallbacks). All of them live with the DSLR settings — see <a href="#dslr">DSLR Translator</a>:</p>
+
+<table>
+	<tr><th>Option</th><th>Default</th><th>Controls</th></tr>
+	<tr><td><code>Maximum Scene Size</code></td><td>5000</td><td>The largest a single standalone scene may be, in characters. Long scenes are isolated and sent whole up to this size; only a scene genuinely exceeding it is split, and only at scene boundaries.</td></tr>
+	<tr><td><code>Target Request Size</code></td><td>2000</td><td>The comfortable request size for everything that is not a standalone large scene: grouped small scenes and non-scene text pack up to this size.</td></tr>
+	<tr><td><code>Scene Threshold</code></td><td>15</td><td>Scenes with fewer rows are considered short and merged with adjacent scenes; scenes at or above it are isolated and sent whole.</td></tr>
+	<tr><td><code>Max Scenes per Grouped Batch</code></td><td>7</td><td>How many separate scenes may be merged into one grouped batch, to cap context bleed.</td></tr>
+	<tr><td><code>Max Rows per Non-Scene Batch</code></td><td>80</td><td>Row cap for batches of non-scene text (menus, items, system terms).</td></tr>
+	<tr><td><code>Max Rows per Single-Line Scene Batch</code></td><td>40</td><td>Row cap for batches packing one-line scenes, which tolerate much denser packing than real conversations.</td></tr>
+</table>
+
+<h2 id="scene-context">Scene Context in the prompt</h2>
+
+<p>With the DSLR option <code>Scene Context</code> (default on), a per-batch description of the scene each line belongs to — dialogue flow, speaker names, cross-file common-event links — is appended to the system prompt, giving the model awareness of the conversation it is translating. (When the DSLR option <code>KV-Cache Friendly Prompts</code> is on, the scene description is sent as part of a separate context message instead of the system prompt — see <a href="#dslr">DSLR Translator</a>.) Disable it if a model struggles with the extra context, or produces poor results with it. The <code>Context Length Limit</code> option can trim scene context automatically so weak models do not run out of context window.</p>

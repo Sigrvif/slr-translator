@@ -1,0 +1,101 @@
+<h1>Your First Translation Project</h1>
+
+<p>This page walks through a complete translation: open a game, parse it into the grid, translate it, wrap the text, export the translation into your game copy, and test it.</p>
+
+<h2 id="open">Opening a game</h2>
+
+<ol>
+	<li>On the start screen, click <code>Start a New Project</code> (or the <code>New Project</code> toolbar button). The wizard opens at <code>Select project type</code>.</li>
+	<li>For an RPG Maker game, choose <code>RPG Maker XP, VX, Ace, MV &amp; MZ Parser</code>.</li>
+	<li>Under <code>Select the game</code>, pick the game's executable file — <code>Game.exe</code> on Windows, or the <code>nw</code> / <code>Game</code> / <code>start.sh</code> launcher of a Linux port. SLR Translator analyzes it and shows the result under <code>Detected engine / type</code> — see <a href="#engine-detection">Engine Detection</a> for what it looks for.</li>
+	<li>If the game is packed (an RGSS archive or an Enigma Virtual Box executable), the wizard enables <code>Create a development copy</code> (marked <code>(required)</code>). Pick a <code>Set development directory</code> outside the original game folder — the tool unpacks an editable copy there.</li>
+	<li>Click <code>Create project!</code>. Parsing runs, and the project opens in the editor. Review any reported errors, then close the summary.</li>
+</ol>
+
+<p><img src="../img/mvt1.png" alt="New Project wizard: selecting the RPG Maker parser" /></p>
+<p><em>The project wizard: select the RPG Maker parser entry.</em></p>
+
+<p><img src="../img/mvt2.png" alt="New Project wizard: selecting the game executable" /></p>
+<p><em>Select the game executable; the detected engine type appears automatically.</em></p>
+
+<p><img src="../img/mvt3.png" alt="Project creation result with error review" /></p>
+<p><em>After creation: review any errors and click Close.</em></p>
+
+<p>To reopen existing work later, use <code>Open Project</code> or the <code>Open</code> toolbar button and pick your <code>.slrproj</code> file — you can also drop a <code>.slrproj</code> file directly onto the main window.</p>
+
+<h2 id="parse">What parsing does</h2>
+
+<p>Parsing extracts every translatable text from the game into a grid: one row per text, with the original text on the left and translation columns to the right of it. The <code>Objects</code> panel on the left lists the files the text came from; select an object to load its rows into the grid.</p>
+
+<p>For RPG Maker games (MV, MZ, XP, VX and VX Ace), parsing also builds the <a href="#scene-graph">Scene Graph</a> — the dialogue tracing that later keeps conversations together during batch translation. Its panel opens automatically right after project creation so you can see the traced scenes; reopen it any time with the <code>View Scene Graph (dialogue tracing)</code> toolbar button.</p>
+
+<p>Your whole working state — the grid, notes and project settings, plus the staged copy of the game data — is stored in a single project file with the <code>.slrproj</code> extension. Save it with <code>Ctrl+S</code> or the <code>Save file</code> toolbar button; <code>Save As</code> writes a copy under a new name. Automatic backups on every save are enabled by default and can be adjusted in the Options window.</p>
+
+<h2 id="translate">Translating</h2>
+
+<p>The first time the editor opens, SLR offers a <strong>very short tour</strong> (about 20 seconds) that points out each translation button. If you skip it, you can replay it any time from <code>Tools</code> → <code>Show button tour</code>.</p>
+
+<p>The Home toolbar's translation buttons are labelled: <code>Translation Setup</code>, <code>Glossary</code>, <code>Start Translation</code>, <code>Word Wrap</code> and <code>Export</code>, in the order you use them. (<code>Start Translation</code> is the batch translation button — it translates the whole project at once.) They are the way to translate a project — translating row by row wastes time and tokens and is only for cleanup afterwards.</p>
+
+<p>The cheapest translation is three steps: <strong>set up the engine</strong>, run <strong>Start Translation</strong>, then <strong>Word Wrap</strong> before exporting. The glossary and the QC/Judge review are optional quality improvements.</p>
+
+<ol>
+	<li><strong>Set up the engine (required).</strong> Press the <code>Translation Setup</code> toolbar button (it opens Options on the DSLR engine panel) and fill in the <strong>Quick Start</strong> box at the top: <code>API URL</code>, <code>API Key</code> and <code>Model</code>. Press <code>Test connection</code> to confirm — it sends a one-token request and reports what the endpoint replied. Those three fields are all you need; everything below is optional. The shipped defaults are only an example LM Studio setup with a weak model, so change them unless you really are running LM Studio locally. See <a href="#translator-setup">Translator Setup</a>.</li>
+	<li><strong>Generate a glossary (optional, before translating).</strong> Press the <code>Glossary</code> toolbar button — it extracts character names, place names and other recurring terms so you can fix one English rendering per term (see <a href="#glossary">Glossary Extractor</a>). With the DSLR engine, the <code>Auto-Inject Glossary</code> option (on by default) appends the glossary to every translation request automatically, keeping names consistent across the whole game. This costs extra tokens and is worth it mainly on a capable model.</li>
+	<li><strong>Run Start Translation.</strong> Press the <code>Start Translation</code> toolbar button and start the run (see <a href="#batch">Batch Translation</a>). Dialogue is grouped into scene-coherent requests automatically via the <a href="#scene-graph">Scene Graph</a> — no setup needed. This is the primary translation step.</li>
+	<li><strong>Review and refine.</strong> Afterwards, sweep the flagged rows (the <code>purple</code> tag, the review's <code>mediumpurple</code> tag, and <code>SHISAYE</code> error codes) and fix individual lines by hand — editing cells directly or with <code>Ctrl+G</code> per selection (see <a href="#editor-basics">Editor Basics</a> and <a href="#context-translation">Context Translation</a>). Manual editing is the cleanup pass, not the starting point.</li>
+</ol>
+
+<p>Optionally, enable the <strong>QC/Judge review</strong> in the engine options (Options → DSLR) to have a second model check the translations during the batch run. Like the glossary it improves quality on capable models but uses many more tokens.</p>
+
+<p>Rows are color-tagged to show what is safe to translate; the tag filter in the export dialog (below) lets you exclude unsafe rows from the final game. See <a href="#color-tags">Cell Color Tags</a>.</p>
+
+<h2 id="word-wrapping">Wrapping the text</h2>
+
+<p>English lines at Japanese line lengths overflow the game's message windows. Before exporting, run <strong>Automatic Word Wrapping</strong> from the <code>Word Wrap</code> toolbar button: it re-breaks the translated lines to fit and writes them into <code>Wrapped translations [3]</code>, which automatically takes precedence at export. For games that also need a narrower font, see the font sections of the engine pages (<a href="#mv/mv-fonts">MV</a>, <a href="#mz/mz-fonts">MZ</a>).</p>
+
+<p>See <a href="#word-wrap">Automatic Word Wrapping</a> for the prompt values and options.</p>
+
+<h2 id="inject">Exporting the translation</h2>
+
+<p>When the translation is ready, press the <code>Export Project</code> toolbar button. The <code>Select Export Mode</code> dialog offers:</p>
+
+<ul>
+	<li><strong>Export to a folder</strong> — writes the pre-compiled translated game data to a folder, retaining the folder structures.</li>
+	<li><strong>Export as a Zip file</strong> — the same data as a single zipped archive (default name <code>translation.zip</code>).</li>
+</ul>
+
+<p>Next, the <code>Export Options</code> dialog lets you set the <code>Export into</code> path and, depending on the engine, further options:</p>
+
+<ul>
+	<li><strong>What to do with tagged rows?</strong> — exclude rows by color tag from the export (see <a href="#color-tags">Cell Color Tags</a>).</li>
+	<li><strong>Word Wrap By Tag</strong> — export-time wrap rules of a color tag plus a maximum line length, applied to tagged rows as the files are written (distinct from the <a href="#word-wrap">Automatic Word Wrapping</a> button).</li>
+	<li>Engine fields where applicable (for example font shipping options).</li>
+</ul>
+
+<p>Click <code>Export Now</code>. The export writes the translated data files — plus the font files the translation references, where the engine supports that — re-encrypting MZ data files if the original game was encrypted. It writes <strong>only the translated data</strong>: audio, images and the executable are not copied, and there are no copy options. Export into (or unpack the zip into) your own copy of the game, replacing the original data files — keep a backup of the originals.</p>
+
+<p>To export only some files: tick them in the <code>Objects</code> panel, right-click and choose <code>Export into...</code> → <code>A folder</code> or <code>Zipped Game Patch</code> — only the checked files are written.</p>
+
+<p><img src="../img/startpj12.png" alt="Export Project dialog" /></p>
+<p><em>The Export Project dialog: export to a folder or as a Zip file.</em></p>
+
+<h2 id="import">Importing translations from another project</h2>
+
+<p>The <code>Import Project</code> toolbar button reuses translations from an existing <code>.slrproj</code> file — <strong>ideal for game updates</strong>: when a game is re-parsed after an update, importing your old project restores the translations you already completed for all text that is still present.</p>
+
+<ul>
+	<li>Rows are matched by their original text; only rows that already exist in the current project are updated — no new rows are added.</li>
+	<li>Every column except the original text is copied from each matching row: translations, wrapped text, notes, context translations and so on.</li>
+	<li><code>Overwrite existing cells</code> — off by default, so only empty cells receive the imported translations; turn it on to replace existing content.</li>
+	<li><code>Case insensitive matching</code> — also ignores case differences and carriage returns when matching rows.</li>
+</ul>
+
+<h2 id="play">Testing the game</h2>
+
+<ol>
+	<li>Copy the exported data files into your game copy (or export directly into it), then start the game executable and play past the parts you translated.</li>
+	<li>If the game misbehaves, read the export log shown during the process: when an error occurs, SLR Translator offers to open this documentation at the page for your game's engine.</li>
+</ol>
+
+<p>Iterate: fix rows in the grid, export again into the same place, and relaunch. When you are happy with the result, the patched game copy is your distributable game.</p>

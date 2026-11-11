@@ -1,0 +1,1 @@
+{"files":[{"pattern":"*.json","rules":[{"type":"regex","pattern":"/\"code\":401,\"indent\":0,\"parameters\":\\[\"([^\"]+)\"]/g\n","captureGroups":"1"}]}]}

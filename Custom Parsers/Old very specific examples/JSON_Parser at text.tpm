@@ -1,0 +1,1 @@
+﻿{"files":[{"pattern":"*.json","rules":[{"type":"regex","pattern":"/\"@text=\\\\\"([^\"]*?[一-龠ぁ-ゔァ-ヴー々〆〤ヶ]+?[^\"]*?)\\\\\"\"/g","captureGroups":"1"}]}]}

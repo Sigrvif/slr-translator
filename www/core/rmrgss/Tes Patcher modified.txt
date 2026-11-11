@@ -1,0 +1,2 @@
+I fixed it not detecting some versions of TES.
+It's in Third Party.

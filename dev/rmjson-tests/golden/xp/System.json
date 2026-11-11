@@ -1,0 +1,134 @@
+{
+  "json_class": "RPG::System",
+  "elements": [
+    null,
+    {
+      "json_class": "TranslatableString",
+      "original   ": "物理",
+      "translation": ""
+    },
+    {
+      "json_class": "TranslatableString",
+      "original   ": "炎",
+      "translation": ""
+    }
+  ],
+  "switches": [
+    null,
+    {
+      "json_class": "TranslatableString",
+      "original   ": "スイッチ",
+      "translation": ""
+    }
+  ],
+  "variables": [
+    null,
+    {
+      "json_class": "TranslatableString",
+      "original   ": "変数",
+      "translation": ""
+    }
+  ],
+  "words": {
+    "gold": {
+      "json_class": "TranslatableString",
+      "original   ": "gold",
+      "translation": ""
+    },
+    "hp": {
+      "json_class": "TranslatableString",
+      "original   ": "hp",
+      "translation": ""
+    },
+    "sp": {
+      "json_class": "TranslatableString",
+      "original   ": "sp",
+      "translation": ""
+    },
+    "str": {
+      "json_class": "TranslatableString",
+      "original   ": "str",
+      "translation": ""
+    },
+    "dex": {
+      "json_class": "TranslatableString",
+      "original   ": "dex",
+      "translation": ""
+    },
+    "agi": {
+      "json_class": "TranslatableString",
+      "original   ": "agi",
+      "translation": ""
+    },
+    "int": {
+      "json_class": "TranslatableString",
+      "original   ": "int",
+      "translation": ""
+    },
+    "atk": {
+      "json_class": "TranslatableString",
+      "original   ": "atk",
+      "translation": ""
+    },
+    "pdef": {
+      "json_class": "TranslatableString",
+      "original   ": "pdef",
+      "translation": ""
+    },
+    "mdef": {
+      "json_class": "TranslatableString",
+      "original   ": "mdef",
+      "translation": ""
+    },
+    "weapon": {
+      "json_class": "TranslatableString",
+      "original   ": "weapon",
+      "translation": ""
+    },
+    "armor1": {
+      "json_class": "TranslatableString",
+      "original   ": "armor1",
+      "translation": ""
+    },
+    "armor2": {
+      "json_class": "TranslatableString",
+      "original   ": "armor2",
+      "translation": ""
+    },
+    "armor3": {
+      "json_class": "TranslatableString",
+      "original   ": "armor3",
+      "translation": ""
+    },
+    "armor4": {
+      "json_class": "TranslatableString",
+      "original   ": "armor4",
+      "translation": ""
+    },
+    "attack": {
+      "json_class": "TranslatableString",
+      "original   ": "attack",
+      "translation": ""
+    },
+    "skill": {
+      "json_class": "TranslatableString",
+      "original   ": "skill",
+      "translation": ""
+    },
+    "guard": {
+      "json_class": "TranslatableString",
+      "original   ": "guard",
+      "translation": ""
+    },
+    "item": {
+      "json_class": "TranslatableString",
+      "original   ": "item",
+      "translation": ""
+    },
+    "equip": {
+      "json_class": "TranslatableString",
+      "original   ": "equip",
+      "translation": ""
+    }
+  }
+}

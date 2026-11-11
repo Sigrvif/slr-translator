@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Must come first: applies the night-mode stylesheet before anything paints.
+     This page lives at www/ root (like chatTemplate.html / runtimeStatus.html)
+     exactly because nightModeEarly.js resolves its CSS relative to this page. -->
+<script type="text/javascript" src="js/nightModeEarly.js"></script>
+<title>Ask DSLR a Question - SLR Translator</title>
+<link rel="stylesheet" type="text/css" href="core/docsChat/css/docsChat.css">
+</head>
+<body>
+<div id="bar">
+  <span class="title">Ask DSLR a Question</span>
+  <span class="btns">
+    <button id="min" title="Minimize">&#8211;</button>
+    <button id="close" title="Close">&#10005;</button>
+  </span>
+</div>
+<div id="body">
+  <div id="avatarHeader">
+  <div id="avatar" data-mood="neutral" title="She is judging you.">
+    <!-- Portrait art: one image per mood, files live in
+         www/core/docsChat/img/ (avatar-neutral/smug/happy, or a single
+         avatar for all three) and are picked up on the next message. -->
+    <img class="art art-neutral" alt="">
+    <img class="art art-smug" alt="">
+    <img class="art art-happy" alt="">
+  </div>
+    <div id="statusLine"></div>
+  </div>
+  <div id="log"></div>
+  <div id="endpointInfo"></div>
+  <div id="composer">
+    <textarea id="input" rows="2" placeholder="Ask about the manual, or anything else... (Enter to send, Shift+Enter for a new line)"></textarea>
+    <div id="composerButtons">
+      <button id="newBtn" title="Start a new conversation">New chat</button>
+      <button id="sendBtn" class="primary">Send</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+    "use strict";
+    var api = null;
+    try { api = window.opener && window.opener.docsChat; } catch (e) { api = null; }
+
+    var win = null;
+    try { win = nw.Window.get(); } catch (e) { win = null; }
+
+    var log = document.getElementById("log");
+    var statusLine = document.getElementById("statusLine");
+    var endpointInfo = document.getElementById("endpointInfo");
+    var avatarEl = document.getElementById("avatar");
+    var input = document.getElementById("input");
+
+    function setMood(mood) {
+        if (avatarEl) avatarEl.setAttribute("data-mood", mood);
+    }
+
+    function refreshAvatarArt() {
+        if (!avatarEl || !api || typeof api.getAvatarArt !== "function") return;
+        var art = {};
+        try { art = api.getAvatarArt() || {}; } catch (e) { return; }
+        ["neutral", "smug", "happy"].forEach(function (mood) {
+            var info = art[mood];
+            var img = avatarEl.querySelector(".art-" + mood);
+            if (info && info.kind === "image" && img) {
+                if (img.getAttribute("src") !== info.src) img.setAttribute("src", info.src);
+                avatarEl.classList.add("img-" + mood);
+            } else {
+                avatarEl.classList.remove("img-" + mood);
+            }
+        });
+    }
+
+    function renderConversation(messages) {
+        log.innerHTML = "";
+        for (var i = 0; i < messages.length; i++) {
+            if (messages[i].role === "user") {
+                addLine("msg user", messages[i].content);
+            } else {
+                var el = addAssistantBubble();
+                renderAssistant(el, messages[i].content);
+            }
+        }
+    }
+
+    function refreshAvatarVisibility() {
+        if (!avatarEl) return;
+        var mode = "default";
+        try {
+            if (api && typeof api.getPersonaMode === "function") mode = api.getPersonaMode();
+        } catch (e) { /* keep default */ }
+        avatarEl.style.display = (mode === "default") ? "" : "none";
+    }
+    var sendBtn = document.getElementById("sendBtn");
+    var newBtn = document.getElementById("newBtn");
+
+    var GREETING = "Oh, look who needs help. Fine — ask me anything. I can read the manual, so you don't have to.";
+    var sending = false;
+
+    function scrollToEnd() {
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function addLine(className, text) {
+        var div = document.createElement("div");
+        div.className = className;
+        div.textContent = text;
+        log.appendChild(div);
+        scrollToEnd();
+        return div;
+    }
+
+    function addStatus(text) {
+        statusLine.textContent = text;
+        addLine("statusline", text);
+    }
+
+    function addAssistantBubble() {
+        var div = document.createElement("div");
+        div.className = "msg assistant";
+        div.innerHTML = "";
+        log.appendChild(div);
+        scrollToEnd();
+        return div;
+    }
+
+    function renderAssistant(el, buffer) {
+        // Only safe HTML: the markdown renderer escapes everything first.
+        try { el.innerHTML = api.renderMarkdown(buffer); }
+        catch (e) { el.textContent = buffer; }
+        scrollToEnd();
+    }
+
+    function addNoEndpointHint() {
+        var wrap = document.createElement("div");
+        wrap.className = "hint";
+        var text = document.createElement("span");
+        text.textContent = "No DSLR endpoint is configured yet. ";
+        var btn = document.createElement("button");
+        btn.textContent = "Open Translation Setup";
+        btn.addEventListener("click", function () {
+            try { window.opener.ui.openOptionsWindow({ tab: "dslr" }); } catch (e) { /* opener gone */ }
+        });
+        wrap.appendChild(text);
+        wrap.appendChild(btn);
+        log.appendChild(wrap);
+        scrollToEnd();
+    }
+
+    function addError(message) {
+        addLine("errorline", String(message));
+    }
+
+    function refreshEndpointInfo() {
+        if (!api) return;
+        var info = api.getEndpointInfo();
+        endpointInfo.textContent = info.configured
+            ? ("Asking: " + (info.model || "(no model set)") + (info.host ? " @ " + info.host : ""))
+            : "No DSLR endpoint configured";
+    }
+
+    function greet() {
+        refreshAvatarArt();
+        refreshAvatarVisibility();
+        addLine("msg assistant greeting", GREETING);
+        // A remembered conversation (Remember chats option) renders as plain
+        // history after the greeting — restored prose, no tool noise.
+        try {
+            if (api && typeof api.getRestoredConversation === "function") {
+                renderConversation(api.getRestoredConversation() || []);
+            }
+        } catch (e) { /* restoration is cosmetic */ }
+        refreshEndpointInfo();
+    }
+
+    function setSending(busy) {
+        sending = busy;
+        sendBtn.textContent = busy ? "Stop" : "Send";
+        sendBtn.classList.toggle("busy", busy);
+    }
+
+    function send() {
+        if (!api) { addError("The docsChat module is not available in the main window."); return; }
+        var text = input.value.trim();
+        if (text === "" || sending) return;
+        input.value = "";
+        addLine("msg user", text);
+
+        // The assistant bubble is created LAZILY on first streamed content:
+        // statuses that fire before generation starts ("reading the manual…")
+        // then land between the question and the answer, and the finished
+        // reply is always the last element — a pre-created bubble made the
+        // pre-fetch notice appear AFTER the answer, as if she were still
+        // reading after finishing the sentence.
+        var bubble = null;
+        var buffer = "";
+        function ensureBubble() {
+            if (!bubble) bubble = addAssistantBubble();
+            return bubble;
+        }
+        var renderPending = false;
+        function requestRender() {
+            if (renderPending) return;
+            renderPending = true;
+            requestAnimationFrame(function () {
+                renderPending = false;
+                if (bubble) renderAssistant(bubble, buffer);
+            });
+        }
+        function startNewAssistantBubble() {
+            // Keep what already streamed as its own message; the next content
+            // opens a fresh bubble (lazily, so a status between rounds lands
+            // between the messages). Text streamed before a tool call is real
+            // content — the roast — and must survive the tool round.
+            if (bubble && buffer.trim() !== "") {
+                renderAssistant(bubble, buffer);
+            }
+            bubble = null;
+            buffer = "";
+        }
+
+        setSending(true);
+        statusLine.textContent = "";
+        var sent;
+        try {
+            sent = api.send(text, {
+            onMode: function (manual) {
+                setMood(manual ? "smug" : "happy");
+                refreshAvatarArt();
+                refreshAvatarVisibility();
+            },
+            onDelta: function (fragment) {
+                buffer += fragment;
+                ensureBubble();
+                requestRender();
+            },
+            onStatus: function (text2) {
+                addStatus(text2);
+            },
+            onRoundReset: function () {
+                startNewAssistantBubble();
+            }
+        });
+        } catch (e) {
+            // The API contract is promise-rejections, but a synchronous throw
+            // here would leave the composer stuck on "Stop" forever.
+            setSending(false);
+            addError((e && e.message) ? e.message : String(e));
+            return;
+        }
+        sent.then(function (finalText) {
+            ensureBubble();
+            renderAssistant(bubble, finalText !== "" ? finalText : buffer);
+            statusLine.textContent = "";
+            refreshEndpointInfo();
+            setSending(false);
+        }).catch(function (err) {
+            setSending(false);
+            statusLine.textContent = "";
+            if (err && err.code === "NO_ENDPOINT") {
+                if (bubble) bubble.remove();
+                addNoEndpointHint();
+            } else {
+                if (bubble && buffer !== "") renderAssistant(bubble, buffer);
+                addError((err && err.message) ? err.message : String(err));
+            }
+        });
+    }
+
+    sendBtn.addEventListener("click", function () {
+        if (sending) { api.stop(); return; }
+        send();
+    });
+    newBtn.addEventListener("click", function () {
+        if (sending) { try { api.stop(); } catch (e) { /* nothing in flight */ } setSending(false); }
+        try {
+            if (api && typeof api.beginNewConversation === "function") api.beginNewConversation();
+            else api.clear();
+        } catch (e) { /* not built yet */ }
+        setMood("neutral");
+        log.innerHTML = "";
+        statusLine.textContent = "";
+        greet();
+        input.focus();
+    });
+    // The conversation-selection dialog in the main window switches the module's
+    // current conversation and then resets this page through this hook — picking
+    // a different conversation while the window is already open re-renders it.
+    window.__docsChatRenderSwitched = function () {
+        if (sending) { try { api.stop(); } catch (e) { /* nothing in flight */ } setSending(false); }
+        setMood("neutral");
+        log.innerHTML = "";
+        statusLine.textContent = "";
+        greet();
+        input.focus();
+    };
+    input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            if (!sending) send();
+        }
+    });
+
+    document.getElementById("min").addEventListener("click", function () {
+        try { if (win) win.minimize(); } catch (e) { /* ignore */ }
+    });
+    document.getElementById("close").addEventListener("click", function () {
+        try { if (win) win.close(); } catch (e) { /* ignore */ }
+    });
+
+    if (!api) {
+        addError("The docsChat module is not available in the main window.");
+    }
+    greet();
+    input.focus();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+{"files":[{"pattern":"*.csv","rules":[{"type":"regex","pattern":"/\\$gameMessage.add\\('(.+?)'\\)/g","captureGroups":"1"}]}]}

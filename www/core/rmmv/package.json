@@ -1,0 +1,16 @@
+{
+    "builtin": true,
+    "name": "rmmv",
+	"title" : "MV/MZ Parser",
+    "description": "RPG Maker MV & RPG Maker MZ parser.",
+    "optionsDisplay": "hidden",
+    "main": "rmmv.js",
+    "homepage": "",
+    "version": "3.076 (Last Related Change)",
+	"icon": "icon.png",
+	"author" : {
+		"name":"Shisaye"
+	},
+	"autoload" : false,
+	"load":["rmmv.js"]
+}

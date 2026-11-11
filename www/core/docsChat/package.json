@@ -1,0 +1,15 @@
+{
+  "builtin": true,
+  "name": "docsChat",
+  "title": "Ask DSLR",
+  "version": "3.074 (Last Related Change)",
+  "description": "Ask DSLR a Question - chat with the configured DSLR endpoint. It reads the built-in documentation so you don't have to.",
+  "main": "docsChat.js",
+  "author": {
+    "name": "Shisaye"
+  },
+  "autoload": false,
+  "load": [
+    "docsChat.js"
+  ]
+}

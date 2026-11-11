@@ -1,0 +1,80 @@
+<h1>General Settings</h1>
+
+<p>The Options window has three entries in its left menu: <code>Translator &amp; Language</code> (which engine <code>Ctrl+G</code> uses — see <a href="#engines-overview">Options Overview</a>), <code>General</code>, and <code>About</code>. This page documents the <code>General</code> tab option by option. The search box at the bottom of the menu filters the entries by name.</p>
+
+<h2 id="option-reference">Option reference</h2>
+
+<table>
+	<tr><th>Option</th><th>What it does</th><th>Default</th></tr>
+	<tr>
+		<td><code>Staging Directory</code></td>
+		<td>The working cache for open projects: while you work on a game, a portion of its data is copied here for the interpreter scripts to access. Changing it asks for confirmation and then offers to move the existing staging content to the new location. Point it at a fast disk with enough space for your projects (see <a href="#first-project">Your First Translation Project</a>).</td>
+		<td><code>www/php/cache</code> inside the application folder</td>
+	</tr>
+	<tr>
+		<td><code>File Association</code> — <code>trans</code>, <code>tpp</code></td>
+		<td>Registers the file types <code>.trans</code> and <code>.tpp</code> so double-clicking such a file opens it with SLR Translator. <code>Set All</code> / <code>Unset All</code> toggle every checkbox; <code>Apply</code> writes the association into the Windows registry after a confirmation prompt.</td>
+		<td>not associated</td>
+	</tr>
+	<tr>
+		<td><code>Backup</code> — <code>Enable backup</code></td>
+		<td>When on, every save of a <code>.slrproj</code> project first rotates the previous file into a backup copy named <code>&lt;project&gt;.slrproj.1.bak</code>, shifting older backups up (<code>.2.bak</code>, <code>.3.bak</code>…). The oldest backup beyond the configured level is deleted. Turn this off only if you make your own backups (see <a href="#faq">FAQ &amp; Tips</a>).</td>
+		<td>on</td>
+	</tr>
+	<tr>
+		<td><code>Backup</code> — <code>Backup level history</code></td>
+		<td>How many backup generations to keep per project, from <code>0</code> (no backups even when enabled) to <code>10</code>.</td>
+		<td><code>1</code> (fresh installations write <code>3</code>)</td>
+	</tr>
+	<tr>
+		<td><code>Max Concurrent Batches</code></td>
+		<td>How many translation batches are in flight at once, for engines that do not manage their own endpoint pool (for example the Sugoi engine). The DSLR engine ignores this and uses its per-endpoint weights instead (see <a href="#batch">Batch Translation</a> and <a href="#dslr">DSLR Translator</a>). <strong>Requires a restart to apply.</strong> Caution: raising it above what the translation server can handle gains nothing or breaks the run.</td>
+		<td><code>1</code> (range 1–20)</td>
+	</tr>
+	<tr>
+		<td><code>Japanese Source Language</code></td>
+		<td>Declares that source text is Japanese. Many checks and processing rules are Japanese-specific; support for other source languages is experimental and requires adjusting all DSLR prompts and wrapper patterns. <strong>Disable this when translating from any other language.</strong> Requires a restart to apply.</td>
+		<td>on</td>
+	</tr>
+	<tr>
+		<td><code>English Target Language</code></td>
+		<td>Declares that the target language is English; same experimental status and the same prompt adjustments needed for other targets. <strong>Disable this when translating to any other language.</strong> Requires a restart to apply.</td>
+		<td>on</td>
+	</tr>
+	<tr>
+		<td><code>Log &amp; Debugging</code> — <code>Log to file</code></td>
+		<td>Mirrors the log to the developer console and writes it, expanded, to a file in the <code>data/logs/</code> folder. Enabled by default so a log exists when you report a problem; it costs a little performance. Requires a restart to apply.</td>
+		<td>on</td>
+	</tr>
+	<tr>
+		<td><code>Log &amp; Debugging</code> — <code>Keep last sessions (rotate)</code></td>
+		<td>Rotates the log file each session instead of appending forever: the current session is the main log, the previous two are kept as <code>.1</code> and <code>.2</code> backups, older ones are deleted — three sessions in total. Requires a restart to apply.</td>
+		<td>on</td>
+	</tr>
+	<tr>
+		<td><code>Log &amp; Debugging</code> — <code>Log Options window to its own file</code></td>
+		<td>Lets the Options window write its own <code>options.log</code> next to <code>trans.log</code>. It mostly repeats what the main log already records, so it is off by default; enable it only when debugging an Options window problem. Requires a restart to apply.</td>
+		<td>off</td>
+	</tr>
+</table>
+
+<div class="note">Options marked “requires a restart” prompt you to restart SLR Translator when changed; the new value only takes effect after that restart.</div>
+
+<h2 id="addon-sections">Sections added by core modules</h2>
+
+<p>Below the built-in options, the General tab grows extra sections from installed modules that declare general options. In the default installation these are:</p>
+
+<ul>
+	<li><strong>SLR Batch</strong> — batch translation defaults (see <a href="#batch">Batch Translation</a>).</li>
+	<li><strong>Spell Checker</strong> — the offline English (en-US) spell checking options (see <a href="#spellcheck">Spell Checking</a>).</li>
+	<li><strong>Appearance</strong> — the night mode (dark UI) toggle. Night mode recolours the whole interface, including the drop-down lists and multi-select list boxes of <code>select</code> fields and the native tick of checkboxes and radio buttons, which are drawn by the browser separately from the page and would otherwise stay white or turn orange. Text selection keeps the blue highlight everywhere, including the Default translation editor.</li>
+</ul>
+
+<p>Modules with their own full tab (such as SEP, the picture translator — see <a href="#sep">SEP Picture Translation</a>) appear as separate entries in the left menu instead. User addons can add sections the same way; see <a href="#addons">User Addons</a>.</p>
+
+<h2 id="other-tabs">The other menu entries</h2>
+
+<ul>
+	<li><code>Translator &amp; Language</code> — picks the engine used by <code>Ctrl+G</code> on selected cells, and hosts every engine's own options tabs. See <a href="#engines-overview">Options Overview</a>.</li>
+	<li><code>About</code> — version, license and credits summary. See <a href="#about">About, Credits &amp; License</a>.</li>
+</ul>

@@ -1,0 +1,305 @@
+<h1>Error Codes</h1>
+
+<p>After translating a cell, SLR Translator compares the translation against the original text and checks that everything the game needs to parse — text codes, placeholders, quotes, brackets — survived the translation. When something looks broken, it writes a marker into the row's <code>Errors [4]</code> column (see <a href="#editor-basics">Editor Basics</a>). The markers all start with <code>SHISAYE.</code>, the author's handle.</p>
+
+<p>When a check fires, the affected text is usually marked inline at the exact problem spot: the first error found is stored verbatim with its surrounding text so you can see where the issue is, and any further codes for the same cell are appended and de-duplicated. After a translation you may see an alert telling you to search for <code>SHISAYE</code> with the Find dialog (<code>Ctrl+F</code>) — that lists every cell carrying an error code (see <a href="#find-replace">Find &amp; Replace</a>).</p>
+
+<h2 id="how-to-read">How to read the codes</h2>
+
+<ul>
+	<li>Codes are plain text in the <code>Errors</code> column — click the cell to see them, and use Find with the text target <code>SHISAYE</code> to jump from one to the next.</li>
+	<li>Most codes describe <em>what the checker saw</em>, not why the model produced it: <code>LOSTBACKSLASH5</code> means an escaped quote appears in the translation but not in the original, whatever the reason.</li>
+	<li>Numbered suffixes (<code>BROKENNAME1</code>…<code>9</code>, <code>LOSTBACKSLASH1</code>…<code>10</code>) distinguish which variant of a problem was detected — for fixing purposes they all mean the same family of breakage.</li>
+	<li>An error code is a warning to check the cell, not a guarantee that the game will crash — but several families (<code>LOSTBACKSLASH</code>, <code>MISSINGPLACEHOLDER</code>, <code>S.NEEDSTOBEBEFORE.D</code>) mark issues that very likely will.</li>
+</ul>
+
+<h2 id="translation-failures">Translation failures</h2>
+
+<table>
+	<tr><th>Code</th><th>Meaning</th><th>Typical cause</th><th>Fix</th></tr>
+	<tr>
+		<td><code>SHISAYE.TRANSLATIONFAIL</code></td>
+		<td>The engine could not produce a usable translation even after its recovery attempts. The last response (or the original text, if there was none) is written into the cell with this code appended so the batch does not fail completely.</td>
+		<td>Endpoint returned garbage, refused, or timed out on this line; all retries and fallback models were exhausted.</td>
+		<td>Re-translate the cell manually, ideally with another engine or model. Rows containing this code are never stored in the translation cache, so a re-run will try again.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.$1SUGOIERROR</code></td>
+		<td>A corrupted number of the form <code>12xF34</code> was found in the translation — a numeric garble typical of a translator server that crashed mid-generation.</td>
+		<td>The translation server lost chunks of its output.</td>
+		<td>Re-translate the cell; if it repeats, restart or lower the load on the server (see <a href="#batch">Batch Translation</a>).</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.WRONGAIRESPONSE</code></td>
+		<td>The model answered with chat instead of a translation — the preamble “Let me translate those Japanese phrases to English for you:” was detected in the output.</td>
+		<td>Prompt/template mismatch, or a model that ignores the translation template.</td>
+		<td>Re-translate the cell; if it repeats, check the engine's prompts and template settings (see <a href="#dslr">DSLR Translator</a>).</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.POTENTIALESCAPERCRASH</code></td>
+		<td>The output contains the repeated apology “I'm sorry. I'm sorry.” — the model refused or looped instead of translating.</td>
+		<td>The model balked at the content or hit a repetition loop.</td>
+		<td>Translate the cell manually, or with a different model.</td>
+	</tr>
+</table>
+
+<h2 id="missing-commands">Missing, extra and unknown commands</h2>
+
+<table>
+	<tr><th>Code</th><th>Meaning</th><th>Typical cause</th><th>Fix</th></tr>
+	<tr>
+		<td><code>SHISAYE.MISSINGCOMMAND</code></td>
+		<td>A <code>\command[…]</code> present in the original is gone from the translation.</td>
+		<td>The model dropped or mangled a control code.</td>
+		<td>Restore the command from the original cell (see <a href="#escape-codes">Escape &amp; Text Codes</a>).</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.MISSINGCOMMAND.B</code></td>
+		<td>A bracket command without a leading backslash (<code>[…]</code>) present in the original is gone.</td>
+		<td>Plugin/script bracket tokens lost during translation.</td>
+		<td>Restore the token from the original cell.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.MISSINGBRACKET</code></td>
+		<td>A <code>\command[…]</code> lost its bracket part — the command name may remain, but the <code>[…]</code> is gone.</td>
+		<td>The model treated the bracket as removable punctuation.</td>
+		<td>Restore the full command including its brackets.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.MISSINGBOUNDARY</code></td>
+		<td>A <code>\command&lt;…&gt;</code> lost its <code>&lt;…&gt;</code> part.</td>
+		<td>Angle-bracket arguments stripped by the model.</td>
+		<td>Restore the full command.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.ADDITIONALCOMMAND</code></td>
+		<td>The translation contains a <code>\command[…]</code> that the original does not have.</td>
+		<td>The model invented a code, or restored a placeholder wrongly.</td>
+		<td>Remove the invented command.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.WRONGCOMMAND</code></td>
+		<td>A bare backslash command appears in the translation that is absent from the original.</td>
+		<td>Same as above, for commands without brackets — often a stray “\” the model added.</td>
+		<td>Remove it, or verify it is a real code the game supports.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.COMMANDGAP</code></td>
+		<td>A command has junk between the name and the bracket, e.g. <code>\C [1]</code>.</td>
+		<td>The model inserted a space or character inside the code.</td>
+		<td>Close the gap: <code>\C[1]</code>.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.UNKNOWNCOMMAND1</code></td>
+		<td>A bracket token (<code>[…]</code>) that is not a known command still contains Japanese in the translation (only checked when the target language is English).</td>
+		<td>Part of a plugin command was treated as translatable text.</td>
+		<td>Check the original; restore the token or translate it deliberately if it really is text.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.UNKNOWNCOMMAND2</code></td>
+		<td>Same as above for angle-bracket tokens (<code>&lt;…&gt;</code>) containing Japanese.</td>
+		<td>Plugin argument translated by mistake.</td>
+		<td>Restore from the original.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.UNKNOWNCOMMAND3</code></td>
+		<td>A doubled backslash before a bracket number, e.g. <code>\\[1]</code>.</td>
+		<td>The model (or a recovery step) escaped a backslash that should be single.</td>
+		<td>Fix to a single backslash if the original had one.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.UNKNOWNCOMMAND4</code></td>
+		<td>A forward-slash command such as <code>/c[1]</code> — the slash direction got flipped.</td>
+		<td>Model typo or overzealous escaping.</td>
+		<td>Restore the backslash form from the original.</td>
+	</tr>
+</table>
+
+<h2 id="malformed-commands">Malformed commands</h2>
+
+<table>
+	<tr><th>Code</th><th>Meaning</th><th>Typical cause</th><th>Fix</th></tr>
+	<tr>
+		<td><code>SHISAYE.BROKENNAME1</code>–<code>9</code></td>
+		<td>A name command (<code>\n[…]</code>, <code>\N[…]</code>, <code>\nw[…]</code>, <code>\NW[…]</code>, <code>\name[…]</code>) has junk where its <code>[</code> or <code>&lt;</code> should be — e.g. <code>\n=[1]</code>. The nine variants cover upper/lowercase and the <code>&lt;</code> form.</td>
+		<td>The model altered the character right after the command name.</td>
+		<td>Restore the exact command syntax from the original.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.BROKENVARIABLE1</code> / <code>2</code></td>
+		<td>A variable command <code>\V(1)</code> / <code>\v(1)</code> uses parentheses instead of brackets.</td>
+		<td>The model swapped bracket styles.</td>
+		<td>Fix to <code>\V[1]</code>.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.MISSINGVARIABLEB1</code>–<code>3</code>, <code>SHISAYE.MISSINGVARIABLE.B1</code>–<code>3</code></td>
+		<td>A <code>\B[…]</code> / <code>\b[…]</code> command is broken: followed by junk instead of <code>[</code> (1), cut off at the end of the text (2), or followed by digits without brackets (3).</td>
+		<td>Truncated or half-restored command.</td>
+		<td>Restore the complete <code>\B[n]</code> form.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.BROKENCOLOR</code></td>
+		<td>A color command <code>\C[…]</code> whose bracket does not start with a digit, e.g. <code>\C[one]</code>.</td>
+		<td>The model spelled out the color index.</td>
+		<td>Restore the numeric form <code>\C[n]</code>.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.BROKENDOLLAR</code></td>
+		<td>An escaped dollar <code>\$</code> appears in the translation but not the original.</td>
+		<td>Backslash wrongly attached to a normal dollar sign.</td>
+		<td>Remove the backslash unless the original had <code>\$</code>.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.BROKENCOMMAND</code></td>
+		<td>A backslash command followed by a stray <code>-</code>, <code>|</code> or <code>'</code>, not present in the original.</td>
+		<td>Model garbled a code into a hyphenated word.</td>
+		<td>Compare with the original and restore.</td>
+	</tr>
+</table>
+
+<h2 id="stray-backslashes">Stray backslashes</h2>
+
+<table>
+	<tr><th>Code</th><th>Meaning</th><th>Typical cause</th><th>Fix</th></tr>
+	<tr>
+		<td><code>SHISAYE.LOSTBACKSLASH1</code> / <code>2</code></td>
+		<td>A dangling backslash at the end of the text or before a space — variant 1 for a single backslash, variant 2 for a doubled one. A stray backslash can crash the game's text parser.</td>
+		<td>The model dropped the character that followed the backslash.</td>
+		<td>Restore the full code from the original, or delete the stray backslash.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.LOSTBACKSLASH10</code></td>
+		<td>A backslash directly before an opening parenthesis <code>\(</code> (also flagged as <code>LOSTBACKSLASH2</code> by a second check), or a backslash glued to one of the error markers themselves.</td>
+		<td>Model inserted parentheses around a code, or a repair step half-fixed a previous error.</td>
+		<td>Remove the parenthesis or restore the intended code.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.LOSTBACKSLASH4</code> / <code>8</code></td>
+		<td>A backslash before a Japanese quote mark: <code>\「</code> or <code>\」</code>.</td>
+		<td>The model escaped a bracket quote that was plain text in the original.</td>
+		<td>Remove the backslash if the original quote was unescaped.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.LOSTBACKSLASH5</code></td>
+		<td>An escaped quote <code>\"</code> or <code>\'</code> appears in the translation but not in the original.</td>
+		<td>Escaping added where the game does not expect it.</td>
+		<td>Match the original's quoting.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.LOSTBACKSLASH7</code></td>
+		<td>The sequence <code>\n\</code> (a line break followed by a dangling backslash-space).</td>
+		<td>Truncated code after a line break.</td>
+		<td>Restore the complete code.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.LOSTBACKSLASH9.STAR</code></td>
+		<td>An escaped asterisk <code>\*</code> in the translation.</td>
+		<td>Backslash attached to a normal asterisk.</td>
+		<td>Remove the backslash unless the original had <code>\*</code>.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.ESCAPEDBACKSLASH</code></td>
+		<td>A doubled backslash before a letter (<code>\\n</code>, <code>\\C</code>…) appears although the original has none.</td>
+		<td>The model (or a template) escaped the escape character.</td>
+		<td>Reduce to the single-backslash form the original uses.</td>
+	</tr>
+</table>
+
+<h2 id="brackets-quotes">Bracket and quote mismatches</h2>
+
+<table>
+	<tr><th>Code</th><th>Meaning</th><th>Typical cause</th><th>Fix</th></tr>
+	<tr>
+		<td><code>SHISAYE.WRONGBRACKET1.DOT</code> / <code>2.DOT</code></td>
+		<td>A bracket command ends with <code>.]</code> instead of <code>]</code> — e.g. <code>\V[1.]</code> (2) or text ending in <code>.]</code> without any opening bracket (1).</td>
+		<td>The model treated the closing bracket as sentence punctuation.</td>
+		<td>Match the original's bracket style.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.WRONGBRACKET3</code> / <code>4</code></td>
+		<td>A command closes with <code>」]</code> or <code>]」</code> — a Japanese quote and bracket swapped or doubled at the start of the text.</td>
+		<td>Quote/bracket confusion in scripts.</td>
+		<td>Restore the original arrangement.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.LOSTSTAR1</code></td>
+		<td>The text begins with content followed by <code>*]</code> but has no matching <code>[</code> — e.g. <code>something*]</code>.</td>
+		<td>Half of a bracket token was lost.</td>
+		<td>Restore the opening part of the token.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.INNERBOUNDARY</code></td>
+		<td>The translation is wrapped in quotes but contains an extra quote inside, while the original had none — three quotes where there should be two.</td>
+		<td>The model added quotation marks around a quoted string's content.</td>
+		<td>Remove the inner quote; unbalanced quotes are a high crash risk.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.MISSINGQUOTES</code> / <code>MISSINGQUOTES2</code></td>
+		<td>On rows whose original is a quoted code string (green-tagged), the outer double (or single) quotes were lost.</td>
+		<td>The model stripped the quotes around a script string.</td>
+		<td>Re-wrap the translation in the original quotes.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.3INNERQUOTES</code>, <code>5INNERQUOTES</code>, <code>7INNERQUOTE</code>, <code>9INNERQUOTE</code> (and the <code>2</code> single-quote variants)</td>
+		<td>On quoted code strings, the number of inner quotes in the translation does not match the original — the number is the expected quote count. The <code>2</code>-suffixed variants are for single-quoted strings.</td>
+		<td>Quotes merged, split or added by the model.</td>
+		<td>Match the original's quote count.</td>
+	</tr>
+</table>
+
+<h2 id="placeholders">Placeholder problems</h2>
+
+<table>
+	<tr><th>Code</th><th>Meaning</th><th>Typical cause</th><th>Fix</th></tr>
+	<tr>
+		<td><code>SHISAYE.MISSINGPLACEHOLDER1</code>–<code>5</code></td>
+		<td>Format placeholders (<code>%s</code>, <code>%d</code>, and <code>@</code>/<code>#</code> tokens) from the original are missing from the translation. The number is how many placeholders the original had (checked from five down to one).</td>
+		<td>The model dropped the format tokens — in RGSS scripts these are filled in at runtime, and a missing one will crash the game.</td>
+		<td>Restore every placeholder from the original, keeping their order.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.S.NEEDSTOBEBEFORE.D</code> / <code>D.NEEDSTOBEBEFORE.S</code></td>
+		<td>The order of <code>%s</code> and <code>%d</code> differs from the original.</td>
+		<td>The model reordered the tokens — the game fills them in the original order, so swapped tokens put the wrong value in the wrong slot and usually crash.</td>
+		<td>Restore the original order.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.LOSTPLACEHOLDERMVMZ</code></td>
+		<td>A percent placeholder (<code>%1</code>, <code>%2</code>…) appears in the translation but not in the original.</td>
+		<td>The model inserted a placeholder that the game will not substitute.</td>
+		<td>Remove it.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.PLACEHOLDERGAPMVMZ</code></td>
+		<td>A percent placeholder is corrupted with extra characters between <code>%</code> and the digit, e.g. <code>% 1</code>.</td>
+		<td>The model spaced out the token.</td>
+		<td>Fix to <code>%1</code>.</td>
+	</tr>
+	<tr>
+		<td><code>SHISAYE.LOSTPLACEHOLDERMIDDLE</code></td>
+		<td>A protected placeholder was missing from the translation; the engine re-inserted it at its best-guess position in the sentence and marked the cell so you can verify the placement.</td>
+		<td>The model dropped the token; automatic recovery put it back.</td>
+		<td>Check that the re-inserted placeholder sits where it reads correctly.</td>
+	</tr>
+</table>
+
+<h2 id="script-structure">Script structure</h2>
+
+<table>
+	<tr><th>Code</th><th>Meaning</th><th>Typical cause</th><th>Fix</th></tr>
+	<tr>
+		<td><code>SHISAYE.TOOMANYCOMMAS</code> / <code>TOOFEWCOMMAS</code></td>
+		<td>On <code>LL_GalgeChoiceWindowMV setChoices</code> script rows, the translation has a different number of commas than the original. These scripts use commas as argument dividers.</td>
+		<td>The model added or removed commas while translating the choices.</td>
+		<td>Adjust the comma count to match the original.</td>
+	</tr>
+</table>
+
+<h2 id="notes">Notes</h2>
+
+<ul>
+	<li>The error checks run automatically after every translation — per cell for interactive translations, and as a fix-up pass after each batch. You do not need to trigger them.</li>
+	<li>The <code>purple</code> cell tag is a related but separate signal: it marks rows where the batch translator suspects the whole result is broken (truncated or looped output), before the per-code checks run. The <code>mediumpurple</code> tag marks the DSLR semantic review's findings instead. See <a href="#color-tags">Cell Color Tags</a>.</li>
+	<li>Repetition loops that happen while a response streams are usually caught before they ever reach the output: the DSLR repetition loop guard terminates the looping response early and retries it with an increased repetition penalty (logged as “repetition loop detected …”, distinct from a “length” finish reason). Output that is still looped either survived those retries or ran with the guard's thresholds set to 0 — see <a href="#dslr">DSLR Translator</a>.</li>
+	<li>Codes whose fix mentions “restore from the original”: the original text is always the leftmost column (<code>Original Text [0]</code>) of the same row.</li>
+</ul>

@@ -1,0 +1,13 @@
+{
+    "builtin": true,
+    "name": "rmmz",
+    "description": "SLR support for RPG Maker MZ",
+    "main": "rmmz.js",
+    "homepage": "",
+    "version": "3.076 (Last Related Change)",
+	"icon": "icon.png",
+	"author" : {
+		"name":"Shisaye"
+	},
+	"autoload" : true
+}

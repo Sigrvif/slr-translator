@@ -1,0 +1,35 @@
+{
+  "name": "enigmavb-unpacker",
+  "version": "1.1.0",
+  "description": "Pure Node.js unpacker for Enigma Virtual Box packed executables (v4.10 - v10.80). Cross-platform, zero dependencies.",
+  "keywords": [
+    "enigma",
+    "enigma-virtual-box",
+    "unpacker",
+    "evb",
+    "aplib",
+    "reverse-engineering",
+    "pe"
+  ],
+  "main": "enigma-vb.js",
+  "bin": {
+    "enigmavb-unpacker": "main.js"
+  },
+  "scripts": {
+    "unpack": "node main.js",
+    "start": "node main.js"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "license": "MIT",
+  "files": [
+    "main.js",
+    "enigma-vb.js",
+    "aplib.js",
+    "pe-utils.js",
+    "version-tables.js",
+    "README.md",
+    "LICENSE"
+  ]
+}

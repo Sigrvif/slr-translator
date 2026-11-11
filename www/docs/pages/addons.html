@@ -1,0 +1,235 @@
+<h1>User Addons</h1>
+
+<p>SLR Translator is modular: everything you see — the translation engines, the RPG Maker parsers, the OCR module — is an <em>addon</em> loaded at startup. The addons that ship with the application are mandatory built-ins living in <code>www/core/</code>; the empty <code>www/addons/</code> folder next to it exists for your own. Dropping a third-party addon there extends the application with new engines, parsers, UI or tools without touching the core.</p>
+
+<h2 id="how-loading-works">How loading works</h2>
+
+<ul>
+	<li>On startup the addon loader scans <code>www/core/</code> first and <code>www/addons/</code> second. Every subfolder that contains a <code>package.json</code> is loaded as an addon.</li>
+	<li>Core-first order settles name collisions: if a user addon folder has the same name as a core module, the core one wins and the user addon is ignored.</li>
+	<li>Core modules carry <code>builtin: true</code> in their manifest, which marks them as mandatory — they are always loaded and cannot be removed.</li>
+</ul>
+
+<h2 id="enable-and-remove">Enabling and removing addons</h2>
+
+<p>There is deliberately no addon manager and no enable/disable switch: an addon is active exactly when its folder sits inside <code>www/addons/</code>.</p>
+
+<ul>
+	<li><strong>Enable an addon</strong>: put its folder (the one containing the <code>package.json</code>) into <code>www/addons/</code> — or open a <code>.tap</code> package with SLR Translator, which extracts it there — and restart SLR Translator.</li>
+	<li><strong>Remove an addon</strong>: delete its folder from <code>www/addons/</code> and restart. That fully removes the addon; only its saved settings remain in <code>data/config.json</code>, which is harmless (and reused if you ever install it again).</li>
+	<li>A broken addon cannot keep the application from starting: failures are logged to <code>data/logs/trans.log</code> and the remaining addons load normally.</li>
+</ul>
+
+<h2 id="package-json">The package.json format</h2>
+
+<pre><code>{
+	"name": "my-addon",          // unique id, case-insensitive
+	"title": "My Addon",
+	"description": "What it does.",
+	"version": "1.0.0",
+	"main": "main.js",
+	"autoload": true             // true: load every file in the folder
+	                             // false: load only files in the "load" array
+	// "load": ["main.js"]       // used when autoload is false
+}</code></pre>
+
+<div class="note">Never set <code>builtin: true</code> on a user addon — that flag is reserved for the shipped core modules and marks an addon as mandatory.</div>
+
+<ul>
+	<li>JavaScript files run as the body of an async function with <code>this</code> bound to the addon's own <code>Addon</code> instance — keep a <code>const thisAddon = this;</code> reference at the top, as core modules do.</li>
+	<li>HTML and CSS files in the folder are loaded into the application DOM alongside the scripts. Files whose name starts with <code>!</code> are registered but never executed — handy for data files you want in <code>thisAddon.files</code>.</li>
+	<li>npm dependencies go into the addon's own <code>node_modules/</code> folder and are loaded with <code>this.require("module")</code> (or exposed globally with <code>this.globalizeNodeModules()</code>).</li>
+</ul>
+
+<h2 id="what-addons-can-do">What addons can do</h2>
+
+<ul>
+	<li>Register translation engines, file parsers or game engines by extending the base classes in <code>www/js/</code> — the same mechanism the built-in modules use. An addon is limited only by the application's API: it can add toolbar buttons and dialogs, options pages, context menu entries, own slides in the New Project dialog or whole windows.</li>
+	<li>Expose settings: assigning a schema object to <code>this.optionsForm</code> renders a configuration form in the Options dialog — either as a section in <code>General</code> (<code>optionsDisplay: "general"</code>) or as its own top-level tab (<code>optionsDisplay: "tab"</code>, how the SEP module does it). Values persist in the application configuration and are read back through <code>thisAddon.config</code>.</li>
+	<li>Addons without settings stay out of the way: an addon only appears in the Options dialog when it actually exposes an <code>optionsForm</code> (or <code>optionsFormHtml</code>) <em>and</em> sets <code>optionsDisplay</code> to <code>"general"</code> or <code>"tab"</code>.</li>
+	<li>Add complete new game engines — including engines for non-RPG-Maker games — in pure JavaScript. See <a href="#adding-a-game-engine">Adding a game engine</a> below.</li>
+	<li>Ship their own page in the offline documentation — see <a href="#shipping-documentation">Shipping a documentation page</a> below.</li>
+</ul>
+
+<h2 id="adding-a-game-engine">Adding a game engine</h2>
+
+<p>A game engine addon hooks into three points of the project lifecycle. All of them are optional except <code>createProject</code> and <code>exportHandler</code> — without those two the project cannot be created or written back.</p>
+
+<ul>
+	<li><strong>Detection</strong> — <code>Engines.registerDetector(async (gamepath) => engineId | false)</code> makes the New Project dialog recognize the game. Built-in detectors run first; registered ones afterwards.</li>
+	<li><strong>Project creation</strong> — a <code>createProject</code> handler on the engine builds the whole project in JavaScript. When it exists, the PHP backend is not involved at all. It receives <code>{gameFolder, selectedFile, gameEngine, gameTitle, projectId, options}</code> and must resolve to a project object (structure below).</li>
+	<li><strong>Export</strong> — the engine's <code>exportHandler(targetPath, options)</code> writes the translation back to the game. It must do the writing itself and return <code>true</code>, which stops the built-in PHP export (that one only understands the RPG Maker formats).</li>
+	<li><strong>Optional:</strong> <code>onLoadTrans</code> (patch project data when a saved project opens), <code>onAfterCreateProject</code> (after the project was applied), <code>onCheckProjectExist</code> (validation before creation).</li>
+</ul>
+
+<p>The project object returned by <code>createProject</code> has this shape — <code>data</code> rows are arrays whose first two cells are the original text and the translation:</p>
+
+<pre><code>{
+	gameEngine : "myengine",
+	gameTitle  : "Some game",
+	loc        : "C:/path/to/the/game",      // the game folder
+	projectId  : "a1b2c3",
+	parser     : "myengine",                 // your parser id
+	cache      : { cacheID, cachePath },     // from common.initStaging()
+	files      : {
+		"story/chapter1.txt" : {
+			path      : "story/chapter1.txt",
+			dirname   : "story",
+			basename  : "chapter1.txt",
+			extension : ".txt",
+			data      : [
+				["Hello world", ""],         // [original, translation, ...]
+				["Goodbye",  ""]
+			]
+		}
+	},
+	options    : { /* engine-specific, saved with the project */ }
+}</code></pre>
+
+<p><code>common.initStaging(projectId?)</code> creates the staging cache folder (<code>&lt;staging&gt;/&lt;id&gt;/data</code>) and returns <code>{cacheID, cachePath}</code>. Copy the game's files into <code>cachePath + "/data"</code> so the editor works on the staged copy — that is also where your exporter reads the originals from. This is exactly how the built-in custom parser module does it; its source (<code>www/core/customParser/</code>) is the reference implementation.</p>
+
+<h3 id="engine-example">A complete minimal engine</h3>
+
+<p>The following addon adds an engine for plain <code>.txt</code> games: every line of every <code>.txt</code> file becomes a translatable row, and exporting writes the translated lines back.</p>
+
+<pre><code>// www/addons/txtEngine/package.json
+{
+	"name": "txt-engine",
+	"title": "TXT Engine",
+	"description": "Translate plain text files, one row per line.",
+	"version": "1.0.0",
+	"main": "main.js",
+	"autoload": false,
+	"load": ["main.js"]
+}</code></pre>
+
+<pre><code>// www/addons/txtEngine/main.js
+const thisAddon = this;
+
+engines.add("txt", { title: "TXT Engine" });
+
+// Detection: recognize a folder that contains at least one .txt file
+Engines.registerDetector(async (gamepath) => {
+	let dir = common.isDir(gamepath) ? gamepath : nwPath.dirname(gamepath);
+	let entries = await common.readDir(dir);
+	let hasTxt = entries.some((p) => nwPath.extname(p).toLowerCase() == ".txt");
+	return hasTxt ? "txt" : false;
+});
+
+// Creation: build the project object in JavaScript
+engines.addHandler("txt", "createProject", async (args) => {
+	const cache = await common.initStaging();
+	const stageData = nwPath.join(cache.cachePath, "data");
+	const files = {};
+
+	for (const path of await common.readDir(args.gameFolder)) {
+		if (nwPath.extname(path).toLowerCase() != ".txt") continue;
+		const relPath = nwPath.relative(args.gameFolder, path).replaceAll("\\", "/");
+		const content = await common.fileGetContents(path);
+		const lines = content.split(/\r?\n/);
+
+		const staged = nwPath.join(stageData, relPath);
+		await common.mkDir(nwPath.dirname(staged));   // copyFile does not create parents
+		await common.copyFile(path, staged);
+		files[relPath] = {
+			path: relPath,
+			dirname: nwPath.dirname(relPath),
+			basename: nwPath.basename(relPath),
+			extension: ".txt",
+			data: lines.map((line) => [line, ""])
+		};
+	}
+
+	return {
+		gameEngine: "txt",
+		gameTitle: nwPath.basename(args.gameFolder),
+		loc: args.gameFolder,
+		projectId: cache.cacheID,
+		parser: "txt-engine",
+		cache: cache,
+		files: files
+	};
+});
+
+// Export: write translations back, then halt the default (PHP) exporter
+engines.addHandler("txt", "exportHandler", async (targetPath, options) => {
+	const saveData = trans.getSaveData();
+	const stageData = nwPath.join(trans.project.cache.cachePath, "data");
+
+	for (const relPath in saveData.project.files) {
+		const file = saveData.project.files[relPath];
+		const lines = file.data.map((row) => row[1] || row[0] || "");
+		const target = nwPath.join(targetPath || stageData, relPath);
+		await common.mkDir(nwPath.dirname(target));
+		await common.filePutContents(target, lines.join("\n"), "utf8", false);
+	}
+	return true; // we handled the export ourselves
+});</code></pre>
+
+<p>With this addon dropped into <code>www/addons/</code> and the application restarted, picking a game folder in the New Project dialog detects the <code>TXT Engine</code> and <em>Create project!</em> runs entirely through the addon — no PHP, no core changes. Exporting works through the usual export entry points.</p>
+
+<div class="note">An engine addon can also add its own slide to the New Project dialog with <code>ui.newProjectDialog.addMenu({...})</code> — the way the custom parser module does — for a tailored creation flow instead of the generic detected-engine path.</div>
+
+<h2 id="shipping-documentation">Shipping a documentation page</h2>
+
+<p>An addon can add a page to the offline documentation: it appears in its own <em>Addons</em> section of the sidebar, is covered by the documentation search, and is included in the index <em>Ask DSLR</em> answers from. Declaring it needs no code — just the optional <code>docs</code> field in <code>package.json</code>:</p>
+
+<pre><code>{
+	"name": "my-addon",
+	"title": "My Addon",
+	"docs": "docs.html"        // one page, titled after the addon
+}</code></pre>
+
+<p>Several pages use the array form:</p>
+
+<pre><code>	"docs": [
+		{ "file": "docs.html", "title": "My Addon" },
+		{ "file": "advanced.html", "title": "My Addon — Advanced", "keywords": "extra search terms" }
+	]</code></pre>
+
+<ul>
+	<li>Pages are HTML fragments like the built-in ones: start with a single <code>&lt;h1&gt;</code>, mark subsections with <code>&lt;h2 id="..."&gt;</code>, no <code>&lt;html&gt;</code>/<code>&lt;body&gt;</code> wrapper. They are styled by the documentation's own stylesheet.</li>
+	<li>The page id is <code>addon-&lt;folder&gt;</code> (further pages <code>addon-&lt;folder&gt;-2</code>, <code>-3</code>, …), so a deep link looks like <code>#addon-my-addon</code>. The folder name becomes the id — keep it free of spaces.</li>
+	<li>Fragments are inserted into <code>www/docs/index.html</code>, so relative URLs inside a page resolve from there: reference a bundled image as <code>../addons/my-addon/img/picture.png</code>.</li>
+	<li>Titles fall back per-page <code>title</code> → addon <code>title</code> → folder name; the addon <code>description</code> always feeds the search index.</li>
+	<li>A declared but missing page only shows the documentation's "could not load" notice — addon declarations never break the built-in pages, and deleting the addon folder removes its documentation with it.</li>
+</ul>
+
+<h2 id="installing">Installing an addon</h2>
+
+<ul>
+	<li>Addons are distributed as <code>.tap</code> packages (zip archives). Open the <code>.tap</code> file with SLR Translator — the application extracts it into <code>www/addons/</code>. Restart SLR Translator to load the new addon.</li>
+	<li>Alternatively, install by hand: copy the addon's folder (the one containing its <code>package.json</code>) into <code>www/addons/</code> and restart.</li>
+	<li>To remove an addon, delete its folder from <code>www/addons/</code> and restart.</li>
+</ul>
+
+<div class="note">Addon scripts run inside the application with the full access it has — its APIs and, through Node integration, the file system. Install only addons from sources you trust.</div>
+
+<h2 id="reusing-core-libraries">Reusing core-module libraries</h2>
+
+<p>Core modules keep reusable, dependency-free libraries in their <code>lib/</code> folders (for example SEP's <code>lib/game.js</code> for RPG Maker collection/re-encryption, <code>lib/crypt.js</code>, or <code>lib/ort_session.js</code> for ONNX session handling). An addon may <code>require()</code> these by absolute path instead of bundling its own copy:</p>
+
+<pre><code>var path = require('path');
+var sepDir = path.join(common.getRootDir(), 'www', 'core', 'SEP');
+var game = require(path.join(sepDir, 'lib', 'game.js'));</code></pre>
+
+<ul>
+	<li><strong>Check before you rely on it.</strong> Probe the functions you need (<code>typeof mod.collect === 'function'</code>) at addon start and show a clear message when the installed SLR Translator is too old, instead of failing mid-run.</li>
+	<li><strong>One ONNX Runtime per process.</strong> If you need ONNX inference, use SEP's copy (<code>www/core/SEP/node_modules/onnxruntime-node</code>) and its <code>lib/ort_session.js</code> — loading a second copy of the native binding in the same process is unsafe. Session/GPU provider settings are shared per process: the first module to create a session decides the provider.</li>
+	<li><strong>Never modify core files from an addon</strong>, and don't require anything outside the documented exports — internal functions can move between SLR Translator versions.</li>
+</ul>
+
+<h2 id="writing-your-first-addon">Writing your first addon</h2>
+
+<p>Create <code>www/addons/myAddon/package.json</code> with the manifest above (with <code>autoload: true</code>), and a <code>main.js</code> next to it:</p>
+
+<pre><code>const thisAddon = this;   // `this` is the Addon instance
+
+// Wait for the editor, then extend it
+$(document).ready(function () {
+	ui.onReady(function () {
+		// register an engine, add a toolbar button, hook the UI, ...
+	});
+});</code></pre>
+
+<p>The <code>README.md</code> inside <code>www/addons/</code> documents the format and flags; the core modules in <code>www/core/</code> are the best full-size examples — pick a small one (such as night mode) as a template.</p>

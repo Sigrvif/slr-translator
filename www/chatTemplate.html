@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Must come first: applies the night-mode stylesheet before anything paints. -->
+<script type="text/javascript" src="js/nightModeEarly.js"></script>
+<title>Chat Template - SLR Translator</title>
+<style>
+  /* Authored for the light theme on purpose: night mode inverts the whole page, exactly like
+     every other window in the app. */
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #f4f4f4; color: #222;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif; font-size: 12px; }
+  #bar { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 4px 0 8px;
+    background: #e8e8e8; border-bottom: 1px solid #c8c8c8;
+    -webkit-app-region: drag; user-select: none; }
+  #bar .title { flex: 1; font-weight: 600; }
+  #bar .btns { display: flex; gap: 2px; -webkit-app-region: no-drag; }
+  #bar button { font: inherit; width: 26px; height: 20px; padding: 0; line-height: 1;
+    background: #dcdcdc; color: #222; border: 1px solid #bdbdbd; border-radius: 3px;
+    cursor: pointer; }
+  #bar button:hover { background: #cfcfcf; }
+  #body { display: flex; flex-direction: column; height: calc(100% - 29px); box-sizing: border-box; }
+  #info { padding: 6px 8px; border-bottom: 1px solid #dcdcdc; }
+  #info .model { font-weight: 600; }
+  #info .source { color: #555; }
+  #actions { display: flex; gap: 6px; align-items: center; padding: 6px 8px;
+    border-bottom: 1px solid #dcdcdc; flex-wrap: wrap; }
+  #actions button { font: inherit; padding: 3px 10px; background: #e4e4e4; color: #222;
+    border: 1px solid #bdbdbd; border-radius: 4px; cursor: pointer; }
+  #actions button:hover { background: #d6d6d6; }
+  #actions button.primary { background: #d7e4f7; border-color: #9db8dd; }
+  #actions button.primary:hover { background: #c6d9f2; }
+  #actions .spacer { flex: 1; }
+  #status { padding: 0 8px 6px; color: #444; min-height: 15px; }
+  #template { flex: 1; margin: 0 8px 8px; padding: 6px; box-sizing: border-box; resize: none;
+    border: 1px solid #c0c0c0; border-radius: 3px; background: #fff; color: #222;
+    font-family: Consolas, "Courier New", monospace; font-size: 11.5px; line-height: 1.4;
+    white-space: pre; overflow: auto; }
+  .warn { color: #8a4b00; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <span class="title">Chat Template</span>
+  <span class="btns">
+    <button id="min" title="Minimize">&#8211;</button>
+    <button id="close" title="Close">&#10005;</button>
+  </span>
+</div>
+<div id="body">
+  <div id="info">
+    <div class="model">Model: <span id="modelName">-</span></div>
+    <div class="source" id="sourceLine">Loading...</div>
+  </div>
+  <div id="actions">
+    <button id="save" class="primary">Save</button>
+    <button id="reload">Reload from model</button>
+    <button id="revert">Revert to model default</button>
+    <span class="spacer"></span>
+    <span id="counter"></span>
+  </div>
+  <div id="status"></div>
+  <textarea id="template" spellcheck="false" wrap="off"></textarea>
+</div>
+<script>
+(function () {
+    "use strict";
+    var rt = null;
+    try { rt = window.opener && window.opener.llmRuntime; } catch (e) { rt = null; }
+
+    var win = null;
+    try { win = nw.Window.get(); } catch (e) { win = null; }
+
+    var templateEl = document.getElementById("template");
+    var statusEl = document.getElementById("status");
+    var sourceEl = document.getElementById("sourceLine");
+    var modelEl = document.getElementById("modelName");
+    var counterEl = document.getElementById("counter");
+    var currentModelId = null;
+
+    function setStatus(text, warn) {
+        statusEl.textContent = text || "";
+        statusEl.className = warn ? "warn" : "";
+    }
+
+    function updateCounter() {
+        counterEl.textContent = templateEl.value.length + " characters";
+    }
+
+    function describeSource(result) {
+        if (result.source === "custom") return "Showing: your saved template (used instead of the model's own).";
+        if (result.source === "model") return "Showing: the template built into the model.";
+        if (result.source === "none") return "This model has no built-in template, and no override is saved.";
+        return "No template available yet - start the local runtime to load the model's own template, or paste one and Save.";
+    }
+
+    function apply(result) {
+        currentModelId = result.modelId || null;
+        modelEl.textContent = currentModelId || "-";
+        templateEl.value = result.text || "";
+        sourceEl.textContent = describeSource(result);
+        updateCounter();
+    }
+
+    function load() {
+        if (!rt || typeof rt.readTemplate !== "function") {
+            setStatus("The local runtime module is not available in the main window.", true);
+            return;
+        }
+        setStatus("");
+        try {
+            rt.readTemplate().then(apply).catch(function (err) {
+                setStatus("Could not read the template: " + ((err && err.message) || err), true);
+            });
+        } catch (e) {
+            setStatus("Could not read the template: " + ((e && e.message) || e), true);
+        }
+    }
+
+    document.getElementById("save").addEventListener("click", function () {
+        if (!rt || typeof rt.saveTemplate !== "function") return;
+        try {
+            rt.saveTemplate(currentModelId, templateEl.value);
+            sourceEl.textContent = "Showing: your saved template (used instead of the model's own).";
+            setStatus("Saved. It is applied the next time you press Start / Use Local Runtime.");
+        } catch (e) {
+            setStatus("Could not save: " + ((e && e.message) || e), true);
+        }
+    });
+
+    document.getElementById("reload").addEventListener("click", load);
+
+    document.getElementById("revert").addEventListener("click", function () {
+        if (!rt || typeof rt.clearTemplate !== "function") return;
+        try {
+            var removed = rt.clearTemplate(currentModelId);
+            load();
+            setStatus(removed
+                ? "Override removed. The model's own template is used again at the next Start."
+                : "There was no saved override for this model.");
+        } catch (e) {
+            setStatus("Could not revert: " + ((e && e.message) || e), true);
+        }
+    });
+
+    templateEl.addEventListener("input", updateCounter);
+
+    document.getElementById("min").addEventListener("click", function () {
+        try { if (win) win.minimize(); } catch (e) { /* ignore */ }
+    });
+    document.getElementById("close").addEventListener("click", function () {
+        try { if (win) win.close(); } catch (e) { /* ignore */ }
+    });
+
+    load();
+})();
+</script>
+</body>
+</html>

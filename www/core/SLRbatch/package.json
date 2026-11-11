@@ -1,0 +1,18 @@
+{
+    "builtin": true,
+    "name": "SLR Batch and Tag",
+    "version": "3.079 (Last Related Change)",
+    "title": "SLR Batch",
+    "description": "Batch Translator.",
+    "optionsDisplay": "general",
+    "main": "transredbatch.js",
+    "icon": "icon.png",
+    "author": {
+        "name": "Shisaye"
+    },
+    "autoload": false,
+    "load": [
+        "transredbatch.js",
+        "GlossaryExtractor.js"
+    ]
+}

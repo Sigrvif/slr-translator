@@ -1,0 +1,12 @@
+#!/bin/sh
+# dev/node-linux - run a script on the bundled NW.js binary in Node context.
+#
+# The bundled engine is a plain Node (15.12.0) when given a script path: `nw script.js`
+# runs it headless, no display needed. Two forms DO NOT work and must never come back:
+#   - `nw .` / node-main: needs a display (it boots the window runtime).
+#   - a symlink named `node -> nw`: fails at startup (the V8 snapshot is resolved
+#     relative to argv[0], so the engine must be exec'd under its real name).
+# This shim therefore re-execs the nw binary BY ITS REAL PATH with the script as the
+# first argument.
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec "$SCRIPT_DIR/../nw" "$@"

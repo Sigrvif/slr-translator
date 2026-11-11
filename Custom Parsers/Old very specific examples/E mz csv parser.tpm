@@ -1,0 +1,1 @@
+{"files":[{"pattern":"*.csv","rules":[{"type":"regex","pattern":"/E\\d+\t+([\\s\\S]+?)(?=E\\d|$)/g","captureGroups":"1"}]}]}

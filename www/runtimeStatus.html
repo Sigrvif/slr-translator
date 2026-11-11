@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Must come first: reads the stored night-mode setting and applies the stylesheet before
+     anything paints, so the window never flashes a light canvas in a dark room. -->
+<script type="text/javascript" src="js/nightModeEarly.js"></script>
+<title>Local Runtime Status</title>
+<style>
+  /* Authored for the light theme on purpose: night mode inverts the whole page, exactly like
+     every other window in the app. Hard-coding dark colours here made the window ignore night
+     mode entirely and stay dark in the light theme. */
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #f4f4f4; color: #222;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif; font-size: 12px; }
+  /* Frameless window: this bar is the title bar, so it drags the window. */
+  #bar { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 4px 0 8px;
+    background: #e8e8e8; border-bottom: 1px solid #c8c8c8;
+    -webkit-app-region: drag; user-select: none; }
+  #bar .title { flex: 1; font-weight: 600; }
+  #bar label { display: flex; align-items: center; gap: 4px; cursor: pointer;
+    -webkit-app-region: no-drag; }
+  #bar .btns { display: flex; gap: 2px; -webkit-app-region: no-drag; }
+  #bar button { font: inherit; width: 26px; height: 20px; padding: 0; line-height: 1;
+    background: #dcdcdc; color: #222; border: 1px solid #bdbdbd; border-radius: 3px;
+    cursor: pointer; }
+  #bar button:hover { background: #cfcfcf; }
+  #status { margin: 0; padding: 8px; height: calc(100% - 29px); box-sizing: border-box;
+    overflow: auto; white-space: pre-wrap; word-break: break-word;
+    font-family: Consolas, "Courier New", monospace; font-size: 11.5px; line-height: 1.45; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <span class="title">Local Runtime Status</span>
+  <label><input type="checkbox" id="ontop" checked> On top</label>
+  <span class="btns">
+    <button id="min" title="Minimize">&#8211;</button>
+    <button id="close" title="Close">&#10005;</button>
+  </span>
+</div>
+<pre id="status">Waiting for the runtime...</pre>
+<script>
+// The main window pushes the status line in here with setRuntimeStatus() every couple of
+// seconds. Everything is guarded: this window must never be able to break the app, and it
+// has to survive the main window being busy or the runtime being stopped mid-update.
+(function () {
+    "use strict";
+    var statusEl = document.getElementById("status");
+    var win = null;
+    try { win = nw.Window.get(); } catch (e) { win = null; }
+
+    window.setRuntimeStatus = function (text) {
+        if (typeof text === "string" && text) statusEl.textContent = text;
+    };
+
+    var onTop = document.getElementById("ontop");
+    onTop.addEventListener("change", function () {
+        try { if (win) win.setAlwaysOnTop(onTop.checked === true); } catch (e) { /* ignore */ }
+    });
+
+    document.getElementById("min").addEventListener("click", function () {
+        try { if (win) win.minimize(); } catch (e) { /* ignore */ }
+    });
+
+    document.getElementById("close").addEventListener("click", function () {
+        // Plain close: the main window notices, hides the window for this run and keeps the
+        // runtime itself running.
+        try { if (win) win.close(); } catch (e) { /* ignore */ }
+    });
+
+    // Fallback for the first moments (and if a push is ever missed): ask the opener directly.
+    setInterval(function () {
+        try {
+            if (statusEl.textContent && statusEl.textContent !== "Waiting for the runtime...") return;
+            var rt = window.opener && window.opener.llmRuntime;
+            if (rt && typeof rt.describeStatus === "function") {
+                rt.describeStatus().then(function (t) { window.setRuntimeStatus(t); }, function () {});
+            }
+        } catch (e) { /* ignore */ }
+    }, 2000);
+})();
+</script>
+</body>
+</html>

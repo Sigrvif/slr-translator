@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="js/nightModeEarly.js"></script>
+<link rel="icon" href="img/zoom_icon.png">
+
+<script>
+var $ = require('jquery');
+window.jQuery = $;
+
+const Logger = require('www/js/Logger.js');
+var logger = new Logger({file:"data/logs/find.log"});
+logger.loadState();
+
+</script>
+<script type="text/javascript" src="js/consts.js"></script>
+<link type="text/css" href="modules/jquery-ui/jquery-ui-1.11.4.custom/jquery-ui.css" rel="stylesheet" />
+<script type="text/javascript" src="js/scriptRunner.js"></script>
+<link type="text/css" href="css/trans.css" rel="stylesheet" />
+<link type="text/css" href="css/find.css" rel="stylesheet" />
+<link type="text/css" href="css/fontello-embedded.css" rel="stylesheet" />
+<script type="text/javascript" src="modules/jquery-ui/jquery-ui-1.11.4.custom/jquery-ui.js"></script>
+<script type="text/javascript" src="js/common.js"></script>
+<script type="text/javascript" src="js/find.js"></script>
+<script type="text/javascript" src="js/autoload/utils/uiTags.js"></script>
+
+<style>
+#appBorder {
+    border: 1px solid #888;
+    position: fixed;
+    width: calc(100vw - 1px);
+    height: calc(100vh - 1px);
+    top: 0px;
+    left: 0px;
+    box-sizing: border-box;
+    z-index: 9;
+    display: block;
+    pointer-events: none;
+	overflow: hidden;
+}	
+</style>
+
+<title>Find and replace - SLR</title>
+
+ 
+<body data-window="find">
+<div class="application-bar" style="
+    position: absolute;
+    height: 28px;
+    top: 0px;
+    left: 184px;
+    z-index: 1;
+    display: flex;
+    width: calc(100vw - 184px);
+    text-align: right;
+    ">
+    <div class="application-handler" style="
+    -webkit-app-region: drag;
+    width: calc(100% - 64px);
+"></div>
+    <div class="application-buttonbar">
+		<span class="application-menu-button icon-sliders"></span>
+		<span class="application-close-button icon-cancel"></span>
+	</div>
+</div>
+<div id="appBorder"></div>
+<div id="tabs">
+  <ul>
+    <li><a href="#find" class="findAnchor">Find</a></li>
+    <li><a href="#replace" class="replaceAnchor">Replace</a></li>
+    <li><a href="#findPut" class="findPutAnchor">Put</a></li>
+  </ul>
+  <div id="find">
+	<div class="findWrapper flex">
+		<textarea class="find" id="fieldFind" placeholder="Type the keyword then hit enter. Press alt+enter to add a new line." title="Type the keyword then hit enter. Press alt+enter to add a new line. You can use glob pattern too (e.g: *.png)"></textarea>
+		<select class="searchMode" multiple="multiple" title="Search target. Hold ctrl to select multipe item.">
+			<optgroup label="Target:">
+				<option value="grid">Grid</option>
+				<option value="context">Context</option>
+				<option value="tag">Tag</option>
+				<option value="comment">Comment</option>
+			</optgroup>
+		</select>
+	</div>
+	<div class="findOptions column4">
+		<div>
+			<label><input type="checkbox" id="caseSensitive" class="caseSensitive" /> <span class="label">Case sensitive</span></label>
+		</div>
+		<div>
+			<label title="Replaces \r,\n,\t with carriage return, new line, or tab"><input type="checkbox" class="transpileCode" /> <span class="label">Transpile \r\n\t</span></label>
+		</div>
+		<div class="flex">
+			<label><input type="checkbox" id="selectAllFile" class="selectAllFile" checked /> <span class="label">Search all files</span></label>
+			<span class="toggleFileSelector" title="open/close file selector"></span>
+		</div>
+		<div>
+			<label><input type="checkbox" id="findIsRegexp" class="isRegexp" />
+			<span class="label">RegExp</span>
+			<a href="https://regex101.com/" class="icon dvIcon-help icon-help-circled" target="_system"></a></label>
+		</div>
+	</div>
+	<div class="fileSelector hidden" title="Drag to select, Shift+Drag to unselect"></div>
+	<div class="actionResult searchResult"></div>
+  </div>
+  <div id="replace">
+	<div class="findWrapper"><textarea class="find" id="fieldReplaceFind" placeholder="Find. Press alt+enter to add a new line."></textarea></div>
+	<div class="replaceLabel">Find all string above and replace with :</div>
+	<div class="findWrapper"><textarea class="find" id="fieldReplaceReplace" placeholder="Replace. Press alt+enter to add a new line."></textarea></div>
+	<div class="findOptions column4">
+		<div>
+			<label><input type="checkbox" id="caseSensitiveReplace" class="caseSensitive" /> <span class="label">Case sensitive</span></label>
+		</div>
+		<div>
+			<label title="Replaces \r,\n,\t with carriage return, new line, or tab"><input type="checkbox" class="transpileCode" /> <span class="label">Transpile \r\n\t</span></label>
+		</div>
+		<div class="flex">
+			<label><input type="checkbox" id="selectAllFileReplace" class="selectAllFile" checked /> <span class="label">Search all files</span></label>
+			<span class="toggleFileSelector" title="open/close file selector"></span>
+		</div>
+		<div>
+			<label><input type="checkbox" id="replaceIsRegexp" class="isRegexp" />
+			<span class="label">RegExp</span>
+			<a href="https://regex101.com/" class="icon dvIcon-help icon-help-circled" target="_system"></a></label>
+		</div>
+		
+	</div>
+	<div class="fileSelector hidden" title="Drag to select, Shift+Drag to unselect"></div>
+	<div class="actionResult replaceResult"></div>
+  </div>
+  <div id="findPut">
+	  <div class="flex column2">
+			<div class="findWrapper">
+				<div class="replaceLabel">Original text:</div>
+				<textarea class="find fldFind" id="fieldPutFind" placeholder="One or more lines of the original text to find. Press alt+enter to add a new line."></textarea>
+			</div>
+
+			<div class="findWrapper">
+				<div class="replaceLabel">Text to put :</div>
+				<textarea type="search" class="find fldPut" id="fieldPutReplace" placeholder="Translation. Press alt+enter to add a new line."></textarea>
+			</div>
+	  </div>
+
+	<div class="findOptions column4">
+		<div>
+			<label><span>into: </span><span class="targetSelector"></span></label>
+		</div>
+		<div>
+			<label><input type="checkbox" id="caseSensitivePut" class="caseSensitive" /> <span class="label">Case sensitive</span></label>
+		</div>
+		<div class="flex">
+			<label><input type="checkbox" id="selectAllFilePut" class="selectAllFile" checked /> <span class="label">Search all files</span></label>
+			<span class="toggleFileSelector" title="open/close file selector"></span>
+		</div>
+	</div>
+	<div class="fileSelector hidden" title="Drag to select, Shift+Drag to unselect"></div>
+	<div class="actionResult searchResult putResult"></div>	
+  </div>  
+</div>
+<div id="template" class="hidden"></div>
+</body>
+</html>

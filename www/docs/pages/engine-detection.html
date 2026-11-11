@@ -1,0 +1,62 @@
+<h1>Engine Detection</h1>
+
+<p>SLR Translator identifies the RPG Maker engine of a game automatically. Detection runs the moment you select the game in the project wizard — see <a href="#first-project">Your First Translation Project</a> for the surrounding flow. The result appears in the read-only <code>Detected engine / type</code> field of the <code>RPG Maker XP, VX, Ace, MV &amp; MZ Parser</code> slide.</p>
+
+<h2 id="how-detection-works">How detection works</h2>
+
+<p>The tool checks the folder of the selected file for engine-specific markers, in a fixed order. The first marker that matches decides the engine:</p>
+
+<table>
+	<tr><th>Engine</th><th>Code</th><th>Marker</th></tr>
+	<tr><td>RPG Maker MV</td><td><code>rmmv</code></td><td>A <code>js/rpg_core.js</code> file, directly in the game folder or under its <code>www</code> folder</td></tr>
+	<tr><td>RPG Maker MZ</td><td><code>rmmz</code></td><td>A <code>js/rmmz_core.js</code> file, directly in the game folder or under its <code>www</code> folder</td></tr>
+	<tr><td>RPG Maker VX Ace</td><td><code>rmvxace</code></td><td><code>Game.ini</code> with <code>Library</code> set to an <code>RGSS3</code> runtime</td></tr>
+	<tr><td>RPG Maker VX</td><td><code>rmvx</code></td><td><code>Game.ini</code> with <code>Library</code> set to an <code>RGSS2</code> runtime</td></tr>
+	<tr><td>RPG Maker XP</td><td><code>rmxp</code></td><td><code>Game.ini</code> with <code>Library</code> set to an <code>RGSS1</code> runtime</td></tr>
+	<tr><td>Enigma Virtual Box pack</td><td><code>enigma</code></td><td>An <code>.exe</code> containing the <code>.enigma1</code> and <code>.enigma2</code> sections in its executable header (checked last, only for executables)</td></tr>
+</table>
+
+<p>What the folder looks like for each family:</p>
+
+<p><img src="../img/mvex.png" alt="File structure of an RPG Maker MV game" /></p>
+<p><em>MV: the game data lives in JSON files inside the <code>www</code> folder.</em></p>
+
+<p><img src="../img/mzex.png" alt="File structure of an RPG Maker MZ game" /></p>
+<p><em>MZ: lowercase <code>data</code> and <code>js</code> folders sit next to the executable.</em></p>
+
+<div class="note">Linux ports of MV and MZ games keep the same folder structure — they just ship an <code>nw</code> (or <code>Game</code>) binary and a <code>start.sh</code> launcher instead of <code>Game.exe</code>. Select that launcher in the wizard and detection works the same way.</div>
+
+<p><img src="../img/vxex.png" alt="File structure of a VX Ace game with Game.rgss3a" /></p>
+<p><em>VX Ace: RGSS games keep their data in a <code>Data</code> folder — here packed into <code>Game.rgss3a</code>.</em></p>
+
+<p><img src="../img/aceex.png" alt="File structure of a VX game with Game.rgss2a" /></p>
+<p><em>VX: same layout, with the archive named <code>Game.rgss2a</code>.</em></p>
+
+<h2 id="when-detection-runs">When detection runs</h2>
+
+<ul>
+	<li>When the game path changes in the wizard's <code>Select the game</code> field — the detected type is shown immediately and drives the rest of the slide.</li>
+	<li>After unpacking an Enigma Virtual Box executable: the wizard unpacks it into your development directory, then runs detection again inside the unpacked folder to find the real engine. See <a href="#encrypted-games">Encrypted &amp; Packed Games</a>.</li>
+</ul>
+
+<h2 id="mv-mz-versus-rgss">Why MV/MZ group together and RGSS apart</h2>
+
+<p>The detected code selects the parser that handles the project:</p>
+
+<ul>
+	<li><strong>MV and MZ</strong> are HTML5 games: all text data is plain JSON under <code>data/</code>. One parser covers both engines — see <a href="#mv">RPG Maker MV</a> and <a href="#mz">RPG Maker MZ</a>.</li>
+	<li><strong>XP, VX and VX Ace</strong> are RGSS games: their data is Ruby-marshaled (<code>.rxdata</code>, <code>.rvdata</code>, <code>.rvdata2</code>) and is converted with a bundled Ruby toolchain before and after translation — see the <a href="#ace">VX Ace</a>, <a href="#vx">VX</a> and <a href="#xp">XP</a> pages.</li>
+</ul>
+
+<h2 id="if-detection-fails">If detection fails</h2>
+
+<p>When no marker is found, the wizard reports that it is unable to detect the type of the selected path. There is no manual engine override — detection must succeed before <code>Create project!</code> is enabled. Check the usual causes:</p>
+
+<ul>
+	<li>You selected a file from the wrong folder. Select the game's executable (RGSS and deployed MV/MZ games), the executable or <code>index.html</code> of an MV/MZ game, or the <code>nw</code> / <code>Game</code> / <code>start.sh</code> launcher of a Linux port.</li>
+	<li>The RGSS marker is missing: <code>Game.ini</code> must sit next to the executable and contain the <code>Library</code> entry naming the RGSS runtime.</li>
+	<li>The game is an Enigma Virtual Box executable — these are detected by the executable header, so make sure you selected the packed <code>.exe</code> itself, not a shortcut.</li>
+	<li>Heavily modified or non-RPG-Maker games may not carry any of the markers above and cannot be parsed by the RPG Maker parser.</li>
+</ul>
+
+<div class="note">Project types that are not RPG Maker games do not use engine detection at all: pick them explicitly in the wizard — <code>SEP</code> for picture translation, <code>Parse any file with custom parser</code> for your own regex or JavaScript parsers (tabular files such as CSV included — see <a href="#custom-parsers">Custom Parsers &amp; Model Creator</a>).</div>

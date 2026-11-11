@@ -1,0 +1,68 @@
+<h1>Options Overview</h1>
+
+<p>SLR Translator v3 ships with exactly two translation engines. Both translate from Japanese to English, and both are registered by the built-in <code>SLR Engine Wrapper</code> core module:</p>
+
+<table>
+	<tr><th>Engine</th><th>Talks to</th><th>Typical use</th><th>Details</th></tr>
+	<tr>
+		<td><code>SLR</code></td>
+		<td>One or more Sugoi Translator servers (by default a server on your own machine at <code>localhost:14366</code>)</td>
+		<td>Fast, fully offline machine translation once the server runs</td>
+		<td><a href="#sugoi">Sugoi Translator</a></td>
+	</tr>
+	<tr>
+		<td><code>DSLR</code></td>
+		<td>Any OpenAI-compatible LLM chat endpoint, local or online</td>
+		<td>LLM translation quality, glossary support, heavy automation</td>
+		<td><a href="#dslr">DSLR Translator</a> and <a href="#llm-apis">LLM &amp; Online APIs</a></td>
+	</tr>
+</table>
+
+<div class="note">No other engines are built in. The base engine class contains a large generic language table, but both shipped engines only declare Japanese as source and English as target — everything in the app is tuned for that pair.</div>
+
+<h2 id="where-engines-are-configured">Where engines are configured</h2>
+
+<p>Engine settings live in the <code>Options</code> window, under the <code>Translator &amp; Language</code> tab. This tab contains:</p>
+
+<ul>
+	<li><code>Default Translator Engine</code> — a drop-down listing every registered engine.</li>
+	<li>One submenu entry per engine (named <code>SLR</code> and <code>DSLR</code>), each opening the engine's full option form.</li>
+</ul>
+
+<p>The DSLR form is large, so it is organized into collapsible sections: <code>Connection &amp; Model</code>, <code>System Prompt &amp; Context</code>, <code>Sampling &amp; Generation</code>, <code>Retry &amp; Quality Control</code>, <code>Glossary Extraction</code>, <code>Caching</code>, <code>Batching &amp; Limits</code>, <code>Text Processing</code>, <code>Placeholders</code>, <code>Patterns</code>, <code>Prompts</code> and <code>Custom Presets</code>. Options that exist separately for the primary model, the fallback model and the glossary extractor are grouped under those roles inside each section.</p>
+
+<p>Options are saved automatically when changed. Because the forms are large, a filter toolbar sits above them: <code>Filter options by name or description...</code> narrows the form as you type, <code>Show changed only</code> hides options still at their default, and <code>Expand all</code> / <code>Collapse all</code> fold the sections. DSLR additionally offers three <code>Options Preset</code> slots (JSON blobs with an <code>Apply Custom Preset</code> button each) and a <code>Reset All Options to default</code> button, so you can keep several configurations — for example one for a local model and one for an online provider — and switch between them.</p>
+
+<h2 id="default-vs-per-project">Default engine vs. per-project engine</h2>
+
+<p>The engine is resolved in this order:</p>
+
+<ol>
+	<li>The engine chosen in the batch translation dialog for that run (see <a href="#batch">Batch Translation</a>).</li>
+	<li>The project's own engine: <code>Project Properties</code> → <code>Language</code> → <code>Translator</code>. Leave it at <code>-use default-</code> to follow the global setting.</li>
+	<li>The global <code>Default Translator Engine</code> from the options window.</li>
+</ol>
+
+<p>The resolved engine is what <code>Ctrl+G</code> uses to generate a translation for the selected cell(s) in the editor (see <a href="#editor-basics">Editor Basics</a>). If neither a project engine nor a global default is set, the app prompts you to configure one before translating.</p>
+
+<h2 id="language-and-direction">Language and direction settings</h2>
+
+<p>Source and target language are resolved per project (<code>Project Properties</code> → <code>Language</code> → <code>Translate From</code> / <code>Translate Into</code>) with global fallbacks that default to Japanese and English. Two dedicated switches in the <code>Options</code> window under <code>General</code> control the direction processing:</p>
+
+<ul>
+	<li><code>Japanese Source Language</code> — optimizes the pipeline for Japanese source text (enabled by default; must be disabled when translating from another language).</li>
+	<li><code>English Target Language</code> — same for English as target.</li>
+</ul>
+
+<div class="note">Both switches require restarting SLR Translator to apply. Translating other language pairs is experimental: besides flipping the switches you must adjust the DSLR prompts and text-processing patterns yourself.</div>
+
+<p>Also under <code>General</code>: <code>Max Concurrent Batches</code> sets how many batches are sent at once to engines that do not manage their own request pool (SLR). DSLR ignores it in favor of its per-endpoint weights. This setting needs a restart as well.</p>
+
+<h2 id="picking-a-setup">Picking a setup</h2>
+
+<ul>
+	<li><strong>Fully offline:</strong> SLR with a Sugoi server on <code>localhost</code>, or DSLR with a local model server such as LM Studio on <code>127.0.0.1:1234</code>. Nothing leaves your machine.</li>
+	<li><strong>Online:</strong> DSLR pointed at a hosted API provider. See <a href="#llm-apis">LLM &amp; Online APIs</a> for remote endpoints, keys and privacy implications.</li>
+</ul>
+
+<p>For setup steps see <a href="#translator-setup">Translator Setup</a>; to translate whole projects automatically see <a href="#batch">Batch Translation</a> and <a href="#glossary">Glossary Extractor</a>.</p>

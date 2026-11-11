@@ -1,0 +1,11 @@
+o:RPG::System:@game_titleI"テストゲーム:ET:@currency_unitI"G;T:@elements[0I"物理;TI"炎;T:@skill_types[0I"魔法;T:@weapon_types[0I"剣;T:@armor_types[0I"鎧;T:@switches[0I"スイッチ;T:@variables[0I"変数;T:@termso:RPG::System::Terms&:@levelI"
+level;T:@level_aI"level_a;T:@hpI"hp;T:
+@hp_aI"	hp_a;T:@mpI"mp;T:
+@mp_aI"	mp_a;T:	@atkI"atk;T:	@defI"def;T:	@spiI"spi;T:	@agiI"agi;T:@weaponI"weapon;T:@armor1I"armor1;T:@armor2I"armor2;T:@armor3I"armor3;T:@armor4I"armor4;T:@weapon1I"weapon1;T:@weapon2I"weapon2;T:@attackI"attack;T:@skillI"
+skill;T:@guardI"
+guard;T:
+@itemI"	item;T:@equipI"
+equip;T:@statusI"status;T:
+@saveI"	save;T:@game_endI"game_end;T:@fightI"
+fight;T:@escapeI"escape;T:@new_gameI"new_game;T:@continueI"continue;T:@shutdownI"shutdown;T:@to_titleI"to_title;T:@cancelI"cancel;T:
+@goldI"	gold;T

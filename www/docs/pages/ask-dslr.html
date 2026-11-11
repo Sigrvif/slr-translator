@@ -1,0 +1,71 @@
+<h1>Ask DSLR a Question</h1>
+<p>
+	<code>Ask DSLR</code> is a small chat window that talks to the LLM endpoint you already
+	configured for the <a href="#dslr">DSLR translation engine</a>. Instead of reading this
+	documentation, you can just ask it questions — the model has tool access to these very
+	pages and quotes them back at you. It also answers questions the manual does not cover,
+	like how a line could be phrased more naturally.
+</p>
+
+<h2 id="what">What it does</h2>
+<ul>
+	<li>Opens from the <code>Ask DSLR</code> button in the main toolbar (next to the wrench).</li>
+	<li>Uses your DSLR engine settings (API URL, key, model) — there is nothing extra to configure.</li>
+	<li>Answers manual questions by actually reading the manual pages, citing the page it used.</li>
+	<li>Answers anything else from the model's own knowledge.</li>
+	<li>The assistant's portrait reacts to what you ask: smug when the manual covers your question, delighted when it doesn't. The portrait images can be replaced with your own — see <code>www/core/docsChat/img/</code>.</li>
+	<li>The conversation lives in memory only: closing the window discards it, and nothing is written to disk.</li>
+</ul>
+
+<h2 id="requirements">Requirements</h2>
+<p>
+	A configured DSLR engine (see <a href="#translator-setup">Translator Setup</a>). The chat
+	works with the <a href="#local-runtime">bundled local runtime</a> and with remote
+	OpenAI-compatible endpoints. Endpoints that do not support tool calling are handled
+	automatically: the chat searches the manual locally and hands the model the relevant
+	pages as pre-fetched text instead.
+</p>
+
+<h2 id="tools">The documentation tools</h2>
+<p>The model is offered three tools, executed locally inside SLR Translator:</p>
+<table>
+	<tr><th>Tool</th><th>What it does</th></tr>
+	<tr><td><code>list_docs</code></td><td>List every manual page with its id, title and section.</td></tr>
+	<tr><td><code>read_doc</code></td><td>Read one manual page in full, as plain text.</td></tr>
+	<tr><td><code>search_docs</code></td><td>Search the manual and return the best matching pages with snippets.</td></tr>
+</table>
+
+<h2 id="options">Chat options</h2>
+<p>
+	The chat has a few visible settings in the DSLR engine options (card <code>Ask DSLR Chat</code>,
+	next to the Bundled Local Runtime card) — the serious side of the feature, independent of the
+	assistant's personality:
+</p>
+<table>
+	<tr><th>Option</th><th>Default</th><th>Effect</th></tr>
+	<tr><td><code>Manual page read length</code></td><td><code>24000</code></td><td>How many characters of a manual page the assistant may read at once (documentation excerpts get half). The default is conservative for a 32k context; raise it for models with larger contexts.</td></tr>
+	<tr><td><code>Remembered messages</code></td><td><code>20</code></td><td>How many past messages are sent along with each new question. Higher remembers more of the conversation but fills the context faster.</td></tr>
+	<tr><td><code>Remember chat conversations</code></td><td>on</td><td>Keep conversations when the chat window or the app closes. Each conversation is its own topic-scoped chat (auto-titled from the first question), so a small follow-up on an old topic never drags unrelated history along. Pressing <b>Ask DSLR</b> first opens a selection dialog — even before any conversation exists, because it also carries the note about what is remembered and the defaults limiting it — listing each remembered conversation with its date (deletable right there) next to <i>Start a new conversation</i>. Conversations are stored prose-only in <code>data/ask-dslr-history.json</code>.</td></tr>
+	<tr><td><code>Chat conversations kept</code></td><td><code>20</code></td><td>How many remembered conversations to keep; when the limit is reached the oldest are dropped. Raise it to keep old topics around for longer.</td></tr>
+</table>
+
+<h2 id="persona">Changing the assistant's personality</h2>
+<p>
+	The assistant's default demeanor is a matter of taste. To change it, open the plain
+	text file <code>data/adp.txt</code> (it is created empty on the first launch) in any text editor and write one of the following as its
+	only content:
+</p>
+<table>
+	<tr><th>Content</th><th>Effect</th></tr>
+	<tr><td><i>(empty)</i></td><td>The shipped default personality.</td></tr>
+	<tr><td><code>off</code></td><td>No persona and no documentation tools — a plain chat.</td></tr>
+	<tr><td><code>professional</code></td><td>A neutral, professional assistant.</td></tr>
+	<tr><td>any other text</td><td>Used verbatim as the assistant's persona instructions.</td></tr>
+</table>
+<p>
+	It is a plain text file — no JSON, nothing to break. The content is read when each
+	message is sent, so saving the file takes effect on the next message without
+	restarting SLR Translator. Advanced alternative: the same value can be set as the
+	<code>askDslrPersona</code> key in <code>data/config.json</code>; the text file wins.
+	This setting deliberately does not appear in the Options window.
+</p>

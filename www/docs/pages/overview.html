@@ -1,0 +1,67 @@
+<h1>Overview &amp; Requirements</h1>
+
+<p>SLR Translator is a desktop tool for translating RPG Maker games. It extracts the text of a Japanese game into an editable grid, lets you translate it manually or with a translation engine, and then writes the translation back into a playable copy of the game.</p>
+
+<p>The main window opens maximized on first launch and remembers its size and position afterwards, so the labelled translation toolbar has room to show its text. If you shrink the window, the toolbar labels collapse back to icons (lowest priority first) and the <code>Start Translation</code> button keeps a short label; hover any button for its full description. The first time the editor opens, SLR also offers a <strong>very short tour</strong> of the translation buttons, replayable from <code>Tools</code> → <code>Show button tour</code>.</p>
+
+<h2 id="what-is-slr">What SLR Translator does</h2>
+
+<ul>
+	<li><strong>Extract</strong> — a project wizard parses the game files and lists every translatable text in a spreadsheet-like grid, one row per text.</li>
+	<li><strong>Translate</strong> — edit rows by hand, generate translations for selected cells with <code>Ctrl+G</code>, or run the whole project through <strong>Start Translation</strong> (batch translation).</li>
+	<li><strong>Export</strong> — <code>Export Project</code> writes your translations as pre-compiled game data to a folder or a zip archive, ready to drop into a copy of the game.</li>
+</ul>
+
+<p>Besides the translation grid, the built-in core modules provide:</p>
+
+<ul>
+	<li>Batch translation and a glossary extractor for consistent names and terms.</li>
+	<li>Offline spell checking (English) and a Japanese dictionary popup for the source text.</li>
+	<li>SEP picture translation: on-device OCR that extracts text from game images (PNG/JPG and more) and redraws it, fully offline.</li>
+	<li>Custom text parsers for files that are not plain game data, plus a script editor and automation editor for advanced rewrites.</li>
+</ul>
+
+<h2 id="supported-engines">Supported engines</h2>
+
+<p>SLR Translator detects the game engine automatically when you select the game executable, and picks the matching parser:</p>
+
+<table>
+	<tr><th>Detected code</th><th>Engine</th></tr>
+	<tr><td><code>rmmv</code></td><td>RPG Maker MV</td></tr>
+	<tr><td><code>rmmz</code></td><td>RPG Maker MZ</td></tr>
+	<tr><td><code>rmvxace</code></td><td>RPG Maker VX Ace (RGSS3)</td></tr>
+	<tr><td><code>rmvx</code></td><td>RPG Maker VX (RGSS2)</td></tr>
+	<tr><td><code>rmxp</code></td><td>RPG Maker XP (RGSS1)</td></tr>
+</table>
+
+<p>Encrypted or packed games are handled as well: RGSS archives (<code>.rgss3a</code>, <code>.rgss2a</code>, <code>.rgssad</code>) are decrypted automatically during project creation with the bundled decrypter, and Enigma Virtual Box packed executables are unpacked by the tool itself. See <a href="#engine-detection">Engine Detection</a> for how this works, and the engine-specific pages for details.</p>
+
+<p>Non-RPG-Maker material is also supported: custom parser projects driven by your own regex or JavaScript — which also cover tabular files such as CSV, since ready-made parser models ship with the tool (see <a href="#custom-parsers">Custom Parsers &amp; Model Creator</a>) — and SEP projects for images.</p>
+
+<h2 id="offline-first">Offline by design</h2>
+
+<p>Everything the editor does — parsing, editing, batch tooling, OCR, spell checking, this documentation — runs locally on your machine. The app never contacts the network on its own.</p>
+
+<p>The only component that can use the network is the translation engine you pick: the Sugoi engine talks to a Sugoi Translator server (by default on your own machine at <code>localhost:14366</code>), and the DSLR engine talks to an LLM endpoint, which can be a local server such as LM Studio or an online API provider. If both the engine and its server run on your machine, the whole translation pipeline stays offline. See <a href="#translator-setup">Translator Setup</a>.</p>
+
+<h2 id="requirements">System requirements</h2>
+
+<ul>
+	<li>SLR Translator is a self-contained NW.js desktop application, distributed as Windows and Linux packages. It bundles its own helper runtimes (PHP and Ruby) and third-party tools, so nothing else needs to be installed.</li>
+	<li>Disk space for the game data the tool creates: a staging copy while you work, and the exported translation when you are done.</li>
+	<li>If you plan to run a translation engine, its server or endpoint must be reachable (a Sugoi server or an OpenAI-compatible LLM endpoint — see <a href="#translator-setup">Translator Setup</a>).</li>
+</ul>
+
+<div class="note">SLR Translator is optimized for Japanese to English translation. Support for other language pairs is experimental; the source and target languages can be adjusted in the Options window, under <code>General</code>.</div>
+
+<h2 id="documentation">Where the documentation lives</h2>
+
+<p>This documentation ships inside the application and is available offline:</p>
+
+<ul>
+	<li>Press <code>F1</code> in the main window, or use the <code>Help</code> toolbar button.</li>
+	<li>Many dialogs and settings pages have a <code>?</code> help button that jumps straight to the relevant page.</li>
+	<li>The left sidebar of the documentation window lists every page and includes a full-text search.</li>
+</ul>
+
+<p>New to the tool? Start with <a href="#translator-setup">Translator Setup</a> and <a href="#first-project">Your First Translation Project</a>.</p>

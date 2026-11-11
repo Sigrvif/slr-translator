@@ -1,0 +1,51 @@
+{
+  "json_class": "RPG::System",
+  "game_title": {
+    "json_class": "TranslatableString",
+    "original   ": "テストゲーム",
+    "translation": ""
+  },
+  "currency_unit": {
+    "json_class": "TranslatableString",
+    "original   ": "G",
+    "translation": ""
+  },
+  "elements": [
+    null,
+    {
+      "json_class": "TranslatableString",
+      "original   ": "物理",
+      "translation": ""
+    },
+    {
+      "json_class": "TranslatableString",
+      "original   ": "炎",
+      "translation": ""
+    }
+  ],
+  "skill_types": [
+    null,
+    {
+      "json_class": "TranslatableString",
+      "original   ": "魔法",
+      "translation": ""
+    }
+  ],
+  "weapon_types": [
+    null,
+    {
+      "json_class": "TranslatableString",
+      "original   ": "剣",
+      "translation": ""
+    }
+  ],
+  "armor_types": [
+    null,
+    {
+      "json_class": "TranslatableString",
+      "original   ": "鎧",
+      "translation": ""
+    }
+  ],
+  "terms": null
+}

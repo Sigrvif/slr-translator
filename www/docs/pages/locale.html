@@ -1,0 +1,37 @@
+<h1>Japanese Locale Configuration</h1>
+
+<p>Older RPG Maker games (XP, VX, VX Ace) were built for Japanese Windows. Their text files are often not UTF-8, and game folders frequently contain Japanese characters in file and folder names. This page explains what that means for translation and what SLR Translator does about it.</p>
+
+<h2 id="why-it-matters">Why locale and encoding matter</h2>
+
+<p>Two separate problems are traditionally associated with translating Japanese games on a non-Japanese system:</p>
+
+<ul>
+	<li><strong>Character encoding:</strong> game data and scripts may be stored in a legacy Japanese encoding (such as Shift-JIS) instead of UTF-8. Naively reading such files as UTF-8 turns the text into garbage.</li>
+	<li><strong>Path handling:</strong> helper programs launched with a Japanese project path on a non-Japanese locale can receive a mangled path (Japanese characters become <code>?</code>), because on Windows the arguments of external processes are decoded with the system ANSI code page.</li>
+</ul>
+
+<h2 id="automatic-handling">What SLR Translator does automatically</h2>
+
+<p>You do not need to change your system locale for SLR Translator itself. The tool handles both problems internally:</p>
+
+<ul>
+	<li><strong>Encoding detection and conversion:</strong> every text file is opened through an encoding detection step (character-set statistics plus the <code>file --mime-encoding</code> utility, with a streaming fallback for non-ASCII paths). The file is decoded with the detected encoding and written back with the same encoding, so Shift-JIS material round-trips correctly.</li>
+	<li><strong>Locale-safe path passing:</strong> the Ruby helper that unpacks and repacks RGSS data (used for XP, VX and VX Ace projects) never receives Japanese paths on the command line. Instead, the paths are written to a temporary UTF-8 JSON manifest and passed to the helper by an ASCII-only reference. The helper reads the real paths back from that file, which works on every system locale.</li>
+	<li><strong>Bundled runtimes:</strong> the PHP and Ruby helpers the tool relies on ship inside the application package, so their behavior does not depend on your system's language settings.</li>
+</ul>
+
+<div class="note">These mechanisms exist specifically so that Japanese game folders work on English (and other) locales. If a path with Japanese characters is ever rejected, check that the path is intact in your file manager first — SLR Translator will report the path it cannot access.</div>
+
+<h2 id="do-you-need-to-change">Do you need to change your system locale?</h2>
+
+<p>For translating with SLR Translator: <strong>no</strong>. Keep your system locale as it is; project creation, parsing, translation and applying the translation are all locale-safe, on Windows and on Linux.</p>
+
+<p>What happens outside the tool is out of its control — a translated copy contains the same files the original game had, so anything the game itself requires to display or run correctly (such as fonts) still applies to the copy.</p>
+
+<h2 id="troubleshooting-encoding">If text still looks wrong</h2>
+
+<ul>
+	<li>Garbled text inside the grid is almost always an encoding problem in the source file. Re-check the game files in an editor that can switch encodings; the tool detects encodings, it does not guess impossible ones.</li>
+	<li>Garbled file or folder names point at a path problem, not an encoding of the content. Verify the folder name in your file manager before creating the project.</li>
+</ul>

@@ -1,0 +1,1088 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="js/nightModeEarly.js"></script>
+<link type="text/css" href="modules/jquery-ui/jquery-ui-1.11.4.custom/jquery-ui.css" rel="stylesheet" />
+<link rel="icon" href="img/icon.png">
+
+<!-- <script type="text/javascript" src="modules/jquery/jquery-1.12.4.min.js"></script> -->
+<script>
+	var $ = require('jquery');
+	window.jQuery = $;
+	var {JavaScript} 		= require("www/js/JavaScript.js");
+	window.javaScript 		= new JavaScript();
+
+	
+	const Logger = require('www/js/Logger.js');
+	var logger = new Logger({file:"data/logs/trans.log"});
+	logger.loadState();
+
+	
+
+
+console.log('%cYou can dump this console log by right click -> save-as', 'background:black; color:#f1f1d0; font-size:1.2em;');
+console.log('current version : ', nw.App.manifest.version);
+console.log('NW version : ', nw.process.versions.nw);
+	
+</script>
+<script type="text/javascript" src="js/scriptRunner.js"></script>
+
+<script type="text/javascript" src="modules/jquery/jquery.json.min.js"></script>
+<script type="text/javascript" src="modules/jquery-ui/jquery-ui-1.11.4.custom/jquery-ui.js"></script>
+<script type="text/javascript" src="modules/json2.js"></script>
+<!--<script type="text/javascript" src="modules/jquery-ui/jquery.ui-contextmenu.js"></script>-->
+<script type="text/javascript" src="modules/handsontable/handsontable.js"></script>
+<script type="text/javascript" src="js/DVField.js"></script>
+<script type="text/javascript" src="js/list.min.js"></script>
+<script type="text/javascript" src="js/trans.js"></script>
+<script type="text/javascript" src="js/consts.js"></script>
+<script type="text/javascript" src="js/TranslatorEngine.js"></script>
+
+<script type="text/javascript" src="js/romaji.js"></script>
+<script type="text/javascript" src="js/common.js"></script>
+<script type="text/javascript" src="js/php.js"></script>
+<script type="text/javascript" src="js/toolbarLayout.js"></script>
+<script type="text/javascript" src="js/ui.js"></script>
+<script type="text/javascript" src="js/tour.js"></script>
+<script type="text/javascript" src="js/Engines.js"></script>
+<script type="text/javascript" src="js/SceneGraph.js"></script>
+
+<script type="text/javascript" src="js/jquerytextcomplete/dist/jquery.textcomplete.js"></script>
+<script type="text/javascript" src="js/sys.js" defer></script>
+<script type="text/javascript" src="js/addon.js" defer></script>
+<script type="text/javascript" src="js/Updater.js" defer></script>
+
+<script type="text/javascript" src="modules/jsonform/deps/underscore.js"></script>
+<script type="text/javascript" src="modules/jsonform/deps/opt/jsv.js"></script>
+<script type="text/javascript" src="js/jsonform.ext.js"></script>
+<script type="text/javascript" src="modules/jsonform/lib/jsonform.js" onload="JSONFormExt.init()"></script>
+<script type="text/javascript" src="modules/tagify/tagify.min.js"></script>
+
+
+<!-- jquery context menu -->
+<link rel="stylesheet" href="js/jQuery-contextMenu/jquery.contextMenu.min.css">
+<script src="js/jQuery-contextMenu/jquery.contextMenu.min.js"></script>
+<script src="js/jQuery-contextMenu/jquery.ui.position.js"></script>
+<script src="modules/jquery-visible-min.js"></script>
+<script type="text/javascript" src="js/docsHelp.js"></script>
+
+<!-- plugins -->
+<script type="text/javascript" src="js/engine/rmvxace.js"></script>
+<script type="text/javascript" src="js/autoload.js" defer></script>
+
+<link type="text/css" href="css/bootstrapparts.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/theme-vars.css" rel="stylesheet" media="screen">
+<link type="text/css" href="modules/handsontable/handsontable.min.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/hotfix.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/appbar.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/trans.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/animate.compat.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/fontello-embedded.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/fontello-extra.css" rel="stylesheet" media="screen">
+<link type="text/css" href="modules/jquery-ui/tpp.ver3.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/jsonform.css" rel="stylesheet" media="screen">
+<link type="text/css" href="modules/tagify/tagify.css" rel="stylesheet" media="screen">
+
+
+<title>SLR</title>
+<style>
+.applicationBar {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    margin: 0px;
+    height: 24px;
+    z-index: 100000;
+    background: #f3f3f3;
+	display:flex;
+	user-select: none;
+}
+.applicationBar .appBarIcon {
+    font-size: .7em;
+    display: block;
+    background: #fff;
+    color: #dddddd;
+    /* height: 32px; */
+    width: 4.6em;
+    text-align: center;
+    padding-top: 8px;
+	transition: all .2s ease-out;	
+}
+
+.applicationBar .appBarIcon:hover {
+	background:#e5e5e5;
+	color:#000;
+	transition: all .2s ease-out;
+}
+
+.applicationBar .appBarIcon.appbarIcon-close:hover {
+	background:#e81123;
+	color:#fff;
+}
+
+.appActionsLeft .ribbonMenu {
+    line-height: 24px;
+    padding: 0px 12px;
+    background: #f3f3f3;
+    font-size: .8em;
+	cursor : default;
+}
+
+.appActionsLeft .ribbonMenu:hover {
+	background: #fff;
+}
+
+.appActionsLeft .ribbonMenu.active {
+	background: #fff;
+}
+
+.applicationBar .appActionsLeft {
+	display:flex;
+}
+.applicationBar .appActionsLeft {
+	display:flex;
+}
+
+.applicationBar .appTitle {
+	text-align: center;
+    flex-grow: 1;
+    font-size: .8em;
+    line-height: 24px;	
+	-webkit-app-region: drag;
+}
+.applicationBar .appActionsRight {
+	text-align:right;
+	display:flex;
+	align-items:stretch;
+}
+
+
+.applicationBar[data-theme=dark] {
+	background:#d4d4d4;
+}
+
+.applicationBar[data-theme=dark]  .appTitle{
+	color:#000000;
+}
+
+.applicationBar[data-theme=dark] .appBarIcon {
+	color:#000000;
+}
+
+.applicationBar[data-theme=dark] .appBarIcon:hover {
+	color:#eeeeee;
+}
+
+
+.applicationBar[data-theme=dark] .ribbonMenu {
+	background:#d4d4d4;
+    color: #0e0e0e;
+}
+.applicationBar[data-theme=dark] .ribbonMenu:hover {
+    background: #ffffff;
+}
+.applicationBar[data-theme=dark] .ribbonMenu.active {
+    background: #eeeeee;
+}
+
+
+
+#applicationWrapper {
+	/*position:relative;
+	margin-top:24px;
+	*/
+	position:absolute;
+	top: 24px;
+	width:100vw;
+	height: calc(100vh - 24px);
+}
+
+</style>
+<head>
+
+<body data-window="trans">
+
+<div class="applicationBar" id="applicationBar" data-theme="dark">
+	<div class="appActionsLeft">
+		<div class="ribbonMenu active" data-id="start">Start</div>
+		<div class="ribbonMenu" data-id="home">Home</div>
+	</div>
+	<div class="appTitle">SLR</div>
+	<div class="appActionsRight">
+	<!--
+		<i class="appBarIcon appbarIcon-menu" onclick="appMenu()"></i>
+	-->
+		<i class="appBarIcon appbarIcon-minimize" onclick="appMinimize()"></i>
+		<i class="appBarIcon appbarIcon-maximize hidden" id="appMaximize" onclick="appMaximize()"></i>
+		<i class="appBarIcon appbarIcon-restore hidden" id="appRestore" onclick="appRestore()"></i>
+		<i class="appBarIcon appbarIcon-close" onclick="appClose()"></i>
+	</div>
+</div>
+
+
+<div id="applicationWrapper">
+<div class="toolbarGroup">
+	<div class="toolbar mainToolbar" data-id="home">
+		<div class="toolbar-content toolbar1" data-id="toolbar1">
+			<button class="menu-button button-new" title="New Project"><img src='img/doc_new_icon.png' alt="New" /></button>
+			<button class="menu-button button-open" title="Open"><img src='img/open.png' alt="Open" /></button>
+			<button class="menu-button button-save" title="Save file"><img src='img/save.png' alt="save" /></button>
+			<span class="menu-button buttonGroup group-saveas"><button class="button-save-as" title="Save As"><img src='img/save_as.png' alt="save as" /></button></span>
+		</div>
+		<div class="toolbar-content toolbar2" data-id="toolbar2">
+			<button class="menu-button button-import" title="Import Project"><img src='img/import_icon.png' alt="Import" /></button>
+		</div>
+		<!-- Translation workflow. Labels stay visible and collapse to icons (lowest priority first) when the window is too narrow. Order follows the task: set up the engine, build the optional glossary, translate, wrap, export. -->
+		<div class="toolbar-content toolbar-workflow" data-id="toolbar-workflow" data-responsive-labels="true">
+			<button class="menu-button button-translationSetup" data-button-id="translationSetup" data-label="Translation Setup" data-label-priority="1" title="Translation Setup (Step 1) - pick a translator engine and enter its API URL, key and model. Required before the first translation. Glossary and QC/Judge review settings also live in the engine options."><i class="icon-cog"></i><span class="menu-button-label">Translation Setup</span></button>
+			<!-- Generate Glossary, Batch Translation and Word Wrap are inserted here, in that order, by the SLRbatch core module. -->
+			<button class="menu-button button-export exportProject" data-button-id="export" data-label="Export" data-label-priority="4" title="Export Project - write the translated game back out."><img src='img/export_icon.png' alt="Export" /><span class="menu-button-label">Export</span></button>
+		</div>
+		<div class="toolbar-content toolbar-tools" data-id="toolbar-tools">
+			<button class="menu-button toolsMenuBtn buttonExpand" title="More tools"><i class="icon-wrench"></i></button>
+			<div class="toolbarToolsMenu hidden">
+				<button class="menu-button contextTool" title="Context Tool"><img src='img/image_text.png' alt="context tool" /><span>Context Tool</span></button>
+				<button class="menu-button executeScript" title="Execute Global Level Custom Script"><i class="icon-code"></i><span>Execute Global Script</span></button>
+				<button class="menu-button tourBtn" title="Show the button tour again"><i class="icon-help-circled-1"></i><span>Show button tour</span></button>
+				<button class="menu-button button-properties" title="Project Properties"><img src='img/cogs_icon.png' alt="Project Properties" /><span>Project Properties</span></button>
+				<button class="menu-button button-options" title="Options"><img src='img/options.png' alt="Options" /><span>Options</span></button>
+			</div>
+		</div>
+		<div class="toolbar-content toolbar5" data-id="toolbar5">
+			<button class="menu-button button-help" title="Get Help (F1)"><img src='img/help2.png' alt="Help" /></button>
+		</div>
+	</div>
+</div>
+
+<div id="mainArea">
+<div class="panel-wrapper">
+	<div class="panel-left" id="menuPanel">
+		<div class="panel-left-tools menuPanelTool toolbar tabsBarTop">
+			<div class="toolbar-content">
+				<button class="menu-button fileListButton checked panel-switcher" title="File list" data-for="fileListWrapperOuter"><img src='img/layers_1_icon.png' alt='document list' /><span>Objects</span></button> 
+			</div>
+		</div>
+		<div class="fileListWrapperOuter switchablePane">
+			<div class="menuPanelTool">
+				<input type="search" class="search menuPanelSearch" placeholder="Filter" />			
+			</div>
+			<div class="fileListWrapper tree"  id="fileList">
+				<ul class="fileList list fileListUl">
+
+				</ul>
+			</div>
+			<div class="bottomToolbar">
+				<div class="bottomToolbarIcon  bottomToolbarAdjust controlCheck" title="Toggle selection">
+					<span class="icon-check-empty ovLine"></span>
+				</div>
+				<div class="bottomToolbarIcon bottomToolbarAdjust invertSelection" title="Invert selection">
+					<span class="icon-adjust"></span>
+				</div>				
+				<div class="bottomToolbarIcon bottomToolbarAdjust removeSelected" title="Remove selected">
+					<span class="icon-trash-empty"></span>
+				</div>				
+				<div class="bottomToolbarIcon bottomToolbarAdjust addObject" title="Add A New Object">
+					<span class="icon-doc-add"></span>
+				</div>				
+			</div>
+		</div>
+	</div>
+	<div class="panel-right">
+		<div class="panel-right-tools menuPanelTool toolbar" data-id="editor-tools">
+			<div class="panelLeftTabHandler " title="Collapse / restore left panel">
+				<i class="icon-play flip"></i>
+			</div>
+			<div class="toolbar-content">
+				<button class="menu-button addNote" title="Add a note to this file">
+					<!--<img src='img/spechbubble_sq_icon.png' alt='note' />-->
+					<i class="icon-comment-empty" id="commentButtonIcon"></i>
+				</button> 
+				<span class="menu-button buttonGroup group-gridInfo"><button class="button-gridInfo gridInfo hasMenuSide" title="Toggle grid information"><i class="icon-info-circled"></i><button class="button-gridInfo menuSide">&#xe814;</button></span>
+				<button class="menu-button sceneGraphBtn" title="View Scene Graph (dialogue tracing)"><i class="icon-share"></i></button>
+				<button class="menu-button filePropertiesMenu" title="Object Properties"><img src='img/cog.png' alt='properties' /></button> 
+			</div>
+			<!-- Toggle row. Rikai (added by the transRikaikun core module) appends into this group. -->
+			<div class="toolbar-content" data-id="editor-toggle-group">
+				<button class="menu-button button-clipboard" title="Automatically set selected original text to clipboard"><img src='img/clipboard.png' alt="Clipboard" /></button>
+				<button class="menu-button resizeFont" title="Resize Font" data-for="#table"><img src='img/font_size_icon.png' alt='Resize Font' /></button> 
+				<button class="menu-button wordWrapTable" title="Toggle word wrapping & Explicit white spaces" data-for="#table"><img src='img/wrap.png' alt='Toggle Word Wrapping' /></button> 
+				<button class="menu-button monospace" title="Use Monospace font" data-for="#table"><img src='img/monospace2.png' alt='Monospace' /></button> 
+				<button class="menu-button toggle-activeCellInfo checked" title="Toggle Active Cell Info"><img src='img/active-cell.png' alt="activeCellInfo" /></button>
+			</div>
+			<div class="toolbar-content">
+				<button class="menu-button removeTranslation" title="Remove all translation from this file"><img src='img/brush_icon.png' alt='brush' /></button> 
+			</div>
+			<div class="toolbar-content fill">
+				<div class="pathinfoWrapper"><i class="icon-doc-text" title="file path"></i> <input type="text" value="" class="fileId" readonly="readonly" /></div>
+			</div>
+			<div class="toolbar-content">
+				<input type="search" value="" placeholder="Quick find" class="quickFind" id="quickFind" />
+				<span class="menu-button buttonGroup group-find"><button class="button-find find hasMenuSide" title="Open search menu"><img src='img/zoom_icon.png' alt='Find' /></button><button class="button-find menuSide">&#xe814;</button></span>
+			</div>
+			
+		</div>	
+		<div class="mainContent">
+
+			<div id="table"></div>
+			<div id="appInfo"></div>
+		</div>
+	</div>	
+</div>
+<div id="cellSelectionInfo" title="Active cell's info">
+	<div class="cellInfoParts cellInfoPartsA">
+		<div class="cellInfoTabHeader">
+			<div class="tabButtons">
+				<span class="tabButton active" title="View original untranslated text" data-fortab="currentRomaji">Original</span>
+				<span class="tabButton" title="View raw data" data-fortab="previewRawData">Raw</span>
+			</div>
+			<div class="tabSide">
+				<i class="icon-th-list gotoCurrentCell" title="Go to current cell"></i>
+				<input type="text" id="currentCoordinate" value="" title="Current coordinate" />
+			</div>
+		</div>
+
+		<div class="cellInfoTabContent">
+			<div class="cellInfoBody">
+				<div class="cellInfoContent romaji" id="currentRomaji" data-tabname="currentRomaji" >
+					<div class="headerWrapper"><span class="header"></span></div>
+					<span class="text"></span>
+				</div>
+				<div class="cellInfoContent rawData hidden" id="previewRawData"  data-tabname="previewRawData"></div>
+			</div>
+			<div class="cellInfoMenu">
+				<div class="cellInfoCtrl" data-tabname="currentRomaji">
+					<button class="resizeFont" title="Resize Font" data-for="#currentRomaji"><img src='img/font_size_icon.png' alt='font-size' /></button>
+					<button class="wordWrap checked" title="Word wraping (for non Japanese text)" data-for="#currentCellText"><img src='img/wrap.png' alt='wrap' /></button>
+					<button class="copyOriginal" title="Copy original text into current cell (ctrl+0)"><i class="icon-right-bold"></i></button>
+				</div>
+				<div class="cellInfoCtrl hidden" data-tabname="previewRawData">
+					<button class="copyOriginal" title="Copy original text into current cell (ctrl+0)"><i class="icon-right-bold"></i></button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="cellInfoParts cellInfoPartsB">
+		<div class="cellInfoTabHeader">
+			<div class="tabButtons">
+				<span class="tabButton active" title="Default translation for all occurrence" data-fortab="defaultTranslation">Default translation</span>
+				<span class="tabButton" title="Translations by context" data-fortab="contextTranslation">Context translation</span>
+			</div>
+			<div class="cellEmblems">
+				<i class="emblemComment icon-commenting hidden" title="This cell has a comment"></i>
+				<i class="emblemOrganic icon-user hidden" title="This cell has an organic content"></i>
+				<i class="emblemFootprint icon-shoeprint3 hidden" title="This cell has been visited"></i>
+				<i class="emblemFirstVisit icon-1st hidden" title="This is the first time this cell has been visited"></i>
+			</div>
+		</div>
+
+		<div class="cellInfoTabContent">
+			<textarea class="cellText pre" id="currentCellText" data-coord="" data-tabname="defaultTranslation"></textarea>
+			<div class="contextTranslation hidden" id="contextTranslation" data-tabname="contextTranslation">
+			</div>
+
+			<div class="currentCellTextCtrl" data-tabname="defaultTranslation">
+				<button class="resizeFont" title="Resize Font" data-for="#currentCellText"><img src='img/font_size_icon.png' alt='font-size' /></button>
+				<button class="wordWrap checked" title="Word wraping" data-for="#currentCellText"><img src='img/wrap.png' alt='wrap' /></button>
+				<button class="ceOptions" title="Current Cell Editor options"><img src='img/cog.png' alt='options' /></button>
+			</div>
+			<div class="currentCellTextCtrl hidden" data-tabname="contextTranslation">
+				<button class="ceOptions" title="Current Cell Editor options"><img src='img/cog.png' alt='options' /></button>
+				<button class="clearContextTranslation" title="Clear context translation for current row"><i class="icon-trash-empty"></i></button>
+				<button class="contextTranslateHelp" title="Get help about translation by context" ><i class="icon-help-circled-1"></i></button>
+			</div>			
+		</div>
+	</div>
+</div>
+
+</div>
+
+<div class="footer">
+	<div class="footer-content footer1"><span></span></div>
+	<div class="footer-content footer2"><span></span></div>
+	<div class="footer-content footer3"><span></span></div>
+	<div class="footer-content footer4"><span></span></div>
+	<div class="footer-content footer5"><span></span></div>
+</div>
+
+
+<div id="template">
+
+
+<input type="file" id="startProject" class="selectGame hidden" autocomplete="off" />
+<input type="file" id="openFile" class="openFile hidden" accept=".slrproj,application/slrproj" autocomplete="off" />
+
+<div id="pathNotAccessible" title="Path not accessible">
+	<div class="blockBox errorBlock withIcon">
+		Path <a class="problemPath"></a> is not accessible by PHP interpreter.<br />
+		Please rename the path and use only alphanumeric naming.
+	</div>
+</div>
+
+<div id="rowProperties" title="Row Properties">
+	<div class="dialogSectionBlock">
+		<h2>Location</h2>
+		<div><span>File :</span> <span class="rowProp_fileName"></span></div>
+		<div><span>Row ID :</span> <span class="rowProp_location"></span></div>
+	</div>
+	<div class="dialogSectionBlock">
+		<h2>Key Text</h2>
+		<p class="rowProp_keyText pre"></p>
+	</div>
+	<div class="dialogSectionBlock">
+		<h2>Context</h2>
+		<ul class="rowProp_contextList"></ul>
+	</div>
+	<div class="dialogSectionBlock">
+		<h2>Best Translation</h2>
+		<p class="rowProp_bestTranslatiion pre"></p>
+	</div>
+</div>
+
+<div id="fileProperties" title="File Properties">
+	<div class="dialogSectionBlock">
+		<h2>File ID</h2>
+		<div class="fileProp_id"></div>
+	</div>
+	<div class="dialogSectionBlock">
+		<h2>Path</h2>
+		<div class="fileProp_path"></div>
+	</div>
+	<div class="dialogSectionBlock">
+		<h2>Original Format</h2>
+		<div class="fileProp_originalFormat"></div>
+	</div>
+	<div class="dialogSectionBlock col-2">
+		<div>
+			<h2>Data Length</h2>
+			<div class="fileProp_dataLength"></div>
+		</div>
+		<div>
+			<h2>Translated</h2>
+			<div class="fileProp_translatedLength"></div>		
+		</div>
+	</div>
+	<div class="translatedPercent">
+	</div>
+
+
+</div>
+
+<div id="projectProperties" title="Project Properties">
+	<div id="projPropWrapper" class="innerTab">
+	  <ul>
+		<li><a href="#projProp-general">General</a></li>
+		<li><a href="#projProp-language">Language</a></li>
+		<li><a href="#projProp-staging">Staging</a></li>
+		<li><a href="#projProp-stats">Stats</a></li>
+		<li><a href="#projProp-advanced">Advanced</a></li>
+		<li><a href="#projProp-info">Info</a></li>
+	  </ul>
+	  <div id="projProp-general">
+		<div class="dialogSectionBlock">
+			<h2>Title</h2>
+			<div class=""><input type="text" class="fullWidth projProp_title" value="" /></div>
+		</div>		  
+		<div class="dialogSectionBlock">
+			<h2>File Location</h2>
+			<div class="projProp_fileLoc"></div>
+		</div>
+		<div class="dialogSectionBlock col-2">
+			<div>
+				<h2>Project ID</h2>
+				<div class="projProp_id"></div>
+			</div>
+			<div>
+				<h2>Built on</h2>
+				<div class="projProp_date"></div>
+			</div>
+		</div>
+		
+		<div class="dialogSectionBlock col-2">
+			<div>
+				<h2>Editor Name</h2>
+				<div class="projProp_editorName"></div>
+			</div>
+			<div>
+				<h2>Editor Version</h2>
+				<div class="projProp_editorVersion"></div>
+			</div>
+		</div>
+
+		<div class="dialogSectionBlock">
+			<h2>Engine</h2>
+			<div class="projProp_engine"></div>
+		</div>
+		<div class="dialogSectionBlock col-2">
+			<div>
+				<h2>Parser</h2>
+				<div class="projProp_parser"></div>
+			</div>
+			<div>
+				<h2>Parser version</h2>
+				<div class="projProp_parserVersion"></div>
+			</div>
+		</div>
+		<div class="dialogSectionBlock">
+			<h2>Raw Material Location <i class="icon-info-circled-1" title="The location of the original material. You should not modify anything inside this folder."></i></h2>
+			<div class=""><input type="dvSelectPath" nwdirectory class="fullWidth projProp_loc" value="" /></div>
+			<div class="dialogInfo alert alert-warning hidden"><i class="icon-attention red"></i> Invalid path.<br />Some features will be disabled until this is fixed.</div>
+		</div>
+		<div class="dialogSectionBlock">
+			<h2>Translated Material Location <i class="icon-info-circled-1" title="The location of the game that has been translated. The default location of the translation injection."></i></h2>
+			<div class=""><input type="dvSelectPath" nwdirectory class="fullWidth projProp_devPath" value="" /></div>
+			<div class="dialogInfo alert alert-warning hidden"><i class="icon-attention red"></i> Invalid path.<br />Some features will be disabled until this is fixed.</div>
+		</div>
+
+
+	  </div>
+	  
+	  <div id="projProp-language">
+		<div class="dialogSectionBlock">
+			<h2>Translator <i class="icon-info-circled-1" title="Prefered translator for this project. If not defined, global setting will be used."></i></h2>
+			<div class="">
+				<input list="translatorEngines" placeholder="-use default-" class="fullWidth projProp_translator"  list="browsers" />
+			</div>
+		</div> 
+		<div class="dialogSectionBlock">
+			<h2>Translate From</h2>
+			<div class=""><input list="languages" placeholder="-use default-" class="fullWidth projProp_langFrom" /></div>
+		</div> 
+		<div class="dialogSectionBlock">
+			<h2>Translate Into</h2>
+			<div class=""><input list="languages" placeholder="-use default-" class="fullWidth projProp_langTo" /></div>
+		</div> 
+	  </div>
+	  
+	  <div id="projProp-staging">
+		<div class="dialogSectionBlock">
+			<h2>Staging Path <i class="icon-info-circled-1" title="Staging path is the location of the original game files used to build the translated ones. Those files are only temporarily created during the session and are later deleted."></i></h2>
+			<div class=""><input type="dvSelectPath" nwdirectory class="fullWidth projProp_stagingPath" value="" /></div>
+			<div class="openDir"><input type="button" class="openDirInExplorer openStagingDir" for=".projProp_stagingPath" value="Open directory in explorer" /></div>
+		</div>
+	  </div>
+
+	  <div id="projProp-stats">
+		<div class="dialogSectionBlock col-2">
+			<div>
+				<h2>Objects <i class="icon-info-circled-1" title="Number of objects/files available on the left pane"></i></h2>
+				<div data-field="files"></div>
+			</div>
+			<div>
+				<h2>Folders</h2>
+				<div data-field="folders"></div>
+			</div>
+		</div>
+
+		<div class="dialogSectionBlock col-2">
+			<div>
+				<h2>Characters <i class="icon-info-circled-1" title="Number of characters in the Original Text column"></i></h2>
+				<div data-field="characters"></div>
+			</div>
+			<div>
+				<h2>Words <i class="icon-info-circled-1" title="May display wrong value in languages that doesn't use spaces (ie. Japanese, Chinese)."></i></h2>
+				<div data-field="words"></div>
+			</div>
+		</div>
+
+		<div class="dialogSectionBlock col-2">
+			<div>
+				<h2>Total Rows</h2>
+				<div data-field="rows"></div>
+			</div>
+			<div>
+				<h2>Translated row</h2>
+				<div data-field="rowTranslated"></div>
+			</div>
+		</div>
+		<div class="dialogSectionBlock col-2">
+			<div>
+				<h2>Organic translation <i class="icon-info-circled-1" title="Users filled directly into the grid. Which is a good sign. Can be human translation, can be edited MTL, etc."></i></h2>
+				<div data-field="organic"></div>
+			</div>
+			<div>
+				<h2>&nbsp;</h2>
+				<div>Which is <span data-field="organicPercent"></span>% of total translation.</div>
+			</div>
+		</div>
+		<div class="dialogSectionBlock">
+			<h2>Overall progress <span class="percentDisplay" data-field="percent"></span>%</h2>
+			<meter class="fullWidth" min="0" max="100" value="0"  data-field="percent"></meter>
+
+		</div>
+	  </div>
+
+	  <div id="projProp-advanced">
+		<h1>Hooks</h1>
+		<div class="dialogSectionBlock">
+			<h2>On after export<i class="icon-info-circled-1" title="Run a javascript function after this project is successfully exported."></i></h2>
+			<div class="actionBar"><input type="button" class="editFunction" for="afterExport" value="Edit function" /></div>
+		</div>
+	  </div>
+
+	  <div id="projProp-info">
+		<div class="dialogSectionBlock" >
+			<h2>Info</h2>
+			<div class="fullWidth editableHtmlFld projectInfo" contenteditable="true"></div>
+		</div>
+		<div class="dialogSectionBlock" >
+			<label><input type="checkbox" class="displayInfo" /> <span>Display this information when the project is opened.</span></label>
+		</div>
+	  </div>  
+	</div>
+</div>
+
+
+<div id="dialogExport" title="Export Project" class="dialog dialogExport dialogGrid dialogMenu">
+	<h1><a href="#">Select Export Mode</a></h1>
+	<label data-for="#exportDir" class="menuSelector"  for="exportDir">
+		<img src="img/folder.png" alt="folder" />
+		<h1 for="exportDir">Export to a folder</h1>
+		<div>Export pre-compiled game data to a folder<br />Folder structures are retained</div>
+		<input type="file" id="exportDir" class="exportDir" autocomplete="off" nwdirectory />
+	</label>
+	<label data-for="#export" class="menuSelector" for="export">
+		<img src="img/zip.png" alt="zip" />
+		<h1 for="export">Export as a Zip file</h1>
+		<div>Export pre-compiled game data to a single zipped archive</div>
+		<input type="file" id="export" class="export" nwsaveas="translation.zip" autocomplete="off" />
+	</label>
+</div>
+
+<div id="dialogImport" title="Import Project" class="dialog dialogImport dialogMenu">
+	<h1><a href="#">Select Import Mode</a></h1>
+
+	<!-- Legacy/unused: import from old .trans files. Hidden from the UI; underlying JS/PHP code retained. -->
+	<!--
+	<label data-for="#importTrans" class="menuSelector"  for="importTrans">
+		<img src="img/tpp_files.png" alt="TPP files" />
+		<h1 for="#importTrans">Import translation from another .trans file</h1>
+		<div>Open another file<br />Apply translation into current project.</div>
+		<input type="file" id="importTrans" class="import" accept=".trans,application/trans"  autocomplete="off" />
+	</label>
+	-->
+	<label class="menuSelector importSlrproj">
+		<img src="img/zip.png" alt="SLR Project" />
+		<h1>Import translations from another SLR Project</h1>
+		<div>Reuse translations from a .slrproj file<br />Matches identical rows only — no new rows added</div>
+	</label>
+</div>
+<div id="dialogImportTrans" title="Import .TRANS into project" class="dialog dialogImportTrans">
+	<h2>Source :</h2>
+	<div><a href="#">Select objects to import</a></div>
+	<div class="fileSelectorWrapper"></div>
+	<div class="tabWrapper">
+		<div class="selectorHead">
+			<h2>Import mode :</h2>
+			<form class="col-2">
+				<label class="flex"><input class="ImportTransImportMode importMode_translation" type="radio" name="importMode" value="0"/> <span>Import translations</span></label>
+				<label class="flex"><input class="ImportTransImportMode importMode_object"type="radio" name="importMode" value="1"/> <span>Import data object</span></label>
+			</form>
+		</div>
+		<div class="selectorBody tabWrapper" data-if="0">
+			<h2>Destination :</h2>
+			<div class="col-2">
+				<div>
+					<select class="destinationMode">
+						<option value="selected">Import to selected object</option>
+						<option value="all">Import to all object</option>
+					</select>
+				</div>
+				<div class="currentSelectionInfo">
+					<div data-for="selected">
+						<div>Currently selected : </div>
+						<div class="destinationList"></div>
+					</div>
+					<div class="hidden" data-for="all">
+						⚠all files in this project will be translated regardless the selection.
+					</div>
+				</div>
+			</div>
+
+			<h2>Options :</h2>
+			<div class="col-3">
+				<div class="destinationFile">
+					<div><label><input type='checkbox' class='contextTranslation' /> <span title="Will import Translated by Context fields">Import the context translations</span></label></div>
+					<div><label><input type='checkbox' class='caseInsensitive' /> <span title="Case insensitive and ignores carriage returns">Case insensitive</span></label></div>
+				</div>
+				<div class="overwritTargetCol">
+					<label><input type='checkbox' class='overwriteTarget' /><span>Overwrite target</span></label>
+				</div>
+				<div>
+					<label><span>Destination column : </span><span class='selectRow'></span></label>
+				</div>
+			</div>
+
+			<h2>Translation mode :</h2>
+			<div class="col-3">
+				<div>
+					<label>
+						<select class="compareMode">
+							<option value="rowByRow">Row by row translation</option>
+							<option value="lineByLine">Line by line translation</option>
+							<option value="contextTrans">Select translation by context address</option>
+							<option value="copyByRow">Just copy translation into the same row (No checking)</option>
+						</select>
+					</label>
+				</div>
+			</div>
+		</div>
+		<div class="selectorBody" data-if="1">
+			<h2>Destination :</h2>
+			<div>
+				<div>Currently selected : </div>
+				<div class="destinationList"></div>
+			</div>
+			<h2>Options :</h2>
+			<div class="col-3">
+				<div>
+					<label>
+						<input type="checkbox" name="mergeData" class="mergeData" value="1" /><span>Merge data</span>
+					</label>
+				</div>
+			</div>
+		</div>	
+
+	</div>
+</div>
+
+<div id="dialogImportSlrproj" title="Import from SLR Project" class="dialog commonDialogImport dialogImportSlrproj">
+	<h2 class="info">Import translations from another SLR Project (.slrproj)</h2>
+	<p>Reuse translations from an existing .slrproj file by matching identical rows. Only rows whose original text already exists in the current project are updated — no new rows are added.</p>
+	<div class="blockBox infoBlock withIcon"><b>Ideal for game updates.</b> If a game was re-parsed after an update, this restores the translations you already completed for the text that is still present.</div>
+
+	<h2>Source :</h2>
+	<div class="importSlrprojPathTypeWrapper commonDialogImportWrapper">
+		<label class="importSlrprojSelectorLabel commonDialogImportWrapperLabel active" title="Click to select a .slrproj file">
+			<div><input type="radio" name="importSlrprojPathType" value="0" class="importSlrprojPathType" id="importSlrprojPathType_file" checked> Select .slrproj file</div>
+			<input type="file" id="importSlrprojFile" class="importSlrproj importSlrprojFile hidden" accept=".slrproj" autocomplete="off" />
+			<div class="selectedFileRemark"></div>
+		</label>
+	</div>
+	<div class="fileSelectorWrapper"></div>
+	<div class="blockBox infoBlock withIcon"><b>All columns are restored.</b> Every column except the original text (translations, notes, context translations, etc.) is copied from each matching row.</div>
+	<h2>Options :</h2>
+	<div class="col-2">
+		<div class="overwritTargetCol"><label><input type='checkbox' class='overwriteTarget' /><span>Overwrite existing cells</span></label></div>
+		<div><label><input type='checkbox' class='caseInsensitive' /><span title="Ignores case differences and carriage returns when matching rows">Case insensitive matching</span></label></div>
+	</div>
+</div>
+
+<div id="dialogNewProject" title="Start a new project" class="dialog dialogNewProject">
+	<div class="dialogSection" data-slideid="1">
+		<h1><a href="#"><span>Select project type</span></a></h1>
+	</div>
+	<div class="dialogSection" data-slideid="rpgmaker">
+		<h1><i class="icon-plus-circled"></i><span>RPG Maker XP, VX, VXAce, MV or MZ</span></h1>
+		<div class="fieldgroup">
+			<div class="blockBox warningBlock withIcon">
+				You are about to use <b>the legacy parser</b> of RPG Maker engine.<br />
+				It is strongly recomend that you start a new project with the new parser.
+			</div>
+			<div class="dialogSectionBlock ieldgroup">
+				<h2>Select the game</h2>
+				<div class="info">Select the executable file from your original game (Game.exe on Windows, or the nw / Game / start.sh launcher of a Linux port).</div>
+				<label><input type="dvSelectPath" class="rpgMakerLocation" /></label>
+			</div>		
+			<div class="dialogSectionBlock fieldgroup detectedTypeWrapper hidden">
+				<h2>Detected engine / type</h2>
+				<div class="info"></div>
+				<label><input type="text" class="detectedType" readonly="readonly" /></label>
+			</div>	
+			<div class="dialogSectionBlock fieldgroup createCopyWrapper hidden">
+				<label class="flex fullWidth">
+					<div class="flexMain">
+						<div class="label">Create a development copy <span class="copyIsRequired">(required)</span></div>
+						<div class="info">Will create an editable copy of your game (required for some project)</div>
+					</div>
+					<div>
+						<input type="checkbox" class="createCopy flipSwitch"> 
+					</div>
+				</label>
+			</div>			
+			<div class="fieldgroup devLocationWrapper">
+				<h2>Set development directory</h2>
+				<div class="info">The tool will generate an extracted, ready to translate copy of your game in this directory.</div>
+				<label><input type="dvSelectPath" class="devLocation" nwdirectory /></label>
+			</div>		
+			<div class="fieldgroup devLocationTypeWrapper hidden">
+				<h2>Development directory's Engine Type</h2>
+				<div class="info">The detected engine type of the source materials in the development directory.</div>
+				<label><input type="text" class="devLocationType fullWidth" /></label>
+			</div>		
+			<div class="fieldgroup devLocationExeWrapper hidden">
+				<h2>Development directory's Executable</h2>
+				<div class="info">Path of the Executable of the source materials in the development directory.</div>
+				<label><input type="text" class="devLocationExe fullWidth" /></label>
+			</div>		
+			<div class="actionButtons">
+			<!--
+				<button class="selectRPGExe"><i class="icon-doc-inv"></i>Create project!</button>
+			-->
+				<button class="createProjectFromRPGM"><i class="icon-doc-inv"></i>Create project!</button>
+			</div>
+		</div>
+	</div>
+	<div class="dialogSection" data-slideid="99">
+
+	</div>
+
+</div>
+
+<div id="dialogProjectIsExist" title="Project is exist" class="dialog dialogProjectIsExist">
+	<p>
+		A project with the same title <br />"<span class="dialogGameTitle"></span>"<br /> is already exist on the post processed cache.<br />
+		You can re-use this cache to shorten loading time significantly.
+	</p>
+	<p>If you are confused, you can always safely click <strong><a href="#">"Create new project"</a></strong> button. </p>
+	<h2>Existed cache</h2>
+	<ul class="existedCache"></ul>
+</div>
+
+
+
+<div id="dialogContextTool" title="Context Tool" class="dialog dialogContextTool">
+	<h2>Select Context(s)</h2>
+	<div class="contextSelectorWrapper"><select class="contextSelector" multiple></select></div>
+	<h2>Manual Query</h2>
+	<div>
+		<textarea class="contextSelectorText" placeholder="Your list of context separated by new line"></textarea>
+ 		<label><input type="checkbox" class="matchAll" /> <span>Match all words</span></label><a class="icon dvIcon-help icon-help-circled" title="Help" data-help-page="context-translation" data-help-anchor="match-all-words"></a>
+	</div>
+	<h2>Action</h2>
+	<div class="contextAction col-3">
+		<label class="flex"><input type="radio" name="contectActionFld" class="actionRemoveSelected" value="actionRemoveSelected" /> <span>Remove selected</span></label>
+		<label class="flex"><input type="radio" name="contectActionFld" class="actionRemoveButSelected" value="actionRemoveButSelected" /> <span>Remove all but selected</span></label>
+	</div>
+</div>
+
+<div id="batchWraping" title="Wrap text" class="dialog batchWraping">
+	<h2>Select Context</h2>
+	<div><select class="contextSelector" multiple></select></div>
+	<h2>Manual Query</h2>
+	<div><textarea class="contextSelectorText" placeholder="Your list of context separated by new line"></textarea></div>
+	<h2>Source Column</h2>
+	<div class="sourceCol"></div>
+	<h2>Target Column</h2>
+	<div class="targetCol"></div>
+	<h2>Maximum length</h2>
+	<div><input type="number" class="maxLength" min="5" value="41" /></div>
+	<div class="info"></div>
+</div>
+
+<div id="dialogExportPreparation" title="Export Options" class="dialog dialogExportPreparation">
+	<div class="dialogSection targetPath">
+		<h2>Export into</h2>
+		<div class="">
+			<input type="text" readonly class="fullWidth exportPath" value="" />
+		</div>
+	</div>
+
+	<div class="dialogSection tagSelection">
+		<h1>What to do with tagged rows?</h1>
+
+		<h2>Select Color Tag</h2>
+		<div class="colorTagSelector">
+
+		</div>
+	</div>
+
+	<div class="dialogSection wordWrapByTag">
+		<h2>Word Wrap By Tag</h2>
+		<div class="wrapper">
+
+		</div>
+	</div>
+
+	<form class="customFields"></form>
+</div>
+
+
+<div id="dialogSetTags" title="Tagging" class="dialog dialogSetTags">
+	<form>
+	<h2>Select Color Tag</h2>
+	<div class="colorTagSelector">
+
+	</div>
+	</form>
+</div>
+
+
+<div id="dialogAddObject" title="Add new Object" class="dialog dialogAddObject">
+	<form data-nosubmit="true">
+		<div>
+			<h2>Directory name</h2>
+			<div>
+				The object will be grouped under this directory.<br />
+				Enter star "<code>*</code>" to add a new <b>reference object</b>.
+			</div>
+			<label class="flex">
+				<input type="text" list="directoryList" class="form-control fullWidth" name="addObjDirName" value="" id="addObjDirName" />
+			</label>
+			<div class="tooltip addObjDirName_tooltip error icon-cancel-circled hidden">Invalid directory  name</div>
+		</div>
+		<div>
+			<h2>Object name</h2>
+			<div>
+				The name of the object.
+			</div>
+			<label class="flex">
+				<input type="text" class="form-control fullWidth" name="addObjName" value="" id="addObjName" />
+			</label>
+			<div class="tooltip addObjDirName_tooltip error icon-cancel-circled hidden">Invalid object name</div>
+		</div>
+		<!--
+		<div class="options">
+			<h1>Options</h1>
+			<h2>Tags</h2>
+			<div class="colorTagSelector"></div>
+		
+		</div>
+		-->
+	</form>
+</div>
+
+
+<datalist id="directoryList">
+</datalist>
+<datalist id="translatorEngines">
+</datalist>
+<datalist id="languages">
+</datalist>
+
+</div><!-- template -->
+
+<!-- intro window -->
+<div class="introWindow" id="introWindow">
+	<a href="#" class="closeIntroWindow"><i class="icon-cancel-circled"></i></a>
+	<div class="introWindowRow child-2">
+		<div class="introWindowColumn">
+			<div>
+				<h1>Start here</h1>
+				<div class="newProject buttonBox">
+					<i class='icon-angle-right'></i>
+					<span class="buttonBoxLabel">Start a New Project</span>
+				</div>
+			</div>
+			<div>
+				<h1 class="icon-folder-open">Continue your work</h1>		
+				<div class="openProject buttonBox">
+					<i class='icon-angle-right'></i>
+					<span class="buttonBoxLabel">Open Project</span>
+				</div>
+			</div>
+		</div>
+		<div class="introWindowColumn">
+			<div>
+				<h1 class="icon-star">Your recent translation</h1>		
+				<ul class="recentProject">
+					<li><img class="tpp-loading" src="img/tpp-loading-inv.svg" alt="loading..." /></li>
+				</ul>
+			</div>		
+		</div>
+	</div>
+	<div class="introWindowRow">
+		<div class="introWindowColumn">
+			<h1 class="icon-info-circled-1">Tips for you</h1>		
+			<div class="tipsContent"></div>
+			<div class="tipsNavigator"><a class="nextTips" href="#">Next tip! <span class="icon-angle-double-right"></span></a></div>
+		</div>		
+	</div>	
+
+</div>
+
+<div class="tipsPlaceHolder hidden">
+	<div>Only the rightmost filled cell in a row will be used when exporting. <a class="tipHelp" data-help-page="editor-basics">Read more</a></div>
+	<div>You can press <b>F1</b> to open the documentation window. <a class="tipHelp" data-help-page="overview">Read more</a></div>
+	<div>If you have an issue please actually report it, I can't fix what I don't know about.</div>
+	<div>Always create a backup of your game before patching it with a translation. <a class="tipHelp" data-help-page="first-project">Read more</a></div>
+	<div>Regex is your friend. It looks complicated at first, but it can save you hours of tedious work. <a class="tipHelp" data-help-page="find-replace">Read more</a></div>
+	<div>pls rember that wen u feel scare or frigten never forget ttimes wen u feeled happy<br />wen day is dark alway rember happy day</div>
+	<div>A script bit keeps getting broken? Add an entry for it to the SplittingPatterns. <a class="tipHelp" data-help-page="custom-parsers">Read more</a></div>
+	<div>I know you don't want to, but please read the documentation. Press <b>F1</b>. <a class="tipHelp" data-help-page="overview">Read more</a></div>
+	<div>Did you know? <b>Ask DSLR</b> in the toolbar answers your questions by reading the documentation — so you don't have to. <a class="tipHelp" data-help-page="ask-dslr">Read more</a></div>
+	<div>Font changes are necessary because English needs more characters than Japanese. At the same size text will not fit the menus. <a class="tipHelp" data-help-page="mv">Read more</a></div>
+	<div>You can't fap or eat good food if you're dead. Please don't kill yourself.</div>
+    <div>To support the development of SLR Translator, please consider donating.<br /><a class="externalLink" href="http://subscribestar.com/shisaye">SubscribeStar</a></div>	
+</div>
+
+
+<!-- overlays -->
+
+
+<div id="loadingOverlay" class="hidden">
+    <div class="loadingInfo consoleWrapper"><div class="console"></div></div>
+    <div class="loadingStatus"></div>
+    <div class="loadingBar">
+        <div class="loadingBarProgress"></div>
+        <div class="loadingBarOverlay">0</div> 
+    </div>
+	<div class="loadingBarButtons"></div>
+</div>
+<div id="busyOverlay" class="pitchBlack" >
+	<div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+	<div class="loading-text">working</div>
+</div>
+<div id="textSlider" class="hidden">
+	<datalist id="tickmarks">
+	  <option value="100" label="100%">
+	</datalist>
+	<input type="text" value="100%" class="textResizeValue" /><button>-</button><input type="range" value="100" step="10" max="200" min="50" class="textResizer" list="tickmarks" /><button>+</button>
+</div>
+<div id="gridDisabler" class="hidden"></div>
+
+</div> <!-- application wrapper -->
+
+<script>
+	var win = win||nw.Window.get();
+	var appMinimize = function() {
+		win.minimize();
+	}
+	var appMaximize = function() {
+		win.maximize();
+	}
+	var appRestore = function() {
+		win.restore();
+	}
+	var appClose = function() {
+		win.close();
+	}
+
+	win.on("restore", function() {
+		$(".applicationBar .appbarIcon-maximize").removeClass("hidden");
+		$(".applicationBar .appbarIcon-restore").addClass("hidden");
+		localStorage.setItem("windowState", "restored");
+	})
+	win.on("maximize", function() {
+		$(".applicationBar .appbarIcon-maximize").addClass("hidden");
+		$(".applicationBar .appbarIcon-restore").removeClass("hidden");
+		localStorage.setItem("windowState", "maximized");
+
+	})
+	win.on("minimize", function() {
+		localStorage.setItem("windowState", "minimized");
+
+	})
+
+	var isMaximized;
+	try {
+		isMaximized = chrome.app.window.current().isMaximized();
+	} catch (e) {
+		isMaximized = false;
+		if(localStorage.getItem("windowState") == "maximized") isMaximized = true;
+	}
+
+	if (isMaximized) {
+		$(".applicationBar .appbarIcon-maximize").addClass("hidden");
+		$(".applicationBar .appbarIcon-restore").removeClass("hidden");
+	} else {
+		$(".applicationBar .appbarIcon-maximize").removeClass("hidden");
+		$(".applicationBar .appbarIcon-restore").addClass("hidden");
+	}
+
+</script>
+
+	</body>
+</html>

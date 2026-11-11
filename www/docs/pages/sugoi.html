@@ -1,0 +1,66 @@
+<h1>Sugoi Translator</h1>
+
+<p><code>SLR (SugoiV4 legacy)</code> is the engine that translates through one or more Sugoi Translator servers. It is the original <strong>Sugoi V4 neural machine translation (NMT)</strong> line — unrelated to the newer "Sugoi" family of LLMs. It sends batches of Japanese strings to each server and inserts the returned English strings into the target column. It only supports Japanese as source and English as target — if the project specifies other languages, the engine logs a warning and translates as Japanese to English anyway.</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<ul>
+	<li>A Sugoi Translator server that is running and reachable. The engine expects it on your own machine at <code>localhost:14366</code> by default.</li>
+	<li>With a local server, the entire translation pipeline is offline: parsing, translating and applying never touch the network beyond your machine.</li>
+</ul>
+
+<div class="note">SLR Translator only acts as the client — it sends translation requests to whatever address you configure. Setting up and starting the Sugoi server itself is done outside this application and is not covered by these docs.</div>
+
+<h2 id="configuring">Configuring</h2>
+
+<p>Open <code>Options</code> → <code>Translator &amp; Language</code> → <code>SLR (SugoiV4 legacy)</code>. The engine has three options:</p>
+
+<table>
+	<tr><th>Option</th><th>Default</th><th>Meaning</th></tr>
+	<tr>
+		<td><code>Sugoi Translator URLs</code></td>
+		<td>one entry: <code>localhost:14366</code> (the full address SLR uses is <code>localhost:14366</code> on default server paths)</td>
+		<td>One server address per line. Requests are balanced across all listed servers so that every server holds roughly the same number of open requests.</td>
+	</tr>
+	<tr>
+		<td><code>Request Character Limit</code></td>
+		<td><code>5000</code></td>
+		<td>Maximum characters sent per server request. Larger values are faster as long as the server's memory keeps up. A single string that cannot be split and exceeds the limit is still sent, but alone in its own request.</td>
+	</tr>
+	<tr>
+		<td><code>Maximum Request Count</code></td>
+		<td><code>1</code></td>
+		<td>How many requests may be in flight at the same time. The option text suggests roughly two per server as a starting point.</td>
+	</tr>
+</table>
+
+<h2 id="how-requests-work">How requests work</h2>
+
+<ul>
+	<li>Rows are packed into batches up to the character limit and posted to a server as a JSON payload containing the text array.</li>
+	<li>The server must answer with a JSON array of the same length. If the lengths do not match, the whole batch is discarded with an <code>invalid response - length mismatch</code> error (usually a sign of an unstable or crashed server).</li>
+	<li>With <code>Japanese Source Language</code> enabled (the default), the engine masks SLR placeholder tokens and strips characters that cannot be Japanese before measuring text, which keeps batching decisions based on actual Japanese content.</li>
+</ul>
+
+<h2 id="using-slr">Using SLR</h2>
+
+<ul>
+	<li>Manual: select cell(s) in the editor and press <code>Ctrl+G</code> to generate translations — see <a href="#editor-basics">Editor Basics</a>.</li>
+	<li>Whole project: the <a href="#batch">Batch Translation</a> dialog lets you pick SLR for the run regardless of the default engine.</li>
+</ul>
+
+<h2 id="error-behavior">Error behavior</h2>
+
+<ul>
+	<li>A failed request (server error, invalid response, network problem) is logged and counted — the progress readout shows <code>(N failed translations)</code> — but the remaining batches continue. Failed rows are simply left untranslated.</li>
+	<li>The log message for a failing server reminds you to check whether that server is still up.</li>
+	<li>Translation runs can be paused and aborted from the progress overlay.</li>
+</ul>
+
+<h2 id="limitations">Limitations</h2>
+
+<ul>
+	<li>Japanese to English only.</li>
+	<li>No glossary injection, scene context, retry-with-correction or other LLM features — those belong to <a href="#dslr">DSLR</a>.</li>
+	<li>Translation quality is fixed by the server's model; none of DSLR's prompt or sampling options apply.</li>
+</ul>

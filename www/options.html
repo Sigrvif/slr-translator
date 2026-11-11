@@ -1,0 +1,359 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="js/nightModeEarly.js"></script>
+<script type="text/javascript" src="js/childWindowFrame.js"></script>
+<link rel="icon" href="img/options.png">
+<link type="text/css" href="modules/jquery-ui/jquery-ui-1.11.4.custom/jquery-ui.css" rel="stylesheet" />
+<!-- <script type="text/javascript" src="modules/jquery/jquery-1.12.4.min.js"></script> -->
+<script>
+var $ = require('jquery');
+window.jQuery = $;
+
+const Logger = require('www/js/Logger.js');
+// The Options window's own log is opt-in: it mostly repeats the form construction the
+// main log already covers, so by default it is not written at all (the logger stays
+// in-memory). The flag lives in the shared Logger config and must be read before any
+// Logger instance exists, straight from the storage getConfig would use.
+var optionsLogEnabled = false;
+try {
+	var loggerConfig = JSON.parse(localStorage.getItem("Logger") || "{}");
+	optionsLogEnabled = loggerConfig.logOptionsWindow === true;
+} catch (e) {}
+var logger = optionsLogEnabled
+	? new Logger({file:"data/logs/options.log"})
+	: new Logger({});
+logger.loadState();
+
+</script>
+<script type="text/javascript" src="js/scriptRunner.js"></script>
+<script type="text/javascript" src="modules/jquery/jquery.json.min.js"></script>
+<script type="text/javascript" src="modules/jquery-ui/jquery-ui-1.11.4.custom/jquery-ui.js"></script>
+<script type="text/javascript" src="modules/json2.js"></script>
+<script type="text/javascript" src="modules/jquery-ui/jquery.ui-contextmenu.js"></script>
+<script type="text/javascript" src="modules/tagify/tagify.min.js"></script>
+<script type="text/javascript" src="js/DVField.js"></script>
+<script type="text/javascript" src="js/list.min.js"></script>
+
+<script type="text/javascript" src="js/consts.js"></script>
+<script type="text/javascript" src="js/common.js"></script>
+<script type="text/javascript" src="js/docsHelp.js"></script>
+<script type="text/javascript" src="js/jquerytextcomplete/dist/jquery.textcomplete.js"></script>
+
+<script type="text/javascript" src="modules/jsonform/deps/underscore.js"></script>
+<script type="text/javascript" src="modules/jsonform/deps/opt/jsv.js"></script>
+<script type="text/javascript" src="js/jsonform.ext.js"></script>
+<script type="text/javascript" src="modules/jsonform/lib/jsonform.js" onload="JSONFormExt.init()"></script>
+<script type="text/javascript" src="js/Option.js"></script>
+<script type="text/javascript" src="js/options.js"></script>
+
+<!--
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+-->
+<link type="text/css" href="css/bootstrapparts.css" rel="stylesheet" media="screen">
+
+<link type="text/css" href="css/trans.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/translator.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/fontello-embedded.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/options.css" rel="stylesheet" media="screen">
+<link type="text/css" href="css/dvField.css" rel="stylesheet" media="screen">
+<link type="text/css" href="modules/tagify/tagify.css" rel="stylesheet" media="screen">
+
+
+<link type="text/css" href="css/editor.css" rel="stylesheet" media="screen">
+<script type="text/javascript" src="js/minieditor.js"></script>
+<script src="/www/modules/ace/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+
+
+<title>Options</title>
+
+<head>
+
+<body>
+
+<!--
+<div class="toolbar">
+	<div class="toolbar-content toolbar1">
+		<button class="menu-button column-1" title="Show 1 column" data-for="1"><img src='img/column-1.png' alt="column-1" /></button>
+		<button class="menu-button column-2" title="Show 2 column" data-for="2"><img src='img/column-2.png' alt="column-2" /></button>
+		<button class="menu-button column-3" title="Show 3 column" data-for="3"><img src='img/column-3.png' alt="column-3" /></button>
+		<button class="menu-button column-4" title="Show 4 column" data-for="4"><img src='img/column-4.png' alt="column-4" /></button>
+	</div>
+	<div class="toolbar-content toolbar2">
+		<button class="menu-button always-on-top" title="Toggle always on top"><img src='img/always-on-top.png' alt="always-on-top" /></button>
+		<button class="menu-button dock" title="Dock this window to main application"><img src='img/dock.png' alt="dock" /></button>
+	</div>
+	<div class="toolbar-content toolbar3">
+		<button class="menu-button clipboard_copy" title="Automatically process clipboard"><img src='img/clipboard.png' alt="clipboard" /></button>
+	</div>
+</div> 
+-->
+<div class="mainPane">
+	<div class="panel-left" id="leftMenu">
+		<div class="panel-left-top"></div>
+		<div class="panel-left-middle">
+			<ul class="tabMenu list">
+				<li data-for="language" class="langSetting selectable">
+					<a><i class="icon-speech-hiragana-romaji"></i><span class="menuTitle">Translator &#38; Language</span><span class="tabHelp" data-help-page="engines-overview" title="Help">?</span></a>
+				</li>
+<!-- 				<li data-for="language" class="assistantSetting selectable hasSubMenu">
+					<a><i class="icon-edit"></i><span class="menuTitle">Assistant</span><i class="icon-right-dir expanderButton" data-expand=".assistant"></i></a>
+				</li> -->
+			<li data-for="general" class="selectable">
+				<a><i class="icon-cog"></i><span class="menuTitle">General</span><span class="tabHelp" data-help-page="general-settings" title="Help">?</span></a>
+			</li>
+			<li data-for="about" class="selectable">
+					<a><i class="icon-info-circled"></i><span class="menuTitle">About</span><span class="tabHelp" data-help-page="about" title="Help">?</span></a>
+				</li>
+			</ul>
+		</div>
+		<div class="panel-left-bottom">
+			<div class="menuPanelTool">
+				<input type="search" class="search menuPanelSearch" placeholder="Find">
+			</div>
+		</div>
+		
+	</div>
+	<div class="panel-right">
+		<div class="panelContent language" id="language">
+			<h1><i class="icon-speech-hiragana-romaji"></i><span>Translator &amp; Language</span></h1>
+			<h2>Primary Translator</h2>
+			<div class="fieldLine defaultTranslator">
+				<label>Default Translator Engine</label>
+				<div><select id="defaultTransEngine" ></select></div>
+				<div class="blockBox infoBlock withIcon">
+					This Translator Engine will be used when you press <span class="keyboardHint">Ctrl+g</span> at the selected cell(s) to <strong>g</strong>enerate translation at selected cell.
+				</div>
+			</div>
+		
+		</div>
+		<div class="panelContent general" id="general">
+			<h1><i class="icon-cog"></i><span>General</span></h1>
+			<div class="sectionBlock">
+				<h2>Environment Variables</h2>
+				<div>
+					<div class="form-group">
+						<label for="commonReferenceFile">Staging Directory</label>
+						<input type="dvSelectPath" nwdirectory class="form-control" name="stagingPath" value="" id="stagingPath" />
+						<span class="help-block">Staging Directory is a hard cache of projects that are being worked on. A portion of the data from the raw materials are copied to this directory to be accessed the interpreter scripts.</span>
+					</div>
+				</div>
+			</div>
+			<div class="sectionBlock">
+				<h2>File Association</h2>
+				<div class="extensionList">
+					<table class="extensionTable">
+						<thead>
+							<tr class="theader">
+								<th>Extension</th>
+								<th>Associate</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>trans</td>
+								<td><input type="checkbox" data-ext="trans" class="associate ext_trans" name="associate[trans]" /></td>
+							</tr>
+							<tr>
+								<td>tpp</td>
+								<td><input type="checkbox" data-ext="tpp" class="associate ext_tpp" name="associate[tpp]" /></td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="buttonsBar">
+						<button class="associateBtn setAll">Set All</button>
+						<button class="associateBtn unsetAll">Unset All</button>
+						<button class="associateBtn submit">Apply</button>
+					</div>
+				</div>
+			</div>
+			<div class="dialogSectionBlock sectionBlock">
+				<h2>Backup</h2>
+				<label class="flex fullWidth spaceBottom">
+					<div class="flexMain">
+						<div class="label">Enable backup</div>
+						<div class="info">Automatically create backup every time you save your project.</div>
+					</div>
+					<div>
+						<input type="checkbox" class="flipSwitch autoBackup" data-autoset="sys.config.autoBackup" value="1" /> 
+					</div>
+				</label>
+				<label class="fullWidth spaceBottom">
+					<div>
+						<div class="label">Backup level history</div>
+						<div class="info">How many history of backup do you want to keep?</div>
+					</div>
+					<div>
+						<input type="range" data-autoset="sys.config.backupLevel"  value="0" min="0" max="10" oninput="this.nextElementSibling.value = this.value" /><output data-autoset="sys.config.backupLevel" ></output>
+					</div>
+				</label>
+			</div>
+			<div class="dialogSectionBlock sectionBlock">
+				<h2>Make Concurrent Requests</h2>
+				<label class="fullWidth spaceBottom">
+					<div>
+						<div class="label">Max Concurrent Batches</div>
+						<div class="info">How many batches are sent at once to translation engines that do not manage their own endpoint pool (e.g. RedSugoi). For DSLR, concurrency is driven by the per-endpoint weights instead.</div>
+						<div class="info">You need to restart SLR Translator for this option to apply.</div>
+						<div class="info">CAUTION: This will at best do nothing, and at worst break everything, if you are trying to use this with a translation server that does not support it.</div>
+					</div>
+					<div>
+						<input type="range" data-autoset="sys.config.MaxConcurrentBatches"  value="1" min="1" max="20" oninput="this.nextElementSibling.value = this.value" /><output data-autoset="sys.config.MaxConcurrentBatches" ></output>
+					</div>
+				</label>
+			</div>
+			<div class="dialogSectionBlock sectionBlock">
+				<h2>Japanese Source Language</h2>
+				<label class="flex fullWidth spaceBottom">
+					<div class="flexMain">
+						<div class="label">Sets the Source Language to Japanese</div>
+						<div class="info">SLR Translator is optimized for JP>EN translation support for other languages is experimental at best.</div>
+						<div class="info">If you want to translate from a different language you need to adjust all the DSLR prompts, and the wrapper patterns.</div>
+						<div class="info">You need to restart SLR Translator for this option to apply.</div>
+						<div class="info">You must disable this option when translating from non Japanese text.</div>
+					</div>
+					<div>
+						<input type="checkbox" class="flipSwitch japanesesource" data-autoset="sys.config.japanesesource" value="1" /> 
+					</div>
+				</label>
+			</div>
+			<div class="dialogSectionBlock sectionBlock">
+				<h2>English Target Language</h2>
+				<label class="flex fullWidth spaceBottom">
+					<div class="flexMain">
+						<div class="label">Sets the Target language to English.</div>
+						<div class="info">SLR Translator is optimized for JP>EN translation support for other languages is experimental at best.</div>
+						<div class="info">If you want to translate to a different language you need to adjust all the DSLR prompts, and the wrapper patterns.</div>
+						<div class="info">You need to restart SLR Translator for this option to apply.</div>
+						<div class="info">You must disable this option when translating to non English text.</div>
+					</div>
+					<div>
+						<input type="checkbox" class="flipSwitch englishtarget" data-autoset="sys.config.englishtarget" value="1" /> 
+					</div>
+				</label>
+			</div>
+			<div class="dialogSectionBlock sectionBlock">
+				<h2>Log & Debugging</h2>
+				<label class="flex fullWidth spaceBottom">
+					<div class="flexMain">
+						<div class="label">Log to file</div>
+						<div class="info">Logs are mirrored to the developer console (collapsed groups stay collapsed there) AND written expanded to a file.<br />This is enabled by default so you can send your logs when reporting problems. Enabling this impacts performance slightly. Logs are saved in the data/logs/ folder. Turn this off if you do not want any logging.</div>
+					</div>
+					<div>
+						<input type="checkbox" class="flipSwitch logIntoFile" value="1" /> 
+					</div>
+				</label>
+				<label class="flex fullWidth spaceBottom">
+					<div class="flexMain">
+						<div class="label">Keep last sessions (rotate)</div>
+						<div class="info">When checked, each session rotates the log file instead of appending forever. The current session is kept as the main log file and the previous sessions are kept as backups (.1, .2), so up to 3 sessions in total are retained. Older sessions are deleted automatically.</div>
+					</div>
+					<div>
+						<input type="checkbox" class="flipSwitch logTruncate" value="1" /> 
+					</div>
+				</label>
+				<label class="flex fullWidth spaceBottom">
+					<div class="flexMain">
+						<div class="label">Log Options window to its own file</div>
+						<div class="info">When checked, the Options window writes its own options.log next to trans.log. It mostly repeats what the main log already records, so it is off by default; turn it on only when debugging an Options window problem. Takes effect after a restart.</div>
+					</div>
+					<div>
+						<input type="checkbox" class="flipSwitch logOptionsWindow" value="1" /> 
+					</div>
+				</label>
+			</div>
+			
+			<div id="generalAddonOptions" class="generalAddonOptions"></div>
+		</div>
+
+		<div class="panelContent about" id="about">
+			<div class="aboutTittle">SLR</div>
+			<div class="appLogoWrapper"><img src="img/tpp-animated3.svg" class="appLogo"></div>
+			<div class="versionWrapper alignMiddle">Ver. <span class="version"></span></div>
+
+			<div class="copyright center">by Shisaye</div>
+			<div class="alignMiddle spacerTop"><span>Visit the official distribution sites : </span><br /><a href="https://www.anime-sharing.com/threads/slr-translator-offline-jp-to-en-translation-for-rpg-maker-vx-vx-ace-mv-and-mz.1528101/" target="_system">anime sharing</a><br /><a href="https://f95zone.to/threads/slr-translator-offline-jp-to-en-translation-for-rpg-maker-vx-vx-ace-mv-and-mz.208393/" target="_system">F95Zone</a></div>	
+			
+			<div class="applicationNote alignMiddle"><span>To support development of SLR Translator, please consider making a donation : </span><br /><a href="https://subscribestar.com/shisaye" target="_system">SubscribeStar</a></span></div>	
+			<div class="sectionBlock">
+				<h2>Version Info</h2>
+				<div><span class="versionTitle">NW</span><span class="versionNumber nwVersion"></span></div>
+				<div><span class="versionTitle">Architecture</span><span class="versionNumber archVersion"></span></div>
+				<div><span class="versionTitle">Node</span><span class="versionNumber nodeVersion"></span></div>
+				<div><span class="versionTitle">PHP</span><span class="versionNumber phpVersion"></span></div>
+				<div><span class="versionTitle">Ruby</span><span class="versionNumber rubyVersion"></span></div>
+
+			</div>
+			<div class="sectionBlock">
+				<h2>License</h2>
+				<div>GNU Public License version 3</div>
+				<div>© 2023-2026 By. Shisaye</div>
+				<p><a href="#" target="_system" class="licenseLink">Click here to read the license.</a></p>
+			</div>
+			<div class="sectionBlock">
+				<h2>Credits</h2>
+				<div>
+					<div class="creditCaption">TES-Patcher</div>
+					<div class="creditUrl"><a href="https://github.com/Sinflower/TES-Patcher" target="_system" class="">https://github.com/Sinflower/TES-Patcher</a></div>
+				</div>
+			</div>
+			<div class="sectionBlock">
+				<h2>About Third Party Software</h2>
+				<div class="">
+				This software is using third party softwares that located at /3rdParty. These third party softwares hold their own licenses and 
+				are included solely for convenience of use and 
+				provided “as is” without warranty of any kind, either expressed or implied and such software is to be used at your own risk.
+				</div>
+				<div class="">
+				A complete, generated license list for all bundled third party components is available in
+				<a href="../THIRD-PARTY-NOTICES.html" target="_system">THIRD-PARTY-NOTICES.html</a> in the application folder;
+				<a href="../credits.html" target="_system">credits.html</a> lists the licenses of the bundled NW.js/Chromium runtime.
+				</div>
+			</div>
+			<div class="sectionBlock">
+				<h2>Special Thanks</h2>
+				<div class="specialThanksBlock">
+					<span>l8rdude</span>
+					<span>Reddo9999</span>
+					<span>entai2965</span>
+					<span>CheckMate</span>
+					<span>RTS23</span>
+					<span>fantasmic</span>
+					<span>pcnop</span>
+					<span>Muninkai</span>
+					<span>Darksshades</span>
+					<span>(And a ton of other people, but I suck at remembering names...)</span>
+				</div>
+			</div>			
+<!-- 			<div class="sectionBlock">
+				<h2>Changelog</h2>
+				<div class="changelog"><button class="viewChangelog"><i class="icon-search-1"></i>View changelog</button>
+				</div>			
+			</div> -->
+
+			
+
+		</div>
+	</div>
+</div>
+
+<div id="template" class="hidden">
+	<div class="column">
+		<div class="portlet">
+			<div class="portlet-header">
+				<span class="portlet-title">Feeds</span>
+				<span class="portlet-shortcut">alt+1</span>
+			</div>
+			<div class="portlet-content">Click connect button, to connect translator with the tool table</div>
+		</div>
+	</div>
+</div>
+<div id="busyOverlay" class="pitchBlack" >
+	<div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+	<div class="loading-text">working</div>
+</div>
+
+	</body>
+</html>

@@ -1,0 +1,37 @@
+<h1>Spell Checking</h1>
+
+<p>SLR Translator includes an offline spell checker for your English translations. It uses a bundled English (en-US) dictionary and works entirely without a network connection.</p>
+
+<h2 id="what-it-checks">What it checks</h2>
+
+<p>As you type in the cell text editor — the <code>Default translation</code> pane below the grid — misspelled words are underlined with a red wavy line, live while you edit. The check runs only in that editor pane; the grid itself is not decorated.</p>
+
+<p>The checker is deliberately lenient with translation content:</p>
+
+<ul>
+	<li>Words shorter than two letters are never flagged.</li>
+	<li>Words containing digits are never flagged.</li>
+	<li>Words written in ALL CAPS are treated as acronyms and never flagged.</li>
+	<li>Words on your whitelist (below) are never flagged.</li>
+</ul>
+
+<div class="note">Very long texts (over 20,000 characters) are not checked — the checker pauses rather than slow the editor down on huge cells.</div>
+
+<h2 id="enable-disable">Enabling and disabling</h2>
+
+<p>The options live in the Options window, in the <code>Spell Checker</code> section:</p>
+
+<ul>
+	<li><code>Enable spell checker</code> — turns the underline on or off. Enabled by default.</li>
+	<li><code>Extra allowed words</code> — a comma-separated list of words that should never be flagged: character names, place names, game-specific terms.</li>
+</ul>
+
+<p>Changes to these settings are applied the next time the application starts.</p>
+
+<h2 id="limitations">Limitations</h2>
+
+<ul>
+	<li>English only, using the bundled en-US dictionary — other languages are not checked.</li>
+	<li>The checker marks misspellings; it does not offer corrections. Fix the word yourself (the Japanese dictionary popup described on <a href="#rikaikun">Japanese Dictionary Popup</a> can help with the original text).</li>
+	<li>Only the cell text editor is checked, not translation columns shown in the grid. To review finished translations, open each cell (or use <a href="#find-replace">Find &amp; Replace</a> to spot suspicious patterns).</li>
+</ul>

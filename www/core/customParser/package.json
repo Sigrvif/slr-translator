@@ -1,0 +1,18 @@
+{
+    "builtin": true,
+    "name": "custom-parser",
+	"title" : "Custom Parser",
+    "description": "Parse text files/scripts with regular expression and Javascript functions",
+    "main": "customParser.js",
+    "homepage": "",
+    "version": "3.073 (Last Related Change)",
+	"icon": "icon.png",
+	"author" : {
+		"name":"Shisaye",
+		"email": ""
+	},
+	"autoload" : false,
+	"load": [
+		"CustomParserLoader.js"
+	]
+}

@@ -1,0 +1,17 @@
+{
+  "builtin": true,
+  "name": "llmRuntime",
+  "title": "Local Runtime",
+  "version": "3.081 (Last Related Change)",
+  "description": "Bundled, offline llama.cpp runtime (llama-server) for GGUF models with DFlash/DSpark speculative decoding. Managed automatically so no external inference app is needed.",
+  "optionsDisplay": "general",
+  "optionsSectionTitle": "Local Runtime",
+  "main": "llmRuntime.js",
+  "author": {
+    "name": "Shisaye"
+  },
+  "autoload": false,
+  "load": [
+    "llmRuntime.js"
+  ]
+}

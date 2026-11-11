@@ -1,0 +1,76 @@
+<h1>Custom Parsers &amp; Model Creator</h1>
+
+<p>When a game or tool stores its text in files no built-in engine understands — subtitle files, config files, custom script formats, tabular data such as CSV exports — the Custom Parser module turns them into a translation project anyway. You describe <em>which files</em> to grab and <em>which parts of their content</em> are translatable with rules made of regular expressions or JavaScript functions, and the resulting project behaves like any other: grid editing, batch translation and export all work as usual.</p>
+
+<div class="note">Ready-made parser models ship in the <code>Custom Parsers</code> folder next to the application executable — including <code>CSV AUTODETECTION</code> for tabular files, <code>TXT_Parser</code> for plain text, and <code>MTOOL ManualTransFile</code> for MTool dumps, plus a collection of older, very specific examples. Load them in the wizard like any other <code>.tpm</code> file.</div>
+
+<h2 id="parser-models">Parser models (.tpm)</h2>
+
+<p>Rules live in a <em>Parser Model</em> — a JSON file with the extension <code>.tpm</code>. A model consists of <strong>file groups</strong>: each group names a set of files with semicolon-separated glob patterns (for example <code>*.srt</code> or <code>*.txt;*.js;*.json</code>) and carries an ordered list of rules applied to every matching file. A model can hold several file groups, so one project can cover different file types at once.</p>
+
+<h2 id="starting-a-project">Starting a custom project</h2>
+
+<ol>
+	<li>Open <code>New Project</code> and choose the <code>Parse any file with custom parser</code> slide.</li>
+	<li>Load an existing <code>.tpm</code> model file — or drag and drop the file onto the slide. To build a new model instead, press <code>Create a new model</code>, which opens the <a href="#custom-parsers/parser-model-creator">Parser Model Creator</a>.</li>
+	<li>Optionally set a <code>Read Character encoding</code> list (comma-separated, order matters — leave blank to keep each file's original encoding).</li>
+	<li>Press <code>Select Folder!</code> and pick the folder with your files. SLR Translator parses every matching file, stages copies of them, and opens the project.</li>
+</ol>
+
+<h2 id="rules">Rules</h2>
+
+<p>Every rule is one of two kinds:</p>
+
+<ul>
+	<li><strong>Regular expression</strong> — an ECMAScript pattern with modifiers, which capture groups to extract, and an action: <code>Capture value</code> (the group becomes a translatable row), <code>Capture then mask value</code>, <code>Mask value</code> (protect the match from translation), or <code>Send to inner rule</code> (apply a nested rule to the captured text; inner rules can nest further). Rule order matters, especially when masking.</li>
+	<li><strong>JavaScript function</strong> — the body of an <code>async function(text, thisModel)</code> receiving the whole file content and the current rule object, with <code>this</code> bound to the parser instance. It returns nothing, one offset pair <code>{start, end}</code>, or an array of them — each range becomes a translatable row.</li>
+</ul>
+
+<div class="note">Two pitfalls called out by the model editor: prefer the <code>+</code> quantifier over <code>*</code>, because zero-length matches break the parser; and beware carriage returns — test tools that silently strip <code>\r</code> will mislead you on Windows-style files.</div>
+
+<h2 id="parser-model-creator">Parser Model Creator</h2>
+
+<p>The Parser Model Creator is a dedicated editor window for <code>.tpm</code> files (also opened by <code>Create a new model</code> in the new-project slide; <code>.tpm</code> files can be dropped onto it). It has a file-group navigator on top and, per group, four tabs:</p>
+
+<ul>
+	<li><code>Rules</code> — the ordered rule list; drag to reorder, add or delete rules, and edit the selected rule in the form (pattern editor, capture groups, action; the function editor for JavaScript rules). A breadcrumb tracks where you are while editing nested inner rules.</li>
+	<li><code>Hooks</code> — two JavaScript hooks per group: <strong>To Grid</strong> transforms extracted text before it is displayed (<code>function(text, context, parameters)</code>; e.g. <code>return JSON.parse(text);</code> to unwrap escaped strings), and <strong>From Grid</strong> is its inverse, converting the edited cell back on export (<code>function(text, context, parameters, info)</code>; e.g. <code>return JSON.stringify(text);</code>).</li>
+	<li><code>Options</code> — read and write character encodings for the group's files (auto by default).</li>
+	<li><code>Testing</code> — paste sample text on the left and watch the live preview: the extracted rows in a mini-grid, or the fully patched output after you fill dummy translations (the context menu's dummy translator simply reverses the text). The preview re-runs as you type, so pattern tweaks are verified immediately.</li>
+</ul>
+
+<h2 id="example-srt-subtitles">Example: SRT subtitles</h2>
+
+<p>A minimal model for subtitle files — a file group <code>*.srt</code> whose single regex rule captures the text lines under each timestamp (capture group 1):</p>
+
+<pre><code>/\d+[\r\n]+\d+:\d+:\d+,\d+ --&gt; \d+:\d+:\d+,\d+[\r\n]+((.+\r?\n)+(?=(\r?\n)?))/g</code></pre>
+
+<p>The same idea as a JavaScript function rule, using the match-indices extension available to scripts (every <code>exec()</code> result carries group offsets in <code>matches.indices</code>):</p>
+
+<pre><code>var result = [];
+var regex = /\d+[\r\n]+\d+:\d+:\d+,\d+ --&gt; \d+:\d+:\d+,\d+[\r\n]+((.+\r?\n)+(?=(\r?\n)?))/g;
+var matches;
+while (null != (matches = regex.exec(text))) {
+	result.push({
+		start: matches.indices[1][0],
+		end:   matches.indices[1][1]
+	});
+}
+return result;</code></pre>
+
+<h2 id="export-and-inject">Export</h2>
+
+<p>The model is stored inside the project, so exporting needs nothing extra: translations are patched back into staged copies of the original files, honoring the write encoding (each file's original encoding and byte-order mark are preserved unless overridden). Export to a folder or a zip with <code>Export Project</code> — see <a href="#first-project/inject">Exporting the translation</a>.</p>
+
+<h2 id="splitting-patterns">Splitting patterns (Aggressive Splitting)</h2>
+
+<p>The tips mention adding entries to the <em>SplittingPatterns</em> when “a script bit keeps getting broken”. These are not part of custom parsers — they are a translation-engine option called <code>Aggressive Splitting</code>, edited in the engine's options under the Patterns section (see <a href="#dslr">DSLR Translator</a> and <a href="#engines-overview">Options Overview</a>).</p>
+
+<p>Semantics: every match is split out of the sentence entirely — its position and content are never sent to the translator — and the sentence is cut at each occurrence. That guarantees script calls, control codes and other untranslatable fragments survive translation untouched; splitting out such fragments also improves translation quality and speed. The cost is context: the translator no longer sees the split fragments around the sentence. A large, commented default set covers common engines and game-specific quirks (empty lines, labels, script commands, known system messages); add your own pattern when a specific game keeps mangling a specific code sequence.</p>
+
+<h2 id="related">Related</h2>
+
+<ul>
+	<li><a href="#automation-editor">Automation Editor</a> — run JavaScript over the parsed rows inside the editor.</li>
+	<li><a href="#engine-detection">Engine Detection</a> — check whether a built-in engine already covers your game before building a parser.</li>
+</ul>

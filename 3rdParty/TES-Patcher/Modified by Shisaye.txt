@@ -1,0 +1,15 @@
+TES_Patcher.rb:
+
+	def checkScriptName(scriptName)
+		if @scriptName.kind_of?(Array)
+			@scriptName.each do | name |
+-				return true unless name != scriptName
++				return true if scriptName.include?(name)
+			end
+		else
+-			return @scriptName == scriptName
++			return scriptName.include?(@scriptName)
+		end
+
+		return false
+	end

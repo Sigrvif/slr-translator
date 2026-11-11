@@ -1,0 +1,1 @@
+﻿{"files":[{"pattern":"*.txt","rules":[{"type":"regex","pattern":"/^(\\[[^@;]+?[）」』])$/gm","captureGroups":"1"}]}]}

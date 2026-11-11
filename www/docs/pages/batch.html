@@ -1,0 +1,97 @@
+<h1>Batch Translation</h1>
+
+<p>Batch translation runs the whole project (or a selected subset) through a translation engine automatically: rows are collected, packed into batches with regard for their color tags and dialogue scenes, sent to the engine, validated, written into the target column and post-checked. It is started from the <code>Start Translation</code> button in the main toolbar's translation group (between <code>Glossary</code> and <code>Word Wrap</code>). The button is labelled <code>Start Translation</code> rather than "Batch Translation", and the dialog it opens links straight to the engine options, so an unconfigured engine can be set up from there.</p>
+
+<p>Running the full project through batch translation is the recommended default: requests are built scene-aware (see below), so the engine sees whole conversations — something line-by-line translating cannot provide. Review and fix individual rows afterwards.</p>
+
+<div class="note">With the DSLR engine, generate a <a href="#glossary">glossary first</a> — the <code>Auto-Inject Glossary</code> option appends it to every request automatically and keeps names consistent across the whole game.</div>
+
+<img src="../img/startpj5.png" alt="The Start Translation button in the main toolbar" />
+<img src="../img/startpj6.png" alt="The Start Translation dialog with default settings" />
+
+<h2 id="the-dialog">The dialog</h2>
+
+<table>
+	<tr><th>Setting</th><th>Meaning</th></tr>
+	<tr>
+		<td><code>Select Translator</code></td>
+		<td>Engine for this run — any registered engine, regardless of the default. Pre-selected with the project's engine, then the global default.</td>
+	</tr>
+	<tr>
+		<td><code>Source column</code> / <code>Target column</code></td>
+		<td>Which grid column holds the original text and which receives the translation (defaults: the key column and the first translation column). The two must differ.</td>
+	</tr>
+	<tr>
+		<td><code>Save on each Batch</code></td>
+		<td>Saves the project after every completed batch, so a crash costs at most one batch of work.</td>
+	</tr>
+	<tr>
+		<td><code>Ignore translated</code></td>
+		<td>Skips rows that already have any translation — safe re-run button for resuming interrupted work.</td>
+	</tr>
+	<tr>
+		<td><code>Strict Whitelist</code></td>
+		<td>With a whitelist active, untagged rows normally still pass; strict mode makes them fail too.</td>
+	</tr>
+	<tr>
+		<td><code>Blacklist</code></td>
+		<td>Rows carrying any selected color tag are not translated. Defaults exclude the skip-by-default tags (red, yellow, blue, gold, gray, aqua, darkred) — see <a href="#color-tags">Cell Color Tags</a>.</td>
+	</tr>
+	<tr>
+		<td><code>Whitelist</code></td>
+		<td>If any colors are selected here, only rows with those tags are translated; this overrides the blacklist.</td>
+	</tr>
+</table>
+
+<p><code>Translate Now</code> starts the run; <code>Cancel</code> (or <code>Esc</code>) closes the dialog without translating.</p>
+
+<h2 id="scope">What gets translated</h2>
+
+<ul>
+	<li>Files ticked in the file list — or all files if none are ticked. Files managed by direct injection are skipped.</li>
+	<li>Within those files: rows that are not empty, pass the tag filters, and (with <code>Ignore translated</code>) have no translation yet.</li>
+	<li>Requests run concurrently: DSLR spreads batches across its endpoint pool according to the endpoint weights; other engines use the global <code>Max Concurrent Batches</code> setting.</li>
+</ul>
+
+<h2 id="scene-aware-grouping">Scene-aware grouping</h2>
+
+<p>For projects with a <a href="#scene-graph">Scene Graph</a> (all built-in RPG Maker engines: MV, MZ, XP, VX and VX Ace), the grouping is automatic on every run — there is no toggle. Rows are re-sorted into dialogue order and packed in four streams: big scenes are sent whole, small <em>related</em> scenes are grouped (same event or event page, common-event call links, callers, map-transfer continuity), single-line scenes are packed densely, and non-scene rows (menus, items, system terms) are batched last.</p>
+
+<p>The size limits of the four streams are DSLR engine options — <code>Maximum Scene Size</code>, <code>Target Request Size</code>, <code>Scene Threshold</code>, <code>Max Scenes per Grouped Batch</code>, <code>Max Rows per Non-Scene Batch</code>, <code>Max Rows per Single-Line Scene Batch</code> — documented with their defaults on the <a href="#scene-graph/dslr-scene-options">Scene Graph</a> page and in <a href="#dslr">DSLR Translator</a>. Projects without a Scene Graph (custom parsers, or RPG Maker projects imported without staged data) batch by tags and size limits only.</p>
+
+<h2 id="monitoring">Monitoring the run</h2>
+
+<img src="../img/startpj7.png" alt="Batch translation progress report" />
+
+<ul>
+	<li>The progress overlay shows the percentage, the batch count (<code>Processed X of Y batches</code>) and an estimated time remaining computed from actual throughput; cache hits are excluded from the estimate so it does not turn overly optimistic.</li>
+	<li>The log lists every batch, engine messages, and at the end a timing summary, total token usage (with DSLR) and a run summary (batch splits, fallback use, retries, rate limits, failed translations).</li>
+	<li><code>Pause</code> holds the run until you acknowledge the dialog; <code>Abort</code> (after confirmation) stops it cleanly — everything translated so far stays in the grid.</li>
+</ul>
+
+<h2 id="when-things-go-wrong">When things go wrong</h2>
+
+<ul>
+	<li>A single failed batch is logged and the run continues; the engine's own retry system (correction prompts, fallback model, batch splitting — see <a href="#dslr">DSLR Translator</a>) has usually tried several times before a row is left untranslated.</li>
+	<li>After the run, two automatic post-checks report problems: rows where the result looks broken are tagged <code>purple</code>, and rows with processing problems get <code>SHISAYE</code> error codes written into a dedicated errors column. An alert tells you how to find each group: search for the tag <code>purple</code> with the Find dialog's <code>Tag</code> target (see <a href="#find-replace">Find &amp; Replace</a> and <a href="#color-tags">Cell Color Tags</a>), or search for the text <code>SHISAYE</code>. When the DSLR Review Translations option is on, its semantic findings arrive as the separate <code>mediumpurple</code> tag (see <a href="#dslr/review">Review Translations</a>).</li>
+	<li>The post-check pass also appends <code>- Modified with SLR Translator v&lt;version&gt;</code> to the game title row (the window title shown by the game), so exports made with the tool are recognizable. An older watermark from a previous run is replaced, not duplicated; remove the suffix manually if you do not want it.</li>
+	<li>The purple check is deliberately strict — flagged rows are often fine, but they deserve a look.</li>
+</ul>
+
+<h2 id="retrying-problem-rows">Retrying problem rows</h2>
+
+<ul>
+	<li>Re-run batch translation with <code>Ignore translated</code> off and only <code>purple</code> (or <code>mediumpurple</code> for the review's findings) selected in the <code>Whitelist</code> — exactly the flagged rows are sent through the engine again.</li>
+	<li>Individual rows can be re-translated directly in the editor with <code>Ctrl+G</code> (see <a href="#editor-basics">Editor Basics</a>) or via <a href="#context-translation">Context Translation</a>.</li>
+	<li>If many rows fail with a specific engine, switching the <code>Select Translator</code> to the other engine for a retry run is a quick way to comparison-test.</li>
+</ul>
+
+<h2 id="tips">Tips</h2>
+
+<ul>
+	<li>Enable <code>Save on each Batch</code> for long unattended runs.</li>
+	<li>With DSLR, generate a <a href="#glossary">glossary first</a> — it is injected automatically during batch translation and keeps names consistent across the whole game.</li>
+	<li>Leave the default blacklist as-is on the first run; use the whitelist to deliberately translate or re-translate specific tag groups.</li>
+	<li>The run summary's token count is the number to compare when tuning models, batch sizes or endpoints.</li>
+	<li>After a successful run, run <a href="#word-wrap">Automatic Word Wrapping</a> so the translated lines fit the game's message windows before exporting.</li>
+</ul>

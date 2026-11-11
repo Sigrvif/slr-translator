@@ -1,0 +1,51 @@
+<h1>Context Translation</h1>
+
+<p>Sometimes the same Japanese text needs different translations depending on where it appears — a word that is a name in one scene and a joke in another. <em>Context translation</em> lets one row carry, in addition to its normal translation, a separate translation per place the text occurs. The occurrence-specific translation wins only where it applies.</p>
+
+<h2 id="contexts">What a context is</h2>
+
+<p>Every row remembers where its text was found in the game: a slash-separated address such as <code>Map003/events/4/pages/1/message</code>, stored per row. The <code>Row properties</code> entry in the grid's context menu lists all contexts of the selected row, and the footer shows them for the current cell. Rows whose text appears in more than one place are marked with a small icon in the row header; the icon turns red once a context translation exists for that row.</p>
+
+<h2 id="using-context-translation">Writing context translations</h2>
+
+<ol>
+	<li>Select a row in the grid. The pane below the grid shows two tabs on the right: <code>Default translation</code> and <code>Context translation</code>.</li>
+	<li>Switch to the <code>Context translation</code> tab. It lists every occurrence of the row's text with two columns: <code>Context path</code> (write-protected) and <code>Translation</code>.</li>
+	<li>Type a translation next to the context(s) that need a special one. Empty cells show <code>~use default translation~</code> — an empty cell simply falls back to the row's normal translation, so only fill in the occurrences that differ.</li>
+</ol>
+
+<p>The <code>Context path</code> cells cannot be changed (edits are discarded), but their text can be copied: double-click a path to open it and mark the part you need (or click the cell once and press <kbd>Ctrl</kbd>+<kbd>C</kbd> to copy the whole address), then close the editor with <kbd>Esc</kbd>.</p>
+
+<p>When the translation is applied, each occurrence is looked up by its full context first; if a context translation exists for that exact occurrence it is used, otherwise the row's default translation is written. Other rows and other occurrences are unaffected.</p>
+
+<div class="note">The trash button on the <code>Context translation</code> tab clears the context translations of the current row (after confirmation). <kbd>Alt+Del</kbd> or the grid context menu's <code>Clear Context Translation</code> does the same for whole selections. Clearing context translations never touches the normal translation columns.</div>
+
+<p>Context translations are included when importing another project: enable <code>Import the context translations</code> in the import dialog. Entries are matched by original text, file and context address, so they only transfer onto the same text at the same place.</p>
+
+<h2 id="context-tool">The Context Tool</h2>
+
+<p>The <code>Context Tool</code> entry in the <code>More Tools</code> toolbar menu opens a different, complementary dialog: it removes rows from the project based on where they came from. Use it to trim a project down to the part you are working on (for example, one map or one chapter) before batch translating.</p>
+
+<p>The dialog lists every context keyword found in the project with the number of rows using it. Keywords are the non-numeric parts of context addresses — map names, event types, parameter names.</p>
+
+<ul>
+	<li><strong>Select Context(s):</strong> click keywords in the list. Hold <kbd>Ctrl</kbd> to pick several.</li>
+	<li><strong>Manual Query:</strong> type your own keywords, one per line, instead of (or in addition to) the list selection.</li>
+	<li><strong>Action:</strong> <code>Remove selected</code> deletes every row whose context contains any of the keywords; <code>Remove all but selected</code> keeps exactly those rows and deletes everything else.</li>
+</ul>
+
+<p>Press <code>Ok</code> to run the chosen action; a confirmation dialog shows the keywords before anything is deleted.</p>
+
+<h2 id="match-all-words">Match all words</h2>
+
+<p>By default each keyword (each line of the manual query) is matched as a case-insensitive substring anywhere in a row's context: the keyword <code>school</code> matches <code>Map012/events/3/pages/1/message</code> if "school" occurs in it, and also matches <code>schoolhouse</code>.</p>
+
+<p>Enable <code>Match all words</code> to tighten this: then <em>every</em> whitespace-separated word of a keyword line must appear in the row's context, each as a whole word (case-insensitive, matched on word boundaries). A query line <code>school rooftop</code> matches a context containing both "school" and "rooftop" in any order, but not a context containing only one of them.</p>
+
+<ul>
+	<li>Without the checkbox: one line = one substring that must occur in the context.</li>
+	<li>With the checkbox: one line = several whole words that must all occur in the context.</li>
+	<li>Several lines (or several selected keywords) are always alternatives — a row matching any line is selected.</li>
+</ul>
+
+<div class="note">The help icon next to the <code>Match all words</code> checkbox opens this section of the documentation.</div>

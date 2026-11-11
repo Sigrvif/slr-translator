@@ -1,0 +1,43 @@
+<h1>LLM &amp; Online APIs</h1>
+
+<p>To be precise about what exists: SLR Translator v3 ships exactly two engines, <code>SLR</code> and <code>DSLR</code>. There is no separate roster of cloud engines. Online translation happens by pointing one of these two engines at a remote endpoint — in practice DSLR, since it speaks the OpenAI-compatible API format used by essentially every hosted LLM provider. SLR can likewise be pointed at Sugoi Translator servers hosted somewhere other than your machine (see <a href="#sugoi">Sugoi Translator</a>).</p>
+
+<h2 id="configuring-a-remote-endpoint">Configuring a remote endpoint</h2>
+
+<p>Everything is set in <code>Options</code> → <code>Translator &amp; Language</code> → <code>DSLR (recommended)</code> (details in <a href="#dslr">DSLR Translator</a>):</p>
+
+<ul>
+	<li><code>API URL</code> — the provider's chat-completions path. A URL entered without a scheme is treated as a secure connection automatically; a missing <code>v1/chat/completions</code> suffix is appended for you. Endpoints ending in <code>/responses</code> are also supported.</li>
+	<li><code>API Key</code> — the provider key, one per endpoint (the fallback model and the glossary extractor each have their own key field).</li>
+	<li><code>Model</code> — the provider's model identifier, exactly as the provider documents it. No specific model is recommended; model names and what is good change constantly.</li>
+</ul>
+
+<p>The built-in <code>Options Preset 1</code> is an example of a hosted setup: it points DSLR and the glossary extractor at the Nano-GPT aggregator. The model name inside it is a placeholder from the time it was written — replace it with whatever that provider currently offers before applying. Other providers named in the engine's own option texts include OpenRouter and the official DeepSeek API (which supports the simpler <code>json_object</code> response format instead of full JSON schemas); Gemini's native API is supported for reasoning configuration. Any provider with an OpenAI-compatible endpoint works the same way.</p>
+
+<h2 id="keys-and-secrets">Keys and secrets</h2>
+
+<ul>
+	<li>Keys are stored in plain text in the application's local configuration — the option descriptions say so explicitly. Do not share your configuration or preset JSON with keys embedded.</li>
+	<li>Multiple keys for the same provider can be entered as parallel endpoints with individual weights, and <code>Group Endpoints by URL</code> rotates across keys of one provider when it rate-limits globally instead of per key.</li>
+	<li>A rate-limited endpoint (status 429) backs off with an escalating cooldown from 10 seconds to 30 minutes; an endpoint returning 401/403/404 (bad key, bad address, no permission) is skipped for the rest of the running job instead of being retried forever.</li>
+	<li>For free-tier models, the fallback <code>Request Delay</code> option text recommends at least 3000&nbsp;ms between requests.</li>
+</ul>
+
+<h2 id="cost-and-usage-monitoring">Cost and usage monitoring</h2>
+
+<ul>
+	<li>After a batch run, the progress log prints total token usage (prompt, completion, total) for the run, plus a quality summary (batch splits, fallback activations, retries, rate-limit events and failed translations).</li>
+	<li>Caching reduces cost: session batch cache by default, and the optional persistent caches across sessions. Remember that context prompts, scene context and an active glossary disable the Clean Cache (entries produced with them are not reusable out of context).</li>
+</ul>
+
+<h2 id="privacy">Privacy</h2>
+
+<div class="note">With a remote endpoint, your game's text — and, when enabled, scene context and the generated glossary — is sent to the provider you configured, and translated text comes back. Everything else (parsing, editing, caching, applying translations to the game) happens locally. If that matters for your project, run DSLR against a local server instead: the same engine, fully offline. See <a href="#overview">Overview &amp; Requirements</a> for the offline-first picture.</div>
+
+<h2 id="choosing-a-provider">Choosing a provider</h2>
+
+<ul>
+	<li><strong>Local, private, free after hardware:</strong> a local OpenAI-compatible server (LM Studio is the default endpoint; other local servers in OpenAI-compatible mode work too). Details and model guidance in <a href="#dslr">DSLR Translator</a>.</li>
+	<li><strong>Hosted, no local GPU needed:</strong> any aggregator or first-party API with an OpenAI-compatible chat endpoint. The engine's option texts name Nano-GPT, OpenRouter and DeepSeek as examples of such endpoints.</li>
+	<li><strong>Mixed:</strong> a fast cheap hosted model as primary and a stronger one as fallback, or several keys of the same provider pooled as parallel endpoints.</li>
+</ul>

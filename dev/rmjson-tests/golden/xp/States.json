@@ -1,0 +1,17 @@
+[
+  [
+    0,
+    null
+  ],
+  [
+    1,
+    {
+      "json_class": "RPG::State",
+      "name": {
+        "json_class": "TranslatableString",
+        "original   ": "毒",
+        "translation": ""
+      }
+    }
+  ]
+]

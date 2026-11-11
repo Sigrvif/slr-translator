@@ -1,0 +1,115 @@
+<h1>Cell Color Tags</h1>
+
+<p>Every row in the grid carries a list of color tags: small status markers drawn as colored strips on the row header. Tags record how safe a row is to translate, whether it contains Japanese at all, and what the automatic tools did with it. Tags drive batch translation, the apply/export filters, and word wrapping — rows are processed or skipped based on their tags.</p>
+
+<p>A row can carry more than one tag (the strips stack), and you can change tags at any time. Rows with no tag at all are the plain, safe case.</p>
+
+<h2 id="tag-reference">Tag reference</h2>
+
+<table>
+	<tr><th>Tag</th><th>Name</th><th>Meaning and default behavior</th></tr>
+	<tr>
+		<td><img src="../img/tag-white.png" alt="White tag swatch" /></td>
+		<td>White / no tag</td>
+		<td>Normal dialogue text — safe to translate. This is the default for regular message rows; the batch translator processes them.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-gray.png" alt="Gray tag swatch" /></td>
+		<td>Gray</td>
+		<td>Same kind of content as an untagged row, but the text contains no Japanese. Skipped by the batch translator by default.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-green.png" alt="Green tag swatch" /></td>
+		<td>Green</td>
+		<td>Partially safe: Japanese text found in a location that mixes text with code or plugin data (script fragments are escaped before translating). Check the surrounding scripts and plugins manually. Translated by default.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-red.png" alt="Red tag swatch" /></td>
+		<td>Red</td>
+		<td>Not safe to translate, or content the parser could not identify — script strings, variable values, plugin command arguments. Skipped by default.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-darkred.png" alt="Dark red tag swatch" /></td>
+		<td>Dark red</td>
+		<td>Red-type content that contains no Japanese text. Skipped by default.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-yellow.png" alt="Yellow tag swatch" /></td>
+		<td>Yellow</td>
+		<td>Potentially translatable but requires manual verification before translating. Skipped by default.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-gold.png" alt="Gold tag swatch" /></td>
+		<td>Gold</td>
+		<td>Yellow-type content that contains no Japanese text. Skipped by default.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-blue.png" alt="Blue tag swatch" /></td>
+		<td>Blue</td>
+		<td>Comment or escaped text — developer notes and similar. Usually harmless, but translating them is unnecessary. Skipped by default.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-aqua.png" alt="Aqua tag swatch" /></td>
+		<td>Aqua</td>
+		<td>Blue-type content that contains no Japanese text. Skipped by default.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-purple.png" alt="Purple tag swatch" /></td>
+		<td>Purple</td>
+		<td>The batch translator suspects it produced a broken result for this row (for example output that looks truncated or looped compared to the original). Re-translate the row manually or with a different translator.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-mediumpurple.png" alt="Medium purple tag swatch" /></td>
+		<td>Medium purple</td>
+		<td>The DSLR semantic review (QC/Judge) flagged this row as a suspected translation problem — the model found a defect the deterministic checks cannot see (mistranslation, dropped meaning, softening, …). See <a href="#dslr/review">Review Translations</a>. Cleared only by the review itself: a re-translation that the reviewer judges clean.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-indigo.png" alt="Indigo tag swatch" /></td>
+		<td>Indigo</td>
+		<td>Word wrapping problem: the automatic wrapper could not wrap this row normally, so line breaks may need manual adjustment.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-num.png" alt="Number tag swatch" /></td>
+		<td>Number</td>
+		<td>A numeric value (font sizes and similar settings). The row header shows <code>NUM</code>, and an internal marker added to numeric entries is hidden in the grid. Useful for changing values such as font size during translation.</td>
+	</tr>
+	<tr>
+		<td><img src="../img/tag-pink.png" alt="Pink tag swatch" /></td>
+		<td>Pink</td>
+		<td>Internal processing marker used by the batch translator while it works on a row — it only ever appears alongside another tag and is normally removed again automatically. A pink tag that survives a completed batch run deserves a look.</td>
+	</tr>
+</table>
+
+<div class="note">The tag pickers also offer a few extra swatches (<code>black</code>, <code>silver</code>, <code>tan</code>, <code>font</code>) that no built-in tool assigns or acts upon. Use them for your own marking.</div>
+
+<h2 id="who-sets-tags">Who sets tags</h2>
+
+<ul>
+	<li><strong>The parser</strong> tags rows while extracting the game: dialogue gets no tag, script content gets <code>red</code>, comments get <code>blue</code>, numeric values get <code>num</code>, and so on.</li>
+	<li><strong>The DSLR semantic review</strong> adds and clears the <code>mediumpurple</code> tag on rows it judges (see <a href="#dslr/review">Review Translations</a>); it never touches any other tag.</li>
+<li><strong>The batch translator</strong> refines tags before translating (a row whose text has no Japanese becomes <code>gray</code>, <code>gold</code>, <code>aqua</code> or <code>darkred</code> depending on its base color) and adds result tags such as <code>purple</code> and <code>indigo</code> afterwards. Tag changes preserve the row's other tags — a flagged row keeps its base color tag alongside the result tag.</li>
+	<li><strong>You</strong> can tag or untag any row at any time — the batch and apply filters honor manual tags exactly like automatic ones.</li>
+</ul>
+
+<h2 id="setting-tags">Setting tags on rows</h2>
+
+<ul>
+	<li>Select rows or cells in the grid, right-click and open the <code>Tags</code> submenu: <code>Red</code>, <code>Yellow</code>, <code>Green</code>, <code>Blue</code> and <code>Gold</code> are one click away, <code>More tags...</code> opens the full dialog.</li>
+	<li>Press <kbd>Ctrl+T</kbd> to open the <code>Tagging</code> dialog directly. Pick any combination of tags and an action: <code>Append tags</code> (add to existing ones), <code>Remove tags</code>, or <code>Set tags</code> (replace the row's tags with exactly the selection).</li>
+	<li>In the Find window, select results, right-click and use <code>With selection...</code> to tag everything found at once — see <a href="#find-replace">Find &amp; Replace</a>.</li>
+</ul>
+
+<h2 id="where-tags-apply">Where tags take effect</h2>
+
+<ul>
+	<li><strong>Batch Translation:</strong> the blacklist (default: red, yellow, blue, gold, gray, aqua, darkred) and whitelist decide which rows the batch translator processes.</li>
+	<li><strong>Export:</strong> the <code>What to do with tagged rows?</code> section in the export options can blacklist or whitelist tags, so tagged rows can be excluded from the translated game entirely.</li>
+	<li><strong>Word Wrap by Tag:</strong> an export-time rule — long translations are wrapped only for rows carrying the chosen tags, with a per-tag maximum line length (distinct from <a href="#word-wrap">Automatic Word Wrapping</a>).</li>
+</ul>
+
+<h2 id="searching-by-tag">Searching by tag</h2>
+
+<p>The Find window can search for tags instead of text: set <code>Target</code> to <code>Tag</code> and type one or more tag names (separate several tag names with spaces; a row matching any of them is returned). The results list shows each row's tags next to it, so you can review or re-tag them in bulk.</p>
+
+<p><img src="../img/searchbytag.png" alt="Find window searching by color tag" /></p>
+<p><em>Searching with Target: Tag finds all rows carrying the given tags.</em></p>

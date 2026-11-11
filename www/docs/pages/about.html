@@ -1,0 +1,47 @@
+<h1>About, Credits &amp; License</h1>
+
+<p>SLR Translator is a desktop tool for translating RPG Maker games (XP, VX, VX Ace, MV and MZ) from Japanese to English. It extracts a game's text into an editable grid, translates it manually or with a translation engine, and patches the translations back into a playable copy of the game. An introduction to the workflow is in <a href="#overview">Overview &amp; Requirements</a>.</p>
+
+<h2 id="author-and-license">Author and license</h2>
+
+<p>SLR Translator is developed by <strong>Shisaye</strong>.</p>
+
+<p>The application is licensed under the <strong>GNU General Public License, version 3</strong> (the full text ships as <code>LICENSE.txt</code> in the application folder, and the Options window's About tab has a link to read it). In short, the GPL grants you the freedom to run, study, share and modify the software; if you distribute copies — modified or not — you must pass the same rights along and make the corresponding source code available. The software comes without any warranty.</p>
+
+<div class="note">Bundled third-party components keep their own licenses. The complete, generated license list for every bundled component ships in <code>THIRD-PARTY-NOTICES.html</code> in the application folder; the bundled NW.js/Chromium runtime keeps its own list in <code>credits.html</code>. The About tab also summarizes the helper tools under “About Third Party Software”.</div>
+
+<h2 id="bundled-technologies">Key bundled technologies</h2>
+
+<ul>
+	<li><strong>NW.js</strong> — the desktop application runtime (Chromium + Node.js) the whole tool is built on. The About tab shows the exact bundled NW.js, Node.js and architecture versions at runtime.</li>
+	<li><strong>jQuery</strong> (1.12.x) — UI plumbing, dialogs and DOM handling.</li>
+	<li><strong>Handsontable</strong> — the spreadsheet-like translation grid.</li>
+	<li><strong>Ace</strong> — the code editor used by the script editor, automation editor and option fields (see <a href="#script-editor">Script Editor</a>).</li>
+	<li><strong>PHP and Ruby helper runtimes</strong> — bundled interpreters used by the translation pipeline; nothing needs to be installed separately.</li>
+	<li><strong>ONNX Runtime</strong> (onnxruntime-node 1.27.x) with <strong>PP-OCR</strong> models — the on-device OCR behind SEP picture translation, plus <strong>opentype.js</strong> for drawing the translated text back onto images (see <a href="#sep">SEP Picture Translation</a>).</li>
+	<li><strong>mtl-text-processor</strong> — the sentence splitting and placeholder protection library used by the DSLR engine (see <a href="#escape-codes">Escape &amp; Text Codes</a>).</li>
+	<li><strong>nspell</strong> — the offline English (en-US) spell checking engine (see <a href="#spellcheck">Spell Checking</a>).</li>
+</ul>
+
+<p>Helper tools in the <code>3rdParty</code> folder — included for convenience, under their own licenses — are <strong>TES-Patcher</strong> by Sinflower (github.com/Sinflower/TES-Patcher), the RGSS archive decrypter, the Enigma Virtual Box unpacker, <strong>MeCab</strong>, the RPG Maker translation CLI tools and a few small Windows utilities. The Sugoi Translator server that the Sugoi engine talks to is <em>not</em> bundled; it runs separately (see <a href="#sugoi">Sugoi Translator</a>).</p>
+
+<h2 id="distribution-and-support">Distribution and support</h2>
+
+<p>SLR Translator is distributed through its official threads on the Anime-Sharing and F95Zone forums, opened from the About tab in the Options window.</p>
+
+<p>To support the development of SLR Translator, please consider making a donation via SubscribeStar: subscribestar.com/shisaye</p>
+
+<h2 id="special-thanks">Special thanks</h2>
+
+<p>l8rdude, Reddo9999, entai2965, CheckMate, RTS23, fantasmic, pcnop, Muninkai, Darksshades — and, in the author's own words, a ton of other people.</p>
+
+<h2 id="this-documentation">This documentation</h2>
+
+<p>These pages are part of the application and work fully offline:</p>
+
+<ul>
+	<li>Press <code>F1</code> in the main window, or use the <code>Help</code> toolbar button, to open the documentation window.</li>
+	<li>The question-mark buttons in the Options window and other dialogs jump straight to the relevant page.</li>
+	<li>The files live under <code>www/docs/</code> in the application folder — plain HTML pages plus a manifest, so they can also be opened directly.</li>
+	<li>The search box at the top of the documentation sidebar searches every page offline.</li>
+</ul>

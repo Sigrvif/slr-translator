@@ -1,0 +1,14 @@
+#content {
+    margin-bottom: 5em;
+}
+
+div#nav-tabContent {
+    padding: 1em;
+}
+
+#footer {
+    position: fixed;
+    bottom: 1px;
+    width: 100vw;
+    padding-right: 1em;
+}

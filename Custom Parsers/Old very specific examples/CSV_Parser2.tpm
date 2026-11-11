@@ -1,0 +1,1 @@
+{"files":[{"pattern":"*.xml","rules":[{"type":"regex","pattern":"/<w:t>([\\S\\s]*?[一-龠ぁ-ゔァ-ヴー々〆〤ヶﾚﾃﾞｨﾌｧｲｯ][\\S\\s]*?)<\\/w:t>/g","captureGroups":"1"}]}]}

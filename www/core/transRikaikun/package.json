@@ -1,0 +1,21 @@
+{
+    "builtin": true,
+    "name": "transRikaikun",
+    "title": "Rikaikun for SLR Translator",
+	"description": "SLR Translator support for Rikaikun. Rikaikun shows the reading and English definition of Japanese words when you hover over Japanese text in SLR Translator.",
+    "homepage": "",
+    "version": "3.073 (Last Related Change)",
+	"icon": "images/icon128.png",
+	"author" : {
+		"name":"Shisaye",
+		"email": ""
+	},
+	"autoload" : false,
+	"load": [
+		"transRikaikun.js"
+	],
+	"background": {
+		"page": "background.html",
+		"persistent": true
+	}
+}

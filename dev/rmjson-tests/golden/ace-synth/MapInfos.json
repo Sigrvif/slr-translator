@@ -1,0 +1,24 @@
+[
+  [
+    1,
+    {
+      "json_class": "RPG::MapInfo",
+      "name": {
+        "json_class": "TranslatableString",
+        "original   ": "最初の町",
+        "translation": ""
+      }
+    }
+  ],
+  [
+    5,
+    {
+      "json_class": "RPG::MapInfo",
+      "name": {
+        "json_class": "TranslatableString",
+        "original   ": "城",
+        "translation": ""
+      }
+    }
+  ]
+]

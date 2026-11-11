@@ -1,0 +1,204 @@
+{
+  "json_class": "RPG::System",
+  "game_title": {
+    "json_class": "TranslatableString",
+    "original   ": "テストゲーム",
+    "translation": ""
+  },
+  "terms": {
+    "level": {
+      "json_class": "TranslatableString",
+      "original   ": "level",
+      "translation": ""
+    },
+    "level_a": {
+      "json_class": "TranslatableString",
+      "original   ": "level_a",
+      "translation": ""
+    },
+    "hp": {
+      "json_class": "TranslatableString",
+      "original   ": "hp",
+      "translation": ""
+    },
+    "hp_a": {
+      "json_class": "TranslatableString",
+      "original   ": "hp_a",
+      "translation": ""
+    },
+    "mp": {
+      "json_class": "TranslatableString",
+      "original   ": "mp",
+      "translation": ""
+    },
+    "mp_a": {
+      "json_class": "TranslatableString",
+      "original   ": "mp_a",
+      "translation": ""
+    },
+    "atk": {
+      "json_class": "TranslatableString",
+      "original   ": "atk",
+      "translation": ""
+    },
+    "def": {
+      "json_class": "TranslatableString",
+      "original   ": "def",
+      "translation": ""
+    },
+    "spi": {
+      "json_class": "TranslatableString",
+      "original   ": "spi",
+      "translation": ""
+    },
+    "agi": {
+      "json_class": "TranslatableString",
+      "original   ": "agi",
+      "translation": ""
+    },
+    "weapon": {
+      "json_class": "TranslatableString",
+      "original   ": "weapon",
+      "translation": ""
+    },
+    "armor1": {
+      "json_class": "TranslatableString",
+      "original   ": "armor1",
+      "translation": ""
+    },
+    "armor2": {
+      "json_class": "TranslatableString",
+      "original   ": "armor2",
+      "translation": ""
+    },
+    "armor3": {
+      "json_class": "TranslatableString",
+      "original   ": "armor3",
+      "translation": ""
+    },
+    "armor4": {
+      "json_class": "TranslatableString",
+      "original   ": "armor4",
+      "translation": ""
+    },
+    "weapon1": {
+      "json_class": "TranslatableString",
+      "original   ": "weapon1",
+      "translation": ""
+    },
+    "weapon2": {
+      "json_class": "TranslatableString",
+      "original   ": "weapon2",
+      "translation": ""
+    },
+    "attack": {
+      "json_class": "TranslatableString",
+      "original   ": "attack",
+      "translation": ""
+    },
+    "skill": {
+      "json_class": "TranslatableString",
+      "original   ": "skill",
+      "translation": ""
+    },
+    "guard": {
+      "json_class": "TranslatableString",
+      "original   ": "guard",
+      "translation": ""
+    },
+    "item": {
+      "json_class": "TranslatableString",
+      "original   ": "item",
+      "translation": ""
+    },
+    "equip": {
+      "json_class": "TranslatableString",
+      "original   ": "equip",
+      "translation": ""
+    },
+    "status": {
+      "json_class": "TranslatableString",
+      "original   ": "status",
+      "translation": ""
+    },
+    "save": {
+      "json_class": "TranslatableString",
+      "original   ": "save",
+      "translation": ""
+    },
+    "game_end": {
+      "json_class": "TranslatableString",
+      "original   ": "game_end",
+      "translation": ""
+    },
+    "fight": {
+      "json_class": "TranslatableString",
+      "original   ": "fight",
+      "translation": ""
+    },
+    "escape": {
+      "json_class": "TranslatableString",
+      "original   ": "escape",
+      "translation": ""
+    },
+    "new_game": {
+      "json_class": "TranslatableString",
+      "original   ": "new_game",
+      "translation": ""
+    },
+    "continue": {
+      "json_class": "TranslatableString",
+      "original   ": "continue",
+      "translation": ""
+    },
+    "shutdown": {
+      "json_class": "TranslatableString",
+      "original   ": "shutdown",
+      "translation": ""
+    },
+    "to_title": {
+      "json_class": "TranslatableString",
+      "original   ": "to_title",
+      "translation": ""
+    },
+    "cancel": {
+      "json_class": "TranslatableString",
+      "original   ": "cancel",
+      "translation": ""
+    },
+    "gold": {
+      "json_class": "TranslatableString",
+      "original   ": "gold",
+      "translation": ""
+    }
+  },
+  "elements": [
+    null,
+    {
+      "json_class": "TranslatableString",
+      "original   ": "物理",
+      "translation": ""
+    },
+    {
+      "json_class": "TranslatableString",
+      "original   ": "炎",
+      "translation": ""
+    }
+  ],
+  "switches": [
+    null,
+    {
+      "json_class": "TranslatableString",
+      "original   ": "スイッチ",
+      "translation": ""
+    }
+  ],
+  "variables": [
+    null,
+    {
+      "json_class": "TranslatableString",
+      "original   ": "変数",
+      "translation": ""
+    }
+  ]
+}

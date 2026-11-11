@@ -1,0 +1,29 @@
+[
+  {
+    "json_class": "Script",
+    "filename": "/workspaces/dev/SLR Translator Linux/dev/rmjson-tests/golden/vx/scripts/Script000.rb",
+    "name": {
+      "json_class": "TranslatableString",
+      "original   ": "Script0",
+      "translation": ""
+    }
+  },
+  {
+    "json_class": "Script",
+    "filename": "/workspaces/dev/SLR Translator Linux/dev/rmjson-tests/golden/vx/scripts/Script001.rb",
+    "name": {
+      "json_class": "TranslatableString",
+      "original   ": "Script1",
+      "translation": ""
+    }
+  },
+  {
+    "json_class": "Script",
+    "filename": "/workspaces/dev/SLR Translator Linux/dev/rmjson-tests/golden/vx/scripts/Script002.rb",
+    "name": {
+      "json_class": "TranslatableString",
+      "original   ": "Script2",
+      "translation": ""
+    }
+  }
+]

@@ -1,0 +1,28 @@
+[
+  [
+    0,
+    null
+  ],
+  [
+    1,
+    {
+      "json_class": "RPG::Actor",
+      "name": {
+        "json_class": "TranslatableString",
+        "original   ": "レリカ",
+        "translation": ""
+      }
+    }
+  ],
+  [
+    2,
+    {
+      "json_class": "RPG::Actor",
+      "name": {
+        "json_class": "TranslatableString",
+        "original   ": "ハルカ",
+        "translation": ""
+      }
+    }
+  ]
+]

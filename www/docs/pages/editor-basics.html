@@ -1,0 +1,122 @@
+<h1>Editor Basics</h1>
+
+<p>The translation editor is a spreadsheet-like grid (built on Handsontable): one row per extracted text, one column for the original text and further columns for translations and processing results. This page covers the grid layout, editing, selection, keyboard shortcuts, context menus, and saving.</p>
+
+<h2 id="grid-layout">The grid layout</h2>
+
+<p>Parsing a game fills the <code>Objects</code> panel on the left with the files the texts came from. Select an object to load its rows into the grid; the <code>Filter</code> box above the list narrows it by name, and the small buttons below it toggle or invert the checkboxes, remove checked files, or add a new object. Objects grouped under the <code>*</code> directory are <em>reference objects</em> — internal data rows that some tools read but that are not exported as files. A new project starts with six columns:</p>
+
+<table>
+	<tr><th>Column</th><th>Meaning</th></tr>
+	<tr><td><code>Original Text [0]</code></td><td>The text extracted from the game. Read-only once it has content — this column is the key that ties the row back to the game data.</td></tr>
+	<tr><td><code>Initial Translations [1]</code></td><td>Where machine translation lands by default.</td></tr>
+	<tr><td><code>Translation Corrections [2]</code></td><td>Your manual edits and fixes.</td></tr>
+	<tr><td><code>Wrapped translations [3]</code></td><td>Output of <a href="#word-wrap">Automatic Word Wrapping</a>, so wrapped text never overwrites your translation.</td></tr>
+	<tr><td><code>Errors [4]</code></td><td>Error annotations produced while processing.</td></tr>
+	<tr><td><code>Overwrite [5]</code></td><td>Manual final say — anything written here beats all other columns.</td></tr>
+</table>
+
+<p>The columns exist so automatic results and manual corrections never overwrite each other: re-translating into column 1 does not touch your corrections in column 2. Right-click a column header to <code>Insert column right</code>, <code>Duplicate column</code>, <code>Rename this column</code>, <code>Remove this column</code>, or set the <code>Column width</code>. A project can hold up to 15 columns. Column 0 cannot be moved or reordered; the other columns can be dragged.</p>
+
+<h2 id="editing-a-cell">Editing a cell</h2>
+
+<ul>
+	<li>Double-click a cell (or just type over a selected cell) to edit it in place.</li>
+	<li>The pane below the grid is a larger editor for the selected cell. It has two tabs: <code>Default translation</code> for the cell contents, and <code>Context translation</code> — see <a href="#context-translation">Context Translation</a>. The left side of the pane shows the original text with a romaji reading aid and the row's raw data — see <a href="#cell-info-panel">Cell Info Panel</a>.</li>
+	<li>Press the numpad <kbd>Enter</kbd> key to commit the edit and jump to the next row — convenient for working through a file top to bottom.</li>
+	<li>While typing in the bottom pane, <kbd>Ctrl+0</kbd> through <kbd>Ctrl+9</kbd> insert the content of column 0 through 9 at the caret. <kbd>Ctrl+0</kbd> is a quick way to pull the original Japanese into your translation.</li>
+</ul>
+
+<h2 id="export-rule">Which cell is exported</h2>
+
+<p>On export and apply, only one translation per row is written into the game: the <strong>rightmost non-empty cell</strong>, scanning from the last column back to column 1 (the original text column is never used). This is what gives the columns their workflow:</p>
+
+<ul>
+	<li>An empty <code>Overwrite</code> cell means the wrapped text (column 3) wins if present, otherwise your corrections (column 2), otherwise the initial translation (column 1).</li>
+	<li>Fill the <code>Overwrite</code> cell to force a specific final result for a row.</li>
+	<li>Clear a translation column to make the column to its left take over again.</li>
+</ul>
+
+<div class="note">Row progress ("translated" or not) counts any filled translation column — see the progress percentages in the <code>Objects</code> panel.</div>
+
+<h2 id="selection">Selecting cells</h2>
+
+<ul>
+	<li>Click and drag, or hold <kbd>Shift</kbd> and use the arrow keys, to select a range of cells.</li>
+	<li>Hold <kbd>Ctrl</kbd> and click to add further, non-adjacent ranges to the selection.</li>
+	<li>Click a row header to select whole rows, or a column header to select a whole column — some context menu entries only appear for these.</li>
+	<li><kbd>Alt+Down</kbd> / <kbd>Alt+Up</kbd> jump to the next / previous row that has no translation in any column.</li>
+	<li>The <code>Quick find</code> box in the editor toolbar highlights all matches in the currently loaded grid as you type; the search button beside it opens the full <a href="#find-replace">Find &amp; Replace</a> window.</li>
+</ul>
+
+<p>Selections feed the translate commands (<code>Translate here</code>, <code>Merge then translate</code>, <code>Translate like this</code>), tagging, and deletion. See <a href="#find-replace">Find &amp; Replace</a> for searching across the whole project.</p>
+
+<p>The editor toolbar also holds the grid toggles: <code>Toggle Active Cell Info</code>, <code>Automatically set selected original text to clipboard</code> (copies the original text of the selected cell to the clipboard on every selection), <code>Toggle word wrapping</code>, <code>Use Monospace font</code>, <code>Resize Font</code> for the grid, and <code>Remove all translation from this file</code>. Removing a file from the project is done from the file's right-click menu instead.</p>
+
+<h2 id="shortcuts">Keyboard shortcuts</h2>
+
+<table>
+	<tr><th>Shortcut</th><th>Action</th></tr>
+	<tr><td><kbd>F1</kbd></td><td>Open the documentation</td></tr>
+	<tr><td><kbd>F11</kbd></td><td>Maximize the main window</td></tr>
+	<tr><td><kbd>Esc</kbd></td><td>Close popups and overlay windows; in the grid, deselect the current cell</td></tr>
+	<tr><td><kbd>Ctrl+O</kbd></td><td>Open a project or translation file</td></tr>
+	<tr><td><kbd>Ctrl+S</kbd></td><td>Save the project</td></tr>
+	<tr><td><kbd>Ctrl+F</kbd></td><td>Open the Find window (<code>Find</code> tab)</td></tr>
+	<tr><td><kbd>Ctrl+H</kbd></td><td>Open the Find window (<code>Replace</code> tab)</td></tr>
+	<tr><td><kbd>Ctrl+G</kbd></td><td>Translate the selected cell(s) with the active translator</td></tr>
+	<tr><td><kbd>Ctrl+Shift+G</kbd></td><td>Merge then translate: send the selected cells to the translator as one line, writing the result to the active cell</td></tr>
+	<tr><td><kbd>Ctrl+L</kbd></td><td>Translate like this: apply the selected cell's translation to every row with the same original text across the project</td></tr>
+	<tr><td><kbd>Ctrl+Shift+C</kbd></td><td>Copy the selected cells to the clipboard joined into a single line</td></tr>
+	<tr><td><kbd>Ctrl+T</kbd></td><td>Open the Tagging dialog for the selected cell(s)</td></tr>
+	<tr><td><kbd>Shift+Del</kbd></td><td>Delete the selected row(s), after confirmation</td></tr>
+	<tr><td><kbd>Alt+Del</kbd></td><td>Clear context translations on the selected row(s), after confirmation</td></tr>
+	<tr><td><kbd>Alt+Down</kbd> / <kbd>Alt+Up</kbd></td><td>Go to the next / previous untranslated row</td></tr>
+	<tr><td><kbd>Alt+N</kbd></td><td>Jump to the <code>new key</code> row at the bottom of the grid, which appends a row to the current file</td></tr>
+	<tr><td>Numpad <kbd>Enter</kbd></td><td>Commit the current edit and move to the next row</td></tr>
+	<tr><td><kbd>Ctrl+0</kbd> … <kbd>Ctrl+9</kbd></td><td>In the bottom cell editor: insert the content of column 0…9 at the caret</td></tr>
+</table>
+
+<h2 id="context-menus">Context menus</h2>
+
+<p>Right-clicking the grid opens a menu whose contents depend on the selection:</p>
+
+<ul>
+	<li><strong>Cells:</strong> <code>Add comment</code> / <code>Delete comment</code> (per-cell notes, searchable), <code>Translate here</code>, <code>Translate using...</code>, <code>Merge then translate</code>, <code>Translate like this</code>, a <code>Tags</code> submenu (see <a href="#color-tags">Cell Color Tags</a>), <code>Delete Row</code>, <code>Clear Context Translation</code>, <code>Create Automation</code>, <code>Run Automation</code>, and <code>Row properties</code> (shows the row's original text, its context list and its best translation).</li>
+	<li><strong>Column headers:</strong> <code>Column width</code>, <code>Insert column right</code>, <code>Duplicate column</code>, <code>Remove this column</code>, <code>Rename this column</code>.</li>
+	<li><strong>Row headers:</strong> row actions such as <code>Delete Row</code> and <code>Row properties</code>.</li>
+</ul>
+
+<p>Right-clicking an entry in the <code>Objects</code> panel selects, marks and exports files — including the <code>Export into...</code> commands that write only the checked files — described in <a href="#first-project/inject">Your First Translation Project</a>.</p>
+
+<p><img src="../img/startpj10.png" alt="Objects panel context menu" /></p>
+<p><em>The Objects panel context menu: bulk selection and per-file actions.</em></p>
+
+<h2 id="bulk-tools">Bulk tools for selected files</h2>
+
+<p>The Objects panel context menu applies several tools to every checked file (or to all files, when none are checked) via the <code>With all</code> / <code>With N selected</code> submenu:</p>
+
+<ul>
+	<li><code>Wrap texts</code> — the legacy per-file word wrap dialog; prefer the <a href="#word-wrap">Automatic Word Wrapping</a> toolbar button unless you need its per-file behavior.</li>
+	<li><code>Trim</code> — removes the leading and trailing whitespace of every line in the chosen column(s). A confirmation warns that it cannot be undone.</li>
+	<li><code>Auto Padding</code> — the counterpart: it copies the leading whitespace of each line of the original text onto the corresponding lines of the translation, restoring the indentation the translation lost. Also asks for the target column(s) and confirms first.</li>
+	<li><code>Mark as complete</code> / <code>Un-mark as complete</code>, <code>Revert to original</code>, <code>Clear translation</code>, <code>Delete files</code>, <code>Import from...</code>, <code>Export into...</code> and <code>Create Automation</code> / <code>Run Automation</code> (see <a href="#automation-editor">Automation Editor</a>) round off the menu.</li>
+</ul>
+
+<h2 id="row-header-info">Row header info, markers and trails</h2>
+
+<p>The <code>Toggle grid information</code> button (in the right panel toolbar) opens a side menu with display options for the grid:</p>
+
+<ul>
+	<li><code>Show row header info</code> — writes a small info line into each row header. For RPG Maker projects this is typically the speaker the line belongs to (the actor of a nameplate), so you can see who says what while scrolling. <code>Row header width</code> widens the header if the text does not fit.</li>
+	<li><code>Display marker on organic cells</code> — marks rows whose translation was written by a human instead of a translation engine.</li>
+	<li><code>Leave trail on cell visit</code> — remembers which cells you have already visited; <code>Display trails on visited cells</code> shows that record in the grid. Together they make it easy to keep track of what was already reviewed in a large file.</li>
+</ul>
+
+<h2 id="saving">Saving and reopening</h2>
+
+<ul>
+	<li><kbd>Ctrl+S</kbd> saves the working file. A project saved as a plain <code>.trans</code> / <code>.json</code> file is a single JSON document; the portable <code>.slrproj</code> format packages the whole project, including the staged game data.</li>
+	<li>Saving a <code>.slrproj</code> project can also rotate numbered backup copies (<code>.1.bak</code>, <code>.2.bak</code>, …) of the previous save — enable it and choose how many copies to keep in the Options window.</li>
+	<li>Reopen later with <code>Open Project</code>, the <code>Open</code> toolbar button, or by dropping the file onto the main window.</li>
+</ul>

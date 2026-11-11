@@ -1,0 +1,906 @@
+<h1>Bundled Local Runtime</h1>
+
+<p>SLR Translator can run translation models itself, with no external app such as
+LM Studio or KoboldCpp. The bundled runtime is <b>llama.cpp</b> (<code>llama-server</code>),
+pinned to a specific build that ships with the app. Everything runs offline on your machine.</p>
+
+<h2 id="requirements">Requirements</h2>
+<p>Models are not included. Put GGUF files in <code>data/llama/models/</code> - that is the models
+folder, and the only place models go. The <code>runtime/</code> folder beside the app is the
+bundled engine, not a model folder, so do not put models there. CPU always works,
+and a <b>Vulkan</b>-capable GPU (most NVIDIA and AMD cards) is used automatically when available.
+CUDA (NVIDIA) and ROCm (AMD) are supported too, but they are <b>optional drop-in packs</b> rather
+than part of the base download, because they add a gigabyte or more. See
+<a href="#backends">GPU backends and drop-in packs</a> below.</p>
+
+<h2 id="starting">Starting the runtime</h2>
+<p>The runtime controls live in their own <b>Bundled Local Runtime</b> card in the DSLR engine
+options, just below <b>Quick Start</b>. It is a <b>single card</b> that holds three titled
+sub-groups, so every runtime control stays together instead of being split across separate
+sections: <b>General settings (apply to every model)</b>, <b>Per-model settings (for the
+selected model)</b> and <b>Role assignment (Main / Fallback / Glossary / Review)</b>. The card
+starts collapsed like every other option section - click its title (or press <b>Expand all</b> in
+the options filter toolbar) to open it.</p>
+<p>Directly under the card title sit the <b>Start / Use Local Runtime</b> buttons and the live
+status line - the card's primary actions, above the three sub-groups. The <b>General settings</b>
+group then holds the server-wide options - the port, backend, extra library folder, how many
+models stay loaded, unload after idle, CPU threads, model-switch wait, the unified KV cache,
+keeping the KV cache in VRAM and auto-start. The <b>Per-model settings</b>
+group holds the <b>Local runtime model</b> picker and the fields stored per GGUF file. The
+<b>Role assignment</b> group holds the four role pickers. Every setting here is <b>server-side</b>
+- it configures how the bundled <code>llama-server</code> runs - while the endpoint options in
+the sections above are sent per request. Click <b>Start / Use Local Runtime</b> in the general
+group. The status line immediately shows <code>Starting the local runtime...</code> and then the
+full status once it is up; the URL and model fields are filled in automatically. The model
+picker is filled in automatically from <code>data/llama/models/</code>, so there is nothing to
+press first - <b>Refresh Model List</b> is only a manual fallback after adding or removing
+files. <b>Runtime Status</b> recomputes the same status line on demand.</p>
+<p>The status line is not saved with the options: a fresh launch always shows the live state
+(<code>Stopped. Use Start / Use Local Runtime to launch it.</code> when nothing is running) rather
+than a stale message left over from a previous session. While the Options window is open the
+status refreshes by itself every few seconds, and during a translation it keeps updating with the
+live speculative-decoding <b>draft acceptance</b> numbers, so you can watch a run without
+reopening the window or pressing <b>Runtime Status</b>.</p>
+
+<h2 id="per-model-server">Each model gets its own server</h2>
+<p>Every model is now served by its <b>own</b> <code>llama-server</code> process, started with
+that model's own settings: its context length, GPU layers and MoE placement, KV cache type,
+expert override, speculative decoding, vision projector and chat template. The runtime no longer
+shares one server configuration across models, so the settings you gave a model are the settings
+its server actually runs with.</p>
+<p>Nothing changes about where you point clients: the runtime still listens on the <b>same port</b>
+as before (the <b>Local runtime port</b> option, <code>1234</code> by default). The model is
+selected per request exactly as it was, so an existing API URL keeps working.</p>
+<p>Clients now see the <b>real context window</b> of the model being served. A client asking
+<code>GET /props</code> is answered with the served model's own configured context
+(<code>default_generation_settings.n_ctx</code>), and <code>GET /v1/models</code> reports the
+context per model under <code>meta.n_ctx</code>. This is what fixes the class of client failures
+where a client assumed a context window of <b>4096</b> (or read <b>4069</b> after reserving a
+token), which happened when the server reported no usable context at all instead of the model's
+own value.</p>
+
+<h2 id="status-window">The status window</h2>
+<p>The bundled runtime has its own small <b>status window</b>, separate from the main window and
+from the options. It opens by itself when the runtime becomes ready, stays <b>always on top</b>
+so it is never buried, and closes when the runtime stops. Because it is a real window and not a
+panel inside the editor, it keeps showing live progress while a translation is running and does
+not cover the text you are working on. It shows the same information as the status line in the
+options card, from the same source, so the two can never disagree.</p>
+<p>Close it at any time with its <b>Close</b> button; it stays closed for the rest of that run
+rather than reopening itself, and the runtime keeps running. Use the <b>Status Window</b> button
+in the Bundled Local Runtime card to bring it back. Its <b>On top</b> checkbox toggles whether it
+floats above other windows. If you never start the bundled runtime, the window never appears.</p>
+<p>The window follows the <b>night mode</b> setting like every other window. It draws its own
+title bar instead of using the operating system's, so the whole window - title bar included - is
+themed consistently rather than keeping a system-coloured frame, and it can be dragged by that
+bar like the other child windows.</p>
+
+<h2 id="console-launcher">The console launcher (SLR Runtime)</h2>
+<p>Next to the app sits a small launcher - <code>SLR Runtime.sh</code> on Linux,
+<code>SLR Runtime.cmd</code> on Windows; each copy ships only its own platform's launcher.
+Opening one starts the same bundled <code>llama-server</code> in a console window, without
+opening SLR Translator - for using the model from another program on the machine while you
+work elsewhere. It is the cheap way to keep the model served: no editor window is kept
+alive, so the memory cost is the model itself plus the small launcher process and nothing
+more. Press <b>Ctrl+C</b> in the console to stop it; the console shows the same live status
+line the editor does (on Windows it also shows llama-server's own log output alongside it).
+The console does not repeat itself: the status block is printed when something changes, and
+while the runtime is working it shows what is happening - the model loading, live prompt
+processing, live generation counts with throughput, and draft acceptance - then a one-line
+summary after each generation. When nothing is happening, the console stays quiet.
+On Linux, starting it from the desktop opens it in a terminal window
+automatically, and the window stays open after the runtime stops until you press Enter;
+starting it from a terminal prints the status there. On Windows, opening
+<code>SLR Runtime.cmd</code> opens the console: the launcher itself runs hidden, and the
+console shows its status relayed to it. Stopping works three ways there - close the window
+(the runtime stops within a couple of seconds), run <code>SLR Runtime --stop</code>, or
+press <b>Ctrl+C</b> (which may not reach the runtime on Windows - closing the window always
+does).</p>
+<p>The launcher has no settings of its own. It uses exactly the settings recorded by the last
+<b>Start / Use Local Runtime</b> press in SLR Translator (<code>data/llama/laststart.json</code>),
+so <b>the runtime must have been started once from the editor first</b>. Without a recording
+the launcher exits with <code>No runtime settings have been recorded yet.</code> - start the
+runtime in SLR Translator, then run it again. The recorded model is preferred, but it is not a
+hard requirement: if that model file is no longer on disk, the launcher serves another
+available model rather than failing - a model with a paired draft first, otherwise the first
+GGUF file in the model folder. It fails only when the folder holds no GGUF files at all.</p>
+<p>The port is <b>1234</b> by default, the same convention other local-inference tools such as
+LM Studio use. It is the <b>Local runtime port</b> option in the Bundled Local Runtime card,
+and the same port is used no matter which side starts the runtime. A taken port is never
+worked around: the start fails with <code>port 1234 is already in use</code> (naming the
+configured port) rather than quietly serving somewhere else, so a client pointed at the
+address always finds the server there. <code>SLR Runtime --port 8080</code> overrides the port
+for that one run, <code>SLR Runtime --stop</code> stops a runtime left running,
+<code>--help</code> prints the usage, and any other argument is rejected. Exit codes, for
+scripts: <code>0</code> started or stopped, <code>1</code> error, <code>2</code> another
+runtime is already serving.</p>
+<div class="note">The bundled runtime serves one port and switches models on it — running several
+runtimes side by side is not what it is for. If you want several translation endpoints used
+concurrently (for example multiple online API accounts, or a mix of local and online), that is
+the DSLR engine's <a href="#dslr/parallel-endpoints">parallel endpoints</a> feature:
+<code>+ Add Endpoint</code> in the engine options adds endpoints that translate in parallel,
+each with its own URL, key, model and <code>Weight</code> (how many batches it may handle at
+once). See <a href="#dslr/parallel-endpoints">Parallel endpoints and fallback</a>.</div>
+<p>Starting the runtime from the editor while the console copy is already serving does not
+load the model twice (two copies would compete for the same VRAM): the editor attaches to the
+running server and says so - the status report begins with
+<code>Status: ready (attached)</code>. An attached runtime belongs to the console: the editor
+uses it for translation but can neither stop it nor restart it on other settings, and closing
+the editor leaves the console runtime running. Starting a <em>different</em> model is a model
+switch, not an attach: the editor takes the console runtime over - it stops the console
+launcher, waits for the port to be released, and starts the requested model as its own - and
+the console window reports that its server exited (on Windows the window simply closes,
+since the takeover there is a force tree-kill). An automatic start when the app opens
+(auto-start) never switches models this way: if it resolves a different model than the one
+the console is serving, it attaches to what is running instead - nobody pressed anything,
+so nothing gets killed.</p>
+<p>Closing the console window stops the runtime on both platforms. On Linux the closing
+terminal hangs the launcher up, and it stops the server exactly as <b>Ctrl+C</b> does; on
+Windows the launcher is not attached to the console, so it notices the console's
+disappearance with a short parent check - a check every two seconds, so the stop can lag the
+close by up to about 2 s. Pressing <b>Ctrl+C</b> while the model is still loading, by
+contrast, is safe: the launcher stops the half-loaded server before it exits, and the port is
+free again. What can still leave <code>llama-server</code> running without its launcher is
+the launcher process being killed outright (Task Manager) or the machine losing power.
+Running <code>SLR Runtime --stop</code> after that recovers it: the ownership record also
+carries the server's own process id, so <code>--stop</code> stops the left-behind server as
+well when it can, and otherwise clears the stale record so the next start works normally. A
+live process <code>--stop</code> cannot confirm as the SLR runtime is reported and left
+alone - end the orphaned <code>llama-server</code> process manually (Task Manager on
+Windows, <code>pkill -f llama-server</code> or your process manager on Linux) and start
+normally.</p>
+
+<h2 id="context-kv">Context length and KV cache</h2>
+<p><b>Context length (tokens)</b>, a per-model field in the
+<a href="#per-model">Models panel</a>, is the per-slot context, in tokens, that the server
+allocates for the selected model. Larger values let the model see more text at once but use more
+memory, because the KV cache grows linearly with the context; the model's own trained context
+limit caps how high this can usefully go. This is fixed when the runtime starts, so it is a
+server-side setting and not something that can be changed per request. Leaving the field empty
+falls back to <b>32768</b>.</p>
+<p><b>KV cache quantization</b> (also per model, in the Models panel) chooses the precision of
+the server's KV cache. It trades a little quality for memory and speed. <b>K and V are set
+separately</b>: <b>K cache type</b> is the attention key cache and <b>V cache type</b> the value
+cache (llama.cpp <code>--cache-type-k</code> / <code>--cache-type-v</code>), so a model can keep
+keys at one precision and values at another. The default <b>q8_0</b> on both sides roughly halves the KV
+memory with negligible quality loss and is the recommended choice; <b>f16</b>/<b>bf16</b> keep
+the best quality at full memory, and the lower <b>q5</b>/<b>q4</b> types save more memory at a
+larger quality cost. Quantized V values need flash attention, which the bundled runtime always
+enables. A model released by the <b>HauhauCS</b> family is the one exception to the q8_0 default
+being the quiet recommendation: that publisher's own release notes recommend <b>F16</b> for both
+K and V, and the K and V fields say so under the input. It stays a hint only - nothing is
+pre-selected - because on a small card the KV cache is the scarce resource and q8_0 remains the
+shipped default. Changing any of these settings only takes effect the next time you start the
+runtime.</p>
+<p>Two further per-model fields control how prompts are batched. <b>Logical batch size</b>
+(llama.cpp <code>--batch-size</code>) is how many prompt tokens are processed per pass, and
+<b>physical batch size</b> (<code>--ubatch-size</code>) is how many are handled in one compute
+step. Both are left empty by default, which uses llama.cpp's own defaults (<b>2048</b> logical,
+<b>512</b> physical). Raising the logical size speeds up prompt processing on a machine with
+memory to spare; raising the physical size raises peak memory and should stay at or below the
+logical size, because llama.cpp requires the physical batch to fit inside the logical one.</p>
+<p><b>Local runtime unified KV cache</b> (on by default) keeps one shared cache for all parallel
+slots instead of one cache per slot. This is what lets an identical system prompt be reused
+across requests, which cuts prompt processing dramatically: measured on the bundled runtime, a
+repeated 714-token prompt went from about 44 seconds to about 1.8 seconds, because 695 of the
+714 tokens came straight from the cache. Turning it off gives each slot its own cache, which
+uses more memory but can isolate very long concurrent requests.</p>
+<p><b>Local runtime KV cache in VRAM</b> (on by default) keeps the cache in VRAM next to the
+offloaded layers. Turn it off to keep the cache in system RAM, which frees VRAM for more model
+layers but makes every token slower, because the cache has to be read over the bus.</p>
+<p>Three further <b>General settings</b> bound the memory the cache may use. They apply to every
+model the runtime serves, and group with the two settings above. <b>Local runtime prompt cache RAM
+(MiB)</b> caps the RAM the prompt cache may use (llama.cpp <code>--cache-ram</code>) and defaults
+to <b>4096</b>; <b>0</b> disables the prompt cache altogether. <b>Local runtime context
+checkpoints</b> is the maximum number of checkpoints kept per slot
+(<code>--ctx-checkpoints</code>) and defaults to <b>16</b>; <b>0</b> means no minimum spacing
+between them. <b>Local runtime KV cache reuse chunk</b> is the minimum chunk size, in tokens, for
+reusing a matching part of the KV cache (<code>--cache-reuse</code>) and defaults to <b>256</b>;
+0 is not accepted for this flag, so leave the field empty to use the default.</p>
+<p><b>True dynamic (paged) KV allocation is not available in this engine.</b> The cache is sized
+from the context length when the model loads, and that memory is held for as long as the model
+stays loaded, so lowering the context length is the direct way to free it. The table below shows
+what the cache costs on a <b>35B MoE model</b> with <b>q8_0</b> KV, where 10 of its 40 layers
+carry a KV cache and the model is a hybrid with a recurrent state. The recurrent buffer is a
+<b>fixed 251 MiB</b> that does not grow with the context, so only the KV part scales with it, and
+the total column includes that fixed buffer:</p>
+<table>
+	<tr><th>Context</th><th>KV cache</th><th>Total cache VRAM</th></tr>
+	<tr><td>32k</td><td>0.33 GiB</td><td>0.58 GiB</td></tr>
+	<tr><td>128k</td><td>1.33 GiB</td><td>1.57 GiB</td></tr>
+	<tr><td>262k</td><td>2.66 GiB</td><td>2.90 GiB</td></tr>
+</table>
+<p>Those figures are for <b>q8_0</b> KV; at <b>f16</b> the KV figure doubles, so the same model at
+262k would need roughly 5.3 GiB of KV cache alone - which is why the context length is the first
+thing to lower on a card that cannot hold it.</p>
+
+<h2 id="backends">GPU backends and drop-in packs</h2>
+<p>The base download ships the <b>CPU</b> and <b>Vulkan</b> backends. A pack is installed on top
+of an existing install: extract it into the app folder, which adds the backend's libraries next
+to the runtime and registers it in <code>runtime/&lt;version&gt;/packs/</code>. The app picks the
+pack up the next time it starts; installed backends are listed in <b>Runtime Status</b> and are
+checksum-verified like the rest of the runtime. If a pack is incomplete, the app reports it and
+the base runtime still starts. The pack archives are re-cut for the <code>runtime/</code> layout:
+a pack built for the older <code>llama/</code> layout is not found by this version.</p>
+<p><b>Local runtime backend</b> chooses what to run on. <b>auto</b> picks the best available
+device in the order CUDA, ROCm, Vulkan, CPU, and only <b>auto</b> falls through to the next
+backend when one is unusable. Choosing <b>cpu</b> forces everything onto the processor, which
+is useful to compare speed or when a GPU driver misbehaves. Choosing a named backend is
+<b>strict</b>: it is used exactly as picked, and when it cannot start - the pack is not
+installed, or no matching device was detected - the start fails and says precisely what is
+missing: what is installed, what devices were detected, the device probe's own error output
+(which names the library that failed to load), and for a ROCm pack on Windows whether the
+pack's HIP SDK generation can work on that operating system at all. Whatever the choice, the
+device probe and the selection are always logged to the
+console, so a start that ends on the "wrong" backend can be diagnosed from the log alone. A
+start that runs out of GPU memory while loading is retried once with fewer GPU layers (derived
+from what the failed load itself reported) and says so in the status line; any other failure is
+shown as a hard error that includes llama-server's own output, because silently dropping to the
+CPU would trade a fast runtime for an unusably slow one.</p>
+
+<h3 id="cuda-pack">The CUDA pack (Windows, NVIDIA)</h3>
+<p><b>CUDA</b> is the fastest option on an NVIDIA card and is available as a separate download
+for Windows. It is <b>fully self-contained and offline</b>: the CUDA runtime libraries are inside
+the pack, so no CUDA Toolkit install is required - only a normal NVIDIA driver. It adds four
+files and one descriptor:</p>
+<pre><code>runtime/b10964/win-x64/ggml-cuda.dll
+runtime/b10964/win-x64/cublas64_12.dll
+runtime/b10964/win-x64/cublasLt64_12.dll
+runtime/b10964/win-x64/cudart64_12.dll
+runtime/b10964/packs/cuda.json</code></pre>
+<p>Extract the archive into the SLR Translator folder - the app folder that holds
+<code>runtime/</code>, not <code>data/llama/models/</code> - so the files land beside the existing
+<code>runtime</code> folder. Restart the app, then set <b>Local runtime backend</b> to
+<code>auto</code> or <code>cuda</code> and press <b>Start / Use Local Runtime</b>. Nothing else
+is overwritten, and removing the pack is just deleting those five files. The download is about
+300 MB and unpacks to roughly 1.1 GB, most of which is the CUDA kernels
+(<code>ggml-cuda.dll</code>) and NVIDIA's <code>cublasLt</code> library - there is nothing
+removable in there without rebuilding the runtime.</p>
+<p>It is built from the pinned llama.cpp release with
+<code>node dev/fetch-llama-runtime.js --tag b10964 --platform win --backend cuda --pack</code>,
+which downloads the backend build plus the separate CUDA runtime archive and keeps only the four
+libraries the backend actually links against.</p>
+
+<h3 id="rocm-and-linux">CUDA on Linux, and ROCm</h3>
+<p><b>CUDA on Linux is available as a pack too.</b> Unlike the Windows pack it cannot be
+assembled from llama.cpp's release downloads - upstream publishes no Linux CUDA build - so it is
+built from the pinned source with the CUDA Toolkit and shipped as a drop-in pack. It is
+<b>fully self-contained and offline</b>: it carries the CUDA runtime libraries
+(<code>libcudart</code>, <code>libcublas</code>, <code>libcublasLt</code>), so no CUDA Toolkit
+installation is needed, only the normal NVIDIA driver (which provides <code>libcuda.so.1</code>).
+It adds:</p>
+<pre><code>runtime/b10964/linux-x64/libggml-cuda.so
+runtime/b10964/linux-x64/libcudart.so.12
+runtime/b10964/linux-x64/libcublas.so.12
+runtime/b10964/linux-x64/libcublasLt.so.12
+runtime/b10964/packs/cuda.json</code></pre>
+<p>It is compiled for sm_75 (GTX 16xx / RTX 20xx), sm_80 (A100), sm_86 (RTX 30xx), sm_89
+(RTX 40xx) and sm_90 (H100), with PTX for sm_90 included so that newer cards still work - they
+JIT-compile the kernels on first use, which costs some time on the first run. Install it the same
+way as the other packs, then set <b>Local runtime backend</b> to <code>auto</code> or
+<code>cuda</code>.</p>
+<p>The <b>ROCm pack</b> adds llama.cpp's HIP backend for AMD Radeon RX 5000 series and newer, on
+both Windows and Linux. Unlike the CUDA pack it is <b>not self-contained</b>, and it is important
+to understand why: upstream ships only llama.cpp's own <code>ggml-hip</code> library, not the
+ROCm libraries it depends on (<code>hipblas</code>, <code>rocblas</code>, and on Linux
+<code>libamdhip64</code>). Those come from ROCm itself and cannot be redistributed with the app.
+So the ROCm pack is a <b>"bring your own ROCm"</b> pack: install ROCm first, then the pack gives
+you the backend.</p>
+<p><b>On Windows there are two ROCm packs, and you choose by operating system.</b> Both are
+built from the same llama.cpp source; they differ only in which ROCm generation they link
+against. The AMD <b>HIP SDK</b> is required either way, and it is a single offline installer
+(<code>AMD-Software-PRO-Edition-&lt;version&gt;-For-HIP.exe</code>), so a machine that never
+touches the internet can be set up from a copied file.</p>
+<ul>
+<li><b>Windows 10:</b> use the <b>ROCm 6 pack</b>, which needs <b>HIP SDK 6.4.2</b>
+(<code>AMD-Software-PRO-Edition-25.Q3-Win10-Win11-For-HIP.exe</code>). This is the newest HIP
+SDK AMD ships for Windows 10, and it is the only one that can work there.</li>
+<li><b>Windows 11:</b> either pack works. The <b>ROCm 7 pack</b> needs HIP SDK 7.1.1 or 7.2;
+the <b>ROCm 6 pack</b> needs 6.4.2.</li>
+</ul>
+<p><b>Install only one.</b> Both packs use the same file names (<code>ggml-hip.dll</code> and
+<code>packs/rocm.json</code>), so extracting one over the other replaces it cleanly. Mixing them
+is not possible and not needed.</p>
+<p>Both packs are deliberately <b>not self-contained</b>: they bundle the HIP runtime and its
+compiler companion, but the BLAS libraries they need (<code>hipblas</code>,
+<code>rocblas</code>, <code>hipblaslt</code>) come from the HIP SDK's own <code>bin</code>
+folder, exactly as llama.cpp's own ROCm release builds work. The runtime files inside a pack are
+internally consistent, and mixing a pack with the other generation's SDK is what breaks, because
+the support libraries have to match the runtime. On Windows the SDK installer does not put its
+<code>bin</code> folder on the <code>PATH</code>, so even a default install is not found on its
+own - but there is usually nothing to configure: when the ROCm pack is installed yet no ROCm
+device is found, the runtime probes the standard install location
+(<code>C:\Program Files\AMD\ROCm\&lt;version&gt;\bin</code>) and, if a usable SDK lives there,
+uses it for the device probe and the server on its own, logging the folder it adopted. Point
+<b>Local runtime extra library folder</b> at the SDK's <code>bin</code> folder (or add it to
+the system <code>PATH</code> yourself and restart the app) only when the SDK lives somewhere
+nonstandard.</p>
+<p>Installing a ROCm pack without the matching SDK is harmless on <b>auto</b>: no ROCm device
+is reported, and the runtime stays on Vulkan or CPU. With <code>rocm</code> explicitly selected
+the start fails and names the reason - the pack reports no device, so the error lists what was
+detected instead - which is exactly the report needed to fix the SDK installation. For most AMD
+users <b>Vulkan remains the simpler choice</b>, since it is included and needs nothing
+installed.</p>
+<p><b>On Linux</b> you need ROCm 7.x (the pack links <code>libamdhip64.so.7</code>,
+<code>libhipblas.so.3</code> and <code>librocblas.so.5</code>). Most distributions package ROCm;
+prefer those if available. If yours does not, AMD publishes a <b>runfile installer</b> that works
+without a native package manager and installs fully offline once built
+(<code>github.com/ROCm/rocm-installer-runfile</code>). Only its <code>rocm</code> component is
+needed - the <code>amdgpu</code> kernel driver is already provided by your distribution's kernel
+in the normal case - and it can install to a custom folder, including one in your home directory:</p>
+<pre><code>bash rocm-installer.run deps=install target="$HOME/myrocm" gfx=&lt;your-arch&gt; rocm</code></pre>
+<p>Note that AMD's runfile installer lists Ubuntu, Debian, RHEL, Oracle, Rocky, Amazon Linux and
+SLES - <b>not Arch or EndeavourOS</b>. On those, use the distribution's own ROCm packages (they can
+be fetched once and installed offline with <code>pacman -U</code>), provided they are version 7.x.
+A ROCm newer or older than 7.x will not satisfy the pack's libraries.</p>
+<p>With ROCm installed system-wide there is nothing else to configure. With a custom folder, put
+that folder's <code>lib</code> directory in <b>Local runtime extra library folder</b> (for the
+example above, <code>/home/you/myrocm/lib</code>).</p>
+<p><b>Local runtime extra library folder</b> is prepended to <code>LD_LIBRARY_PATH</code> on
+Linux and <code>PATH</code> on Windows when llama-server is launched, so that folder's copy of a
+library wins over any system one. On Linux the distribution's ROCm packages are found without
+it: the folder matters there only for a custom install location (AMD's runfile installer accepts
+<code>target=&lt;directory&gt;</code>), where you point it at the install's <code>lib</code>
+subdirectory. On Windows it is the fallback for making the HIP SDK findable: the runtime probes
+the SDK's standard install location on its own (see the pack requirements above), so the field
+is only needed when the SDK lives somewhere else. A folder that does not exist is refused when you press
+<b>Start</b>, so a typo is reported at once instead of showing up later as "no GPU found". If the
+ROCm libraries cannot be loaded at all, no ROCm device is reported: on <b>auto</b> the runtime
+stays on Vulkan or CPU, and with <code>rocm</code> explicitly selected the start fails with the
+detection details - so installing the pack without ROCm is harmless on auto, just
+ineffective.</p>
+<p>For most AMD users <b>Vulkan is still the simpler choice</b>: it is included, needs nothing
+installed, and is usually close enough. The ROCm pack exists for people who want the HIP backend
+specifically.</p>
+
+<h3 id="linux-requirements">Linux system requirements</h3>
+<p>The app and the bundled CPU/Vulkan runtime need <b>glibc 2.34</b> or newer, which every current
+distribution provides: Ubuntu 22.04 LTS and newer, Debian 12 and newer, and any rolling release
+such as Arch or EndeavourOS. Vulkan additionally needs the distribution's Vulkan loader
+(<code>libvulkan1</code> on Debian/Ubuntu, <code>vulkan-icd-loader</code> on Arch) plus your
+GPU's Vulkan driver.</p>
+<p>The Linux <b>GPU packs</b> (CUDA and ROCm) need <b>glibc 2.38</b>, because they were built on
+newer systems - upstream builds the ROCm backend on Ubuntu 24.04, and the CUDA pack was built on
+a current Arch system. That means <b>Ubuntu 24.04 LTS or newer, Debian 13 or newer, or a rolling
+release</b>. On Ubuntu 22.04 and Debian 12 the app itself runs fine, but the GPU packs will not
+load; those systems should use Vulkan. glibc is only forward-compatible - a binary built against
+a newer glibc will not run on an older one - so this is a build-environment floor, not a
+limitation of the hardware.</p>
+
+<h2 id="offload">Device placement and MoE models</h2>
+<p><b>GPU layers</b>, a per-model field in the Models panel, controls how many of the selected
+model's layers live in VRAM (llama.cpp's <code>-ngl</code>). <b>auto</b> lets llama.cpp fit as
+many as it can. A number sets
+an exact count, which is how you <b>partially offload</b> a model that does not fit: the layers
+that fit stay on the GPU and the rest are computed on the CPU. <b>0</b> keeps the whole model on
+the CPU. If a model is larger than your VRAM, lower this until it starts, then watch the
+throughput line in <b>Runtime Status</b> to find the best split.</p>
+<p><b>Local runtime VRAM headroom (MiB)</b> is a <b>General setting</b> (it applies to every
+model) that tells llama.cpp how much VRAM to leave free on the GPU when it works out how many
+layers to place (<code>--fit-target</code>). The engine's own default is <b>1024</b> MiB; the app
+ships <b>512</b> so that more of the model lands on the GPU. The trade-off is direct: a smaller
+margin means more model in VRAM, which is faster, but less room for the rest of the desktop. On
+Windows the display compositor and other GPU apps use VRAM continuously, so a margin that is too
+small can cause an out-of-memory crash. <b>0</b> is allowed and lets the engine use every last
+MiB; that is the riskiest setting on a card shared with a display, because it can OOM. The option
+does nothing without a GPU - it is visible but inert on the CPU path, where the flag is never sent
+- and it only has an effect when <b>GPU layers</b> is <b>auto</b>: an exact layer count leaves
+fit nothing to adjust.</p>
+
+<p>Large <b>Mixture-of-Experts</b> (MoE) models such as a 26B A4B are handled with two dedicated
+per-model settings. <b>All MoE experts on CPU</b> keeps every expert weight in system RAM
+while the rest of the model still uses the GPU - the usual way to run a big MoE on a small card,
+because the attention and shared layers (used by every token) sit in VRAM while the expert
+weights (only a few are used per token) stay on the CPU. <b>MoE layers on CPU</b>
+is the finer-grained version: it keeps the experts of the first N layers on the CPU and leaves
+the rest on the GPU, so you can raise N until the model fits. Both are ignored for ordinary
+dense models.</p>
+<p><b>MoE GPU cache (MiB)</b> is the third of the MoE placement settings, and it exists to win
+back some of the speed that keeping experts on the CPU costs (llama.cpp
+<code>--moe-cache-mib</code>). It reserves a cache of the given size in VRAM where the expert
+weights that fire most often are mirrored, so their rows are not re-read from system RAM for
+every token. It only does anything while experts are actually on the CPU (through either of the
+two settings above); on a dense model, or with all experts in VRAM, it is ignored. Leave it empty
+or <b>0</b> to keep the cache off, which is the default. With several GPUs the cache is divided
+between them like the layers themselves (see <b>Tensor split</b> below). A reasonable starting
+value is a few GiB (2048-4096) on a card that still has room after the model's layers are
+placed; watch the token rate in Runtime Status to judge whether it pays off.</p>
+<p>The remaining placement settings are per model too, for multi-GPU machines and unusual layouts.
+<b>Split mode</b> chooses how the model is divided across cards
+(<code>none</code> uses a single GPU, <code>layer</code>, <code>row</code>, or <code>tensor</code>,
+which also splits the KV cache). <b>Tensor split</b> sets the proportions, for
+example <code>0.7,0.3</code> for two cards. <b>Main GPU index</b> selects the main
+device. <b>Tensor overrides</b> is an advanced escape hatch that forces matching
+tensors into a chosen buffer, for example <code>exps=CPU</code> to put every expert tensor in
+system RAM. All of these default to "let llama.cpp decide", so an untouched card behaves exactly
+as it did before these options existed.</p>
+
+<h3 id="expert-count">How many experts are used per token</h3>
+<p><b>Experts used per token</b>, a per-model field in the Models panel, changes how many
+experts a MoE model activates for each token. Lowering it below the model's own value is the real
+speed lever for large MoE models.
+Measured on a 26B A4B (Gemma 4, 128 experts, 8 activated per token) on the CPU: <b>3 experts gave
+about 26% faster generation and 44% faster prompt processing, and 2 experts about 33% and 56%</b>.
+Quality drops as you go lower, so treat the model's own value as the safe default and lower it
+only as far as you are happy with the output. Leave it empty to use the model's own value.</p>
+<p>This is applied as a llama.cpp <i>metadata override</i>, and there is one important detail:
+the override key carries the model's architecture. It is <code>gemma4.expert_used_count</code>
+for a Gemma 4 model, <code>llama.expert_used_count</code> only for a model whose architecture is
+literally <code>llama</code>, and so on. The generic <code>llama.expert_used_count</code> shown in
+most tutorials is <b>silently ignored</b> for any other architecture - the server starts normally
+and the expert count simply does not change. The runtime reads the architecture from the model
+file itself and builds the right key, so you only enter the number.</p>
+<p>The runtime also reads the model's expert counts and refuses a value larger than the model has,
+and refuses the setting entirely on an ordinary dense model, rather than passing something that
+would be quietly ignored. Press <b>Model Info</b> in the Bundled Local Runtime card to see the
+selected model's architecture, how many experts it activates per token and how many it has in
+total. When an override is active the status line reports it as
+<code>Experts used: 3 of 128 per token</code>.</p>
+
+<h2 id="models">Models and speculative decoding</h2>
+<p>Any GGUF chat model works. DFlash and DSpark draft models can speed up generation by
+several times, an MTP head gives a smaller speculative boost, and a vision projector
+(an <code>mmproj</code> file) adds image support. All of them are found for you: the runtime
+reads each GGUF's <b>own file content</b>, so a draft, MTP head or projector sitting in
+<code>data/llama/models/</code> is recognised by what is inside the file and paired
+automatically with the target model it belongs to. A normal setup needs nothing configured;
+the runtime rebuilds each model's own server arguments from the detected pairings on every
+start.</p>
+<table>
+	<tr><th>File</th><th>What it is, and how the runtime detects it</th></tr>
+	<tr>
+		<td>DFlash / DSpark draft</td>
+		<td>Both declare <code>general.architecture = dflash</code>. The flavor is read from the
+		file's own keys: a DSpark draft sets <code>dflash.sample_from_anchor</code> and
+		<code>dflash.has_confidence_head</code>, while a DFlash draft has them false or absent.
+		When the keys are inconclusive the model name is used to corroborate the flavor.</td>
+	</tr>
+	<tr>
+		<td>MTP head, external file</td>
+		<td>Declares a <code>&lt;arch&gt;.nextn_predict_layers</code> count, like a full model,
+		but carries far fewer tensors than a complete model would - fewer than two tensors per
+		declared block, against nine or more per block for a full model. A head released under
+		its own <b>assistant architecture</b> (the Gemma&nbsp;4 heads declare
+		<code>gemma4-assistant</code>) is recognised from the architecture alone: it reports its
+		own small block count with a healthy tensor-per-block ratio, so the ratio cannot
+		separate it from a real model. It is used as the target's draft file.</td>
+	</tr>
+	<tr>
+		<td>MTP head, built into the model</td>
+		<td>The same <code>nextn_predict_layers</code> marker on a structurally complete model,
+		so the target model itself carries the head. No separate file is needed; the runtime
+		uses the model's own MTP heads.</td>
+	</tr>
+	<tr>
+		<td>Vision projector (<code>mmproj</code>)</td>
+		<td>The file declares <code>general.type = mmproj</code> (a <code>clip</code>
+		architecture with a vision encoder is detected the same way). It is paired with its
+		target and passed to that model's own server as <code>--mmproj</code>.</td>
+	</tr>
+</table>
+<p>Pairing is done from content, not file names. A DFlash/DSpark draft records the target
+layers it reads in <code>dflash.target_layers</code>, so it is paired with the model in the same
+folder whose layer count and embedding length match. An MTP head under its own
+<code>&lt;family&gt;-assistant</code> architecture is considered for models of that family
+whatever its embedding length (a head like that carries its own, smaller one); a head sharing
+the model's architecture must additionally have an <b>equal embedding length</b>. Among the
+eligible models the best match is picked by name - the release's own name inside the file and
+the file name both count, so a head shipped next to its model in the same quantization wins.
+A projector is matched by its basename, to the <b>only model in the folder</b> when there is
+no name to match, or by the release tokens it shares with a model's file name; a projector
+that shares no token with a model never claims it. When several heads or projectors are
+equally plausible for one model, <b>Auto</b> says so instead of guessing - pick the file
+explicitly in that model's settings.</p>
+<p><code>data/llama/drafts.json</code> is <b>optional</b>. An entry there <b>overrides</b> what
+was detected for that one target, which is useful when a folder holds several similar models
+and you want to force a particular pairing. Most setups do not need the file at all.</p>
+<pre><code>{
+  "Qwen3-4B-Q4_K_M.gguf": {
+    "draft": "Qwen3-4B-DFlash-Q4_K_M.gguf",
+    "specType": "draft-dflash",
+    "specDraftNMax": 2
+  }
+}</code></pre>
+<p>In an override, <code>specType</code> is <code>draft-dflash</code>, <code>draft-dspark</code>
+or <code>draft-mtp</code>, and <code>draft</code> names a GGUF in the same
+<code>data/llama/models/</code> folder; draft and target must come from the same model family.
+If the draft file is missing, the entry is ignored and the target still loads on its own. The
+pinned engine has no <code>--spec-draft-conf-min</code> knob, so the runtime never passes that
+flag to a model's server.</p>
+<p>The two draft token counts can also be tuned from the UI, so editing
+<code>drafts.json</code> is not required: <b>Max draft tokens</b> and <b>Min draft tokens</b> are
+per-model fields in the <a href="#per-model">Models panel</a>, and default to <b>2</b> and
+<b>0</b>. They apply whenever speculative decoding is active for the selected target - a paired
+draft model, or the model's own <b>built-in MTP head</b>; they are ignored otherwise. A built-in
+head also gets the same recommended default of <b>2</b> as an automatically detected draft,
+instead of llama.cpp's own default of <b>3</b>, and the status line reports the bounds it is
+running under. The max is how many tokens the
+draft proposes per speculative step, and higher values are frequently <b>slower</b>, not
+faster: the target model must verify every proposed token, so each extra token adds work for a
+diminishing chance of a full acceptance. Measured on the bundled runtime, 2 was the fastest and
+values above about 3 were slower than running with no speculation at all. The draft's trained
+block size caps the max. Clearing a field (leaving it empty) falls back to the pairing's own
+value: the <code>specDraftNMax</code> from an explicit <code>data/llama/drafts.json</code> entry,
+or the default <b>2</b> used for an automatically detected draft.</p>
+<p>A separate draft file, a separate MTP head file and a projector are never listed as selectable
+models: each only runs together with its target, so detecting a pairing hides it from the model
+picker. An MTP head that is <b>built into</b> the model is different: it is part of the model
+file itself, not a separate file, so that model stays selectable and it is the entry you pick to
+use the built-in head. Use
+<b>Local runtime model</b> to choose
+which GGUF the bundled runtime serves; the list fills in automatically, and
+<b>Refresh Model List</b> is only needed to rescan <code>data/llama/models/</code> after adding
+or removing files. Your choice is remembered in <code>data/llama/selected.json</code>. If a file
+changes or is removed, a paired model is preferred and otherwise the first model in the list is
+used.</p>
+<p>The <b>Local runtime status</b> line (and the <b>Runtime Status</b> button) reports the
+context size and KV cache type the running server was started with, where the KV cache lives
+(unified or per-slot, in VRAM or system RAM), how the model is placed (<b>Offload:</b> GPU
+layers, MoE placement, split mode and so on), any active expert-count override
+(<b>Experts used:</b>), and whether speculative decoding is configured for
+the selected model - the spec type and, when a separate draft file is used, the draft filename
+and the draft token range (<code>n-max</code> / <code>n-min</code>) - or that no draft is paired.
+Once a speculative run
+has produced tokens it also shows the measured <b>draft acceptance</b> (accepted tokens out of
+draft tokens, as a percentage). Those numbers come from the runtime's Prometheus endpoint, which
+the launcher enables with <code>--metrics</code>. When a draft model is paired, the draft's own
+placement is reported on a separate <b>Draft offload:</b> line; that line appears only when a
+draft is paired, because the <b>Offload:</b> line always names the loaded model. Below both, a
+<b>Fit:</b> line reports the engine's own placement decision in plain wording: how much memory
+the device actually had free, whether the full load fits (and how much spare remains at your
+chosen headroom), and how many layers of the model and its draft were assigned to the GPU. The
+engine measures every candidate placement rather than estimating it, so this line is the
+authoritative answer to why auto chose what it chose. It also spells out the one reading that
+looks like a mistake: even at full assignment, some models keep a small part of their weights in
+host buffers - tensors the GPU backend computes on the CPU - which the <b>Offload:</b> line
+counts under CPU. For MoE models larger than the card, that CPU share is dominated by the
+expert weights - fit keeps the experts in system RAM and assigns every layer anyway, so a large
+assignment count and a large CPU figure belong together. With a manual layer count the line
+still shows the loader's assignment.</p>
+<p>Settings left on <b>auto</b> report what they settled on rather than a bare "auto":
+<code>GPU layers: auto (6.3 GiB on GPU, 12.1 GiB on CPU)</code> is where the model actually
+ended up, and <code>load mode: none (auto)</code> is the mode the runtime chose. The
+<code>(auto)</code> marker is there so a runtime decision is never mistaken for one you made; a
+value you set yourself is shown without it.</p>
+<p>The split is read from llama.cpp's own per-buffer sizes, which it prints at debug verbosity -
+the runtime always asks for that report, so the split is shown whether the layer count was left
+on <b>auto</b> or set by hand. That is also how you verify a manual choice did what you
+expected: force a layer count and read where the weights actually went. The <i>layer count</i>
+llama.cpp also reports is deliberately not used: it counts layer assignment, not tensor
+placement, and a Mixture-of-Experts model can have every layer assigned to the GPU while its
+expert weights sit in the CPU buffer. On a card smaller than the model that reads as "everything
+is on the GPU" when most of it is not, so the buffer sizes are used instead.</p>
+<p>Only the backend's own device buffer counts as VRAM. A buffer named
+<code>&lt;Backend&gt;_Host</code> (for example <code>Vulkan_Host</code>) is system RAM the backend
+can address, not video memory, and is counted as CPU. As a last check the runtime compares the
+figure against the selected card's memory and shows nothing if the split is larger than the card
+could physically hold - so a buffer name it did not expect produces a plain
+<code>GPU layers: auto</code> rather than a wrong number. A start with no GPU has no device
+buffer at all, and the line stays plain for the same reason. The line updates on its own while the Options
+window is open, so the acceptance figure keeps changing as a translation runs; the
+<b>Runtime Status</b> button just forces an immediate recomputation.</p>
+<p>Two <b>advanced</b> speculation fields sit with the draft token counts. <b>Draft probability
+threshold</b> is llama.cpp's <code>--spec-draft-p-min</code>: a drafted token whose probability
+is below the threshold is dropped before it is verified. <b>0</b> disables the check and is the
+usual setting; leave it empty to keep the flag off entirely. <b>Draft KV cache type</b> is the
+KV cache type for the <b>draft model</b>, and it is one choice applied to <b>both</b> the draft
+K and draft V cache (the runtime passes the one value as both <code>--spec-draft-type-k</code>
+and <code>--spec-draft-type-v</code>), so it does not offer independent sides the way the target
+model's K and V fields do. <b>Default</b> leaves it to the runtime. The probability threshold
+applies to any active speculation - a paired draft model or the model's built-in MTP head alike
+(the head's own drafting loop reads it); the draft KV cache type applies only when a draft
+model is paired, because a built-in head has no separate cache of its own.</p>
+<p>Four <b>per-model</b> fields in the Models panel control where a paired draft is placed.
+<b>Draft GPU layers</b> is how many of the draft's layers are kept in VRAM
+(llama.cpp <code>--spec-draft-ngl</code>): <b>auto</b> (the shipped default) lets llama.cpp fit as
+many as it can, a number sets an exact count, and <b>0</b> keeps the whole draft on the CPU - the
+field's hint reports how many layers the paired draft actually has, so a manual count has a
+reference. <b>Draft: all MoE experts on CPU</b> keeps every expert weight of an MoE draft in
+system RAM (<code>--spec-draft-cpu-moe</code>), and <b>Draft MoE layers on CPU</b>
+keeps only the experts of the draft's first N layers there
+(<code>--spec-draft-n-cpu-moe</code>); as on the target model, the broader switch wins if both are
+set. <b>Draft physical batch size</b> sets how many tokens the draft processes in one compute
+step (<code>--spec-draft-n-ubatch</code>); leave it empty (the default) to use the same value as
+the model's own physical batch size, or set a smaller number to trim the draft's VRAM use when
+it competes with the main model for a card that is already full. All four apply <b>only</b>
+when that model has a paired draft model - without one
+they are ignored, and a <b>built-in MTP head needs none of them</b>: it is part of the model
+file and follows the model's own GPU layers. They are stored per model (like the draft token counts beside them), because a
+draft layer count only means something relative to the model whose draft it is; before these
+fields existed the app had <b>no</b> draft-offload setting at all, so the draft's placement was
+entirely llama.cpp's own choice. The <b>Local runtime VRAM headroom
+(MiB)</b> setting (see <a href="#offload">Device placement and MoE models</a>) governs <b>both</b>
+the model and its draft, because the engine has no separate margin for the draft; setting an exact
+<b>draft GPU layers</b> value overrides the engine's automatic choice for the draft.</p>
+<p>While the runtime is working the same line also reports what it is doing. The model's load
+state appears while the GGUF is being read (<code>Model state: loading into memory...</code>).
+During prompt processing it shows how much of the prompt has been read and how long it has been
+reading it (<code>Processing prompt: 25% (512 / 2048 tokens) - 12s so far</code>), and while text
+is being generated it shows a live count (<code>Generating: 37 tokens (59 left)</code>).</p>
+<p>The prompt percentage is the runtime's own "tokens processed" against the prompt size, which
+it does report while reading. On a large prompt it advances in steps rather than smoothly, so the
+figure can sit still for a moment and then jump; the elapsed time next to it keeps moving and is
+the better guide during a long wait. Prompt processing happens before any translated text
+appears, so a long wait is normal on a slow machine.</p>
+<p>Two measured figures are reported as well. <b>Throughput</b> is the tokens per second for
+generation and for prompt processing; while the runtime is working it is the live rate, and once
+it goes idle the line switches to <code>Throughput (average)</code> taken from the runtime's
+cumulative counters. That distinction exists because the server's instantaneous rate gauges are
+zeroed the moment a slot goes idle - on their own they would show a figure for about a second and
+then read 0, which is why the average is used instead of showing nothing.
+<b>Prompt cache reuse</b> is the share of prompt tokens served from the cache, which is what shows
+whether the KV cache is actually saving work; it is counted cumulatively and so stays stable.</p>
+
+<h2 id="per-model">Per-model settings and role assignment</h2>
+<p>The Bundled Local Runtime card has a <b>Models panel</b> that edits the runtime settings
+<b>one model at a time</b>, opening with a <b>Per-model settings for &lt;model&gt;</b> line.
+It shows the selected model's own context length, parallel slots, the separate
+<b>K cache type</b> and <b>V cache type</b>, the logical and physical batch sizes, GPU layers,
+the two MoE-on-CPU options, load mode, split mode, tensor split, main
+GPU index, tensor overrides, experts used per token, the draft token max/min, the draft's own
+placement (<b>Draft GPU layers</b> and the two draft MoE-on-CPU fields, with the paired draft's
+layer count in the hint), and the two
+advanced speculation fields (draft probability threshold and draft KV cache type). Every one of
+these is <b>saved per model</b>, keyed by the GGUF file name, so a second model keeps its own
+values and changing one model never disturbs another. The values are written into the runtime
+when it starts with that model, and a field left empty stays at that setting's default. Each
+field also explains the model's own limits (layers, experts, trained context) and the effective
+value that applies when the field is left empty, so the model's numbers are visible without
+setting anything. The
+settings that used to be one shared set on the card - context length, KV cache quantization, GPU
+layers, the MoE placement options, load mode, split, tensor options, the expert count and the
+draft token counts - now all live here, per model. The rest of the card (backend, port, CPU
+threads, unload-after-idle, models kept loaded, model-switch wait, extra library
+folder) is still a single value for the whole runtime, in the <b>General settings</b>
+group.</p>
+<p><b>An invalid per-model value stops the start and says why</b>, instead of being silently
+adjusted. Pressing <b>Start / Use Local Runtime</b> with a context length below <b>512</b> tokens,
+a <b>physical batch size</b> larger than the effective logical batch size, or a <b>draft
+probability threshold</b> outside <b>0-1</b> refuses to start, and the status line names the
+problem. The other per-model numbers are coerced rather than refused: a fractional value in a
+whole-number field is rounded, and an unusable one - a mistyped number, or a batch size of zero
+or less - is cleared when it is stored, so Start is not blocked by them. The console launcher
+and auto-start paths still clamp such values
+quietly, because nobody is watching a status line there.</p>
+<p><b>Parallel slots</b> is one of the per-model fields: it sets llama.cpp's
+<code>--parallel</code> for <b>this model only</b>, the number of requests its server handles at
+once. Left empty, llama.cpp's own default (4) is used. The slots share the model's
+<b>context</b>, so raising the count divides that context between the requests being served
+together - with a context of 32768 and 4 slots, each concurrent request gets roughly 8192 tokens
+of context. Requests beyond the slot count wait in llama.cpp's queue rather than failing, so this
+is a concurrency setting, not a queue-size setting. Raise it only if you send several requests at
+once and have context to spare.</p>
+<p>Each model also has its own <b>Speculative decoding</b> and <b>Vision projector</b> controls,
+next to the settings above. Both offer <b>Auto</b>, <b>Off</b> and any files detected for that
+model:</p>
+<ul>
+<li><b>Speculative decoding</b> - <b>Auto</b> pairs the draft or MTP head detected for this
+model; the auto entry names what was found, for example
+<code>Auto (draft-dspark &middot; MiniCPM5-2B-DSpark-Q8_0.gguf)</code>, or says
+<code>Auto (none detected)</code>. For a model that <b>has a built-in MTP head</b>, the auto
+entry instead reads <code>Auto (built-in MTP head)</code> - such a model is speculation
+<b>active</b> with nothing paired - and a note under the control explains that the model drafts
+for itself, that no separate draft model is needed, and that the draft token fields bound the
+head's proposals. The per-model intro line says it too, so the
+head is visible in the options before the first start. <b>Off</b> disables speculation for this model. Choosing one
+of the listed files forces that draft or head for this model only. When more than one file
+matches the model, a note appears above the control saying so, and picking one explicitly
+settles the choice. If you force a separate head file for a model that <b>already carries its
+own embedded MTP head</b>, a note above the control says the external head is being used
+instead - the model's built-in head is not used while an external one is selected, and clearing
+the choice (back to <b>Auto</b>) returns to the built-in head.</li>
+<li><b>Vision projector</b> - the same three choices for the <code>mmproj</code> file:
+<b>Auto</b> (shown with the detected file, or <code>Auto (none detected)</code>), <b>Off</b>, or
+an explicit projector file. A note appears when several projectors match the model.</li>
+</ul>
+<p>The <b>Role assignment</b> controls underneath point each DSLR role at one of the bundled
+local models. There are four pickers - <b>Main model</b> (the main translation),
+<b>Fallback model</b>, <b>Glossary model</b> and <b>Review model</b> - each listing the detected
+local models plus <b>(not bundled)</b>. Picking a model sets that role's model name and its
+endpoint URL to the bundled runtime in one step, so the role is wired to it without editing the
+endpoint options by hand; picking <b>(not bundled)</b> clears both and leaves the role on
+whatever endpoint the surrounding options set.</p>
+<p><b>Assigning different models to different roles makes the runtime reload on a switch.</b>
+The bundled runtime keeps only <b>one</b> model loaded at a time by default. If the roles point
+at different local models, moving from one role to another
+(for example from Main to Review) makes the runtime <b>unload the current model and load the
+other</b> - a reload can take tens of seconds, and the status line reports the load. The role
+pickers show a reminder when the roles differ and the limit is 1. To keep several models
+resident at once, raise <b>Local runtime models kept loaded</b> above 1 yourself. Each extra
+resident model costs its own VRAM/RAM,
+and on a small GPU a second model can be pushed onto the CPU and run more slowly; see
+<a href="#unloading">Loading and unloading</a>. Leave it at 1 if an occasional reload is cheaper
+than holding two models in memory.</p>
+
+<h2 id="chat-template">Chat template (Jinja)</h2>
+<p>By default the runtime renders the chat with the template <b>built into the model file</b>
+(its <code>tokenizer.chat_template</code> metadata), through llama.cpp's Jinja engine. If a model
+carries no template of its own, llama.cpp falls back to its own built-in template for that
+architecture, which is sometimes outdated - the server says so in its log and there is nothing
+you can do about it from the app.</p>
+<p>The <b>Chat Template</b> button in the Bundled Local Runtime card opens a small window showing
+the template the runtime uses for the selected model. Edit it and press <b>Save</b> to store an
+override, which replaces the model's own template from the next
+<b>Start / Use Local Runtime</b>. <b>Revert to model default</b> deletes the override so the
+model's own template is used again, and <b>Reload from model</b> re-reads the current state. The
+window also tells you what you are looking at: your saved template, the model's own template, or
+that no template is available yet because the runtime has not loaded the model.</p>
+<p>Overrides are stored per model in <code>data/llama/templates/</code>, named after the model
+file, so switching models switches templates with it and the model file itself is never touched.
+The status line reports <code>Chat template: custom (...)</code> when an override is active, and
+<code>Chat template: the model's own</code> when it is not.</p>
+<p>This is the template itself, which is different from the engine's
+<code>chat_template_kwargs</code> option: that one sends per-request values such as
+<code>enable_thinking</code> in the API body and needs no restart. A template that is not valid
+Jinja stops the runtime from starting; the reason appears in the status line, and reverting to
+the model default fixes it.</p>
+
+<h2 id="reasoning">Reasoning and thinking</h2>
+<p><b>Local runtime reasoning</b> is a General setting (it applies to every model) and is
+<b>server-side</b>: it decides whether the bundled <code>llama-server</code> starts a model with
+thinking/reasoning enabled. It has three values:</p>
+<ul>
+<li><b>Off (recommended)</b> - the shipped <b>default</b>. Every model starts without thinking,
+which is what a translation workload wants: the reasoning tokens are not part of the answer and
+only cost time.</li>
+<li><b>Auto</b> - the model's own chat template decides. For a thinking model that usually means
+thinking is <b>on</b> by default.</li>
+<li><b>On</b> - the server asks for thinking where the model supports it.</li>
+</ul>
+<p>The setting is a <b>default, not a lock</b>. A client that asks for nothing gets the server's
+configured default: with the shipped <b>off</b> setting that is the cheaper non-thinking
+behaviour, while <b>auto</b> and <b>on</b> leave a silent request at whatever the model or server
+would otherwise do. A silent request is always forwarded exactly as it was sent. A request that <b>asks</b> for reasoning gets it, <b>whichever client sent it</b>
+(the app's own engine, zcode, kilocode, curl) and <b>whichever model it routed to</b>: the
+request path reads the request's intent and translates it into the channel the served model's
+own chat template actually reads. Asking counts as sending a <code>reasoning_effort</code>
+value, a <code>thinking</code> object with <code>type: "enabled"</code>, a <code>generationConfig.thinkingConfig</code>, or
+<code>chat_template_kwargs.enable_thinking</code> set to <code>true</code>. A request that
+explicitly asks for <b>no</b> reasoning - <code>enable_thinking: false</code>,
+<code>reasoning_effort: "none"</code> or <code>thinking.type: "disabled"</code> - is never given
+any: the explicit refusal wins over everything, so a caller can never be given reasoning it
+tried to prevent.</p>
+<p><b>The effort level is the served model's own business.</b> Whether an effort level exists at
+all, and which values it accepts, is decided by the model's chat template, read from the loaded
+model itself - never guessed from its name or family. Where the model supports an effort level
+and accepts the value, the value is passed through. Where the model does not support one, the
+value is not sent, but reasoning is still requested. Where the template rejects a value
+outright, the request is retried once without it so an answer still arrives.</p>
+<p><b>An effort level is honoured differently depending on which server answers.</b> For the
+bundled runtime the tier is <b>checked</b>: the runtime reads the loaded model's own chat template,
+so it knows whether that model has an effort level at all and which values it accepts, and it
+drops a value the model does not accept rather than letting the template fail. For any other
+local server the tier is <b>forwarded, not checked</b>: the app sends the level in that server's
+own field, as it always did, and whatever that server does with it is that server's decision. In
+both cases the level you pick is sent, or deliberately withheld - what differs is whether anything
+can verify it, not whether it matters.</p>
+<p><b>Two honest limits.</b> When a template's accepted effort values cannot be read from its
+text, one request may be retried without the effort level before an answer arrives - the retry
+is bounded to a single attempt and fires only on the template's own effort rejection, never on a
+request that sent no effort level. And multi-turn reasoning preservation - keeping the reasoning
+from earlier turns so a model can build on it - is <b>passed through</b>: a
+<code>preserve_thinking</code> key set in the engine's <code>chat_template_kwargs</code> option
+reaches the server exactly as sent, on a model whose chat template advertises the capability. What
+is not implemented is the app <b>deciding</b> to add that key on its own - the runtime only
+forwards what the request already carries.</p>
+<p><b>The shared-port workflow is unchanged.</b> The bundled runtime's default loopback port is
+the same one LM Studio uses (<code>1234</code>); any other local server - Ollama, a hand-run
+<code>llama-server</code> - works when it is the one answering that address, so a client can be
+pointed at either without reconfiguration. A local endpoint that is <b>not</b> the bundled
+runtime keeps the behaviour it had before this feature: the engine asks for reasoning in that
+server's own terms. The app tells the two servers apart by <b>probing what the endpoint
+answers</b> - the
+bundled runtime's model list carries a marker no stock server produces - never by its address,
+because the address is identical for both. An endpoint that answers nothing recognisable is
+treated as not the bundled runtime, which is the safe direction: the engine asks for reasoning
+itself rather than silently dropping the ask. On such an endpoint the engine fills in that
+server's own reasoning field from the level you chose - for the reasoning-object and Gemini
+formats that means converting the level to that server's token budget - exactly as it did before
+this feature.</p>
+<p>This is the server-side counterpart to the engine's own <code>chat_template_kwargs</code>
+option documented with the <a href="#chat-template">chat template</a>: that option sends
+per-request values such as <code>enable_thinking</code> in the API body and needs no restart,
+while this one changes the default every model starts with.</p>
+
+<h2 id="unloading">Loading and unloading</h2>
+<p>Models load on first use. By default they then <b>stay loaded</b>, which is llama.cpp's own
+behaviour and the shipped setting: keeping a model resident costs memory but makes every
+following request fast. <b>Local runtime unload after idle (seconds)</b> opts into unloading
+after that many idle seconds; <code>0</code> (or empty) never unloads. Unloading frees memory,
+but the next request has to load the whole model again - tens of seconds, and considerably more
+with <b>Load mode: none</b> - so it is worth setting only when holding a model in memory for
+hours is a problem. <b>Local runtime models kept loaded</b> controls how many models may be
+resident at once and defaults to <b>1</b>. That default matters on a small GPU: a second
+resident model competes for the same VRAM and can be pushed onto the CPU, making it slower than
+if it had loaded on its own.</p>
+<p>While a model is loading, the status line shows
+<code>Model state: loading into memory...</code>; once it is loaded the line goes quiet, because
+a loaded model is the normal state. The status line also reports these server settings as
+<code>Server: ...</code>, and names <code>stays loaded</code> when unloading is off.</p>
+
+<h2 id="switching">Switching models</h2>
+<p>At the default <b>models kept loaded = 1</b>, only one model is resident, so a request that
+needs a <i>different</i> model has to unload the current one first. The runtime does not abort a
+generation that is still running: it lets it finish, then evicts and loads the new model, so the
+answer in flight is completed rather than truncated. <b>Local runtime model-switch wait
+(seconds)</b> is how long that wait may last, and its default is <b>1800</b> (30 minutes), because
+a local model on consumer hardware can be slow. If the generation is still running when the cap is
+reached the runtime logs a warning and evicts anyway, so a switch can never hang forever. Setting
+it to <code>0</code> disables the wait: the model is evicted immediately, which <b>truncates the
+running generation</b>. Leave the field empty to use the 30-minute default. The wait is
+user-visible latency on the new model's request; it is the "slow rather than crash" trade.</p>
+
+<h2 id="placement">Placement, load mode and CPU threads</h2>
+<p>The <b>Offload</b> line of the status output reports GPU layers, MoE placement, split mode
+and, when set, the load mode. Three settings here are worth understanding before changing them.</p>
+<p><b>Local runtime CPU threads</b> sets llama.cpp's <code>--threads</code>. Left empty,
+llama.cpp uses one thread per logical core, which is not always the fastest: on a 6-core /
+12-thread CPU measured with the bundled runtime, generation fell from about 4.6 to 1.3 tokens
+per second at 12 threads. If your CPU has hyperthreading, try the number of <i>physical</i>
+cores. <b>Local runtime CPU threads (prompt)</b> sets <code>--threads-batch</code> separately and
+defaults to the same count, which is llama.cpp's own behaviour.</p>
+<p><b>Load mode</b> (a per-model field in the Models panel) maps to llama.cpp's <code>--load-mode</code>. On
+<code>auto</code> (the default) the file is memory-mapped normally, but the runtime switches to
+<code>none</code> by itself whenever part of the model's weights is computed from system RAM
+while the file is mapped. That combination is the biggest single lever on prompt processing:
+with mmap those weights are read back through the mapped file, and once the operating system
+evicts those pages the read-back hits the disk. Reading them from RAM instead measured
+<b>116 to 198 tokens per second</b> on a Vulkan GPU with a 26B A4B whose experts sat on the
+CPU (generation was unchanged at about 11 tokens per second), and on a dense 12B with 8 of 49
+layers on the CPU, mmap lost about <b>30% of prompt speed</b> under memory pressure while
+<code>none</code> stayed flat - this is not specific to MoE models. A translation run lasts
+hours and the model stays loaded, so the slower load is paid once - which is why this is the
+recommendation rather than something you have to discover.</p>
+<p><code>auto</code> switches to <code>none</code> in these situations, dense or MoE alike:</p>
+<ul>
+<li>An explicit CPU-expert setting (<b>all MoE experts on CPU</b>, <b>MoE layers on CPU</b> or
+a tensor override) on a model that actually has experts. On a dense model those settings move
+nothing, and the load mode is not changed either.</li>
+<li>A <b>GPU layers</b> setting that is a number below the model's full height: those layers
+live in system RAM by design.</li>
+<li>A start that will not fit in the selected GPU's memory, which llama.cpp resolves by
+offloading part of the model on its own. This is the common case for a large model on a small
+card, and nothing in the options reveals it, so the runtime works it out from the model file
+plus its paired draft and projector and an estimate of the KV cache against the card's VRAM.
+A start that only just fits the files counts as not fitting, because the KV cache and compute
+buffers need room too.</li>
+</ul>
+<p>If such a start fails anyway because the GPU ran out of memory during loading, the runtime
+derives a lower GPU layer count from what the failed load itself reported (how much memory it
+needed to free and how the model was placed) and retries once, saying so in the status line; a
+retry that fails too becomes a hard error naming the <b>GPU layers</b> setting to lower.</p>
+<p>Choose <b>mmap</b> to opt out and always memory-map. That is the right choice when the model is
+larger than your free RAM, because <code>none</code> has to hold the whole model in memory while
+mmap can page from disk. Loading with <code>none</code> also takes much longer: a 26B A4B measured
+8 seconds with mmap against 65-158 seconds without. On a pure CPU setup the automatic switch never
+happens, because there is no GPU-resident portion to contend with the mapping and it bought
+nothing there (about 21 tokens per second either way). If you turn idle unloading on, weigh the
+reload time too. <code>mmap+mlock</code> pins the mapped file in RAM; that needs enough free memory
+for the whole model.</p>
+<p><b>All MoE experts on CPU</b> and <b>MoE layers on CPU</b> (both per-model fields in the
+Models panel) are the
+two ways to keep expert weights in system RAM. If both are set, the broader switch wins and the
+layer count is ignored - llama.cpp accepts the pair but lets <code>--cpu-moe</code> take
+precedence - so the runtime writes only the switch in charge rather than the pointless pair.</p>
+
+<h2 id="autostart">Starting automatically when the app opens</h2>
+<p><b>Start local runtime when the app opens</b> is off by default. When it is on, the next time
+SLR Translator starts, the bundled runtime starts by itself with the model and settings of the
+last <b>Start / Use Local Runtime</b> press and reconnects the engine to it, so translation works
+without opening the options. It is off by default because starting a model loads gigabytes into
+memory and takes time, so it should only happen when you asked for it. The setting is remembered
+as soon as the checkbox changes, but it takes effect at the next app start. If the runtime cannot
+start (no models, a broken payload), auto-start does nothing rather than interrupting the app
+with an error.</p>
+
+<h2 id="throughput">Tokens per second in the translation summary</h2>
+<p>After a batch translation finishes, the console prints the quality summary as before and now
+also a throughput line: average <b>tokens per second</b> generated and processed, the token
+totals, and how long the run took. It is an average over the whole run and deliberately includes
+prompt processing, retries and waiting, so it reflects the speed you actually experienced rather
+than a best-case figure. Each individual batch also logs its own tokens/sec line.</p>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>If a GPU backend fails, the runtime retries on CPU and reports it. If translation does not
+start, check <b>Runtime Status</b> for the error, then confirm a GGUF exists in
+<code>data/llama/models/</code>.</p>

@@ -1,0 +1,74 @@
+<h1>Find &amp; Replace</h1>
+
+<p>The Find window searches across every file of the project — the grid itself only shows one file at a time. It can find and replace text, put whole translations, and act on the found rows in bulk.</p>
+
+<h2 id="opening">Opening the Find window</h2>
+
+<ul>
+	<li><kbd>Ctrl+F</kbd> opens it on the <code>Find</code> tab, <kbd>Ctrl+H</kbd> on the <code>Replace</code> tab.</li>
+	<li>The <code>Find</code> toolbar button opens it as well; its side menu can bring an already open Find window back to the front.</li>
+	<li>If text is selected when you open the window, it is pre-filled into the search fields and searched immediately.</li>
+	<li>The window keeps a history of your last keywords (up to 100), offered as suggestions while typing. Its slider menu toggles <code>Always on top</code> and the background <code>Blur opacity</code>.</li>
+</ul>
+
+<p>Inside the window, <kbd>Enter</kbd> runs the command of the visible tab, and <kbd>Alt+Enter</kbd> inserts a line break into the field you are typing in — all five fields accept multi-line text, so you can paste or type a whole multi-line cell to find, replace or translate it as one block. For quick lookups in the file currently loaded in the grid, use the <code>Quick find</code> box in the toolbar instead — it highlights matches live as you type.</p>
+
+<h2 id="find-tab">Find</h2>
+
+<p>Type a keyword and press <kbd>Enter</kbd>. A keyword may span several lines (<kbd>Alt+Enter</kbd>), which finds every cell containing that exact sequence of lines — handy to search for a whole multi-line cell. Options:</p>
+
+<table>
+	<tr><th>Option</th><th>Effect</th></tr>
+	<tr><td><code>Target</code></td><td>Where to search — hold <kbd>Ctrl</kbd> to select several: <code>Grid</code> (all cells of every row), <code>Context</code> (the context addresses of rows), <code>Tag</code> (rows by color tag — the keyword is one or more tag names, space-separated), <code>Comment</code> (cell comments).</td></tr>
+	<tr><td><code>Case sensitive</code></td><td>Match upper and lower case exactly; off by default.</td></tr>
+	<tr><td><code>Transpile \r\n\t</code></td><td>Turn the escape sequences <code>\r</code>, <code>\n</code> and <code>\t</code> in your keyword into real carriage return, newline and tab characters before searching.</td></tr>
+	<tr><td><code>Search all files</code></td><td>Search the whole project. Uncheck it to open a file selector and drag over the files to search; hold <kbd>Shift</kbd> while dragging to unselect.</td></tr>
+	<tr><td><code>RegExp</code></td><td>Treat the keyword as a JavaScript regular expression (see <a href="#find-replace/regexp">regular expression tips</a>).</td></tr>
+</table>
+
+<p>Keywords containing <code>*</code> but not using <code>RegExp</code> are treated as glob patterns (for example <code>*name*</code>).</p>
+
+<p>Results are grouped per file with a count and search time. Click a result to jump to that cell in the grid. Checkboxes in front of the results select rows for bulk actions; <kbd>Shift</kbd>-click checks a range. Each result also shows the row's color tags.</p>
+
+<p>Right-click the results for <code>Select all</code> / <code>Clear selection</code> and <code>With selection...</code>: <code>Set Red/Yellow/Green/Blue/Gold tag</code>, <code>More tags...</code> (append, remove or set any tags — see <a href="#color-tags">Cell Color Tags</a>), <code>Clear tags</code>, <code>Create Automation</code>, <code>Run Automation</code>, <code>Clear translation</code>, and <code>Delete rows</code>.</p>
+
+<h2 id="replace-tab">Replace</h2>
+
+<p>The <code>Replace</code> tab finds a keyword and replaces it with another string in every matching cell. Both fields accept multi-line text (<kbd>Alt+Enter</kbd>), so a whole multi-line cell or a run of lines inside it can be replaced in one go. It shares the case sensitivity, transpile, file-selection and <code>RegExp</code> options with Find.</p>
+
+<ul>
+	<li>Replacement never touches the <code>Original Text</code> column — only translation columns are modified, so the keys that tie rows to the game stay intact.</li>
+	<li>Plain (non-regex) replace replaces every occurrence of the keyword in each matching cell.</li>
+	<li>With <code>RegExp</code>, the replace uses JavaScript semantics: the pattern replaces the first match only unless you add the <code>g</code> flag, and capture groups can be referenced as <code>$1</code>, <code>$2</code>, ... in the replacement.</li>
+</ul>
+
+<div class="note">There is no undo for replace. A confirmation dialog shows exactly what will be replaced with what — read it before confirming, and save the project first so you can fall back to the file on disk.</div>
+
+<p>The result list shows each changed cell before and after; click an entry to jump to it.</p>
+
+<h2 id="put-tab">Put</h2>
+
+<p>The <code>Put</code> tab writes whole translations: enter the original text into <code>Original text</code> (press <kbd>Alt+Enter</kbd> for a new line inside the field), the translation into <code>Text to put</code>, and choose the target column with <code>into:</code> (the original text column is not offered). Existing content in the target column is overwritten after confirmation.</p>
+
+<ul>
+	<li><strong>Single line</strong> — every cell containing that line gets the translation written into the matching line of the target column. Matching is on the whole line, optionally case-sensitive.</li>
+	<li><strong>Several lines</strong> — the lines are matched as one contiguous block, line-aligned, inside the cell. The same run of lines in the target column is replaced by the text to put, so the rest of an already translated cell is kept. Entering the complete original cell therefore rewrites the whole target cell.</li>
+</ul>
+
+<h2 id="regexp">Regular expression tips</h2>
+
+<p>Patterns use JavaScript regular expression syntax. Either write the pattern bare (<code>[0-9]+</code>) or as a literal with flags (<code>/foo/gi</code>). Invalid patterns are reported with no search run. Some patterns that come in handy when translating:</p>
+
+<table>
+	<tr><th>Pattern</th><th>Finds</th></tr>
+	<tr><td><code>[㐀-䶿一-鿿ぁ-ゖァ-ヺ]</code></td><td>Any kanji or kana — run it over your translation columns to find texts that were left (or came back) untranslated. Case-insensitive does not apply; no flags needed.</td></tr>
+	<tr><td><code>/\\c\[\d+\]/</code></td><td>RPG Maker color codes such as <code>\c[3]</code> — useful to check that control codes survived the translation.</td></tr>
+	<tr><td><code>/ {2,}/g</code> as Find with <code> </code> (a single space) as Replace</td><td>Collapses runs of multiple spaces into one across all translation cells.</td></tr>
+</table>
+
+<h2 id="searching-by-tag">Searching by color tag</h2>
+
+<p>Set <code>Target</code> to <code>Tag</code> to search by tag instead of text: the keyword is one or more tag names separated by spaces, and every row carrying any of those tags is returned. Combine this with the bulk tag actions to review or re-classify rows — for example, find all <code>purple</code> rows after a batch run and re-translate them, or <code>mediumpurple</code> for the DSLR review's findings.</p>
+
+<p><img src="../img/searchbytag.png" alt="Find window searching by color tag" /></p>
+<p><em>Searching with Target: Tag — the keyword is the tag name.</em></p>

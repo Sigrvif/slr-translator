@@ -1,0 +1,40 @@
+<h1>Script Editor</h1>
+
+<p>The Script Editor is the built-in JavaScript editing window, used wherever SLR Translator needs a small piece of custom code from you. In practice it edits <em>project hooks</em> — snippets stored inside a project and executed by the application at defined moments. The same editor window, extended with run and file toolbars, also powers the <a href="#automation-editor">Automation Editor</a>.</p>
+
+<h2 id="opening">Opening it</h2>
+
+<p>The hook editor is reached from the project properties: open <code>More Tools</code> → <code>Project Properties</code>, open the <code>Advanced</code> tab, and under <code>Hooks</code> press <code>Edit function</code> next to <code>On after export</code>.</p>
+
+<h2 id="editing">Editing</h2>
+
+<ul>
+	<li>The editor is an Ace instance with JavaScript syntax checking and live autocompletion; script output and errors go to the developer console (the bug button opens DevTools on SDK builds).</li>
+	<li>The line above and below the editor show that your code becomes the body of an <code>async function</code> called with a <code>this</code> object. Clicking the highlighted <code>this</code> under the editor opens a reference popup listing the properties available on it; entries can be clicked to insert them at the cursor.</li>
+	<li><kbd>Ctrl</kbd>+mouse wheel changes the font size; <kbd>F11</kbd> toggles maximized window state; <kbd>Ctrl</kbd>+<kbd>S</kbd> saves.</li>
+	<li>If the editor is opened without a save handler it switches to read-only mode and hides the file toolbar.</li>
+</ul>
+
+<div class="note">The legacy <kbd>F1</kbd> help entry of the old editor no longer exists; a help button only appears when the caller provides a help page, and project hooks do not.</div>
+
+<h2 id="saving-and-persistence">Saving and persistence</h2>
+
+<p><code>Save</code> does not write a file — it hands the code back to the caller, which stores it inside the project (<code>options.hooks.afterExport</code>). The hook is therefore saved and reloaded together with the project file. There is no <code>Run</code> button here: hook scripts are executed by the application, not on demand from the editor.</p>
+
+<h2 id="the-on-after-export-hook">The “On after export” hook</h2>
+
+<ul>
+	<li>Runs automatically after this project has been exported successfully — regardless of whether the export went to a folder, a zip, or through an engine's own export routine.</li>
+	<li>Before anything happens, a warning dialog asks for confirmation: the script is user code that is not part of SLR Translator, and it runs with the full access of the application. Canceling skips the hook for that export.</li>
+	<li>The code runs as the body of an async function: <code>this</code> is the global project object (the same one exposed to automations), and the first argument is the export options object of the run that just finished.</li>
+	<li>All application APIs are in scope — the project and its files, the UI layer, <code>common</code> helpers and Node's <code>require</code>. A typical use is post-processing the exported patch, but nothing stops a hook from doing anything else.</li>
+</ul>
+
+<div class="note">Because hook scripts are plain JavaScript with full access, only keep hooks in a project that you wrote yourself or fully trust — the confirmation dialog is the last line of defense.</div>
+
+<h2 id="related">Related</h2>
+
+<ul>
+	<li><a href="#automation-editor">Automation Editor</a> — the same editor window in automation mode, for scripts that iterate over files, rows or cells of the open project.</li>
+	<li><a href="#custom-parsers">Custom Parsers &amp; Model Creator</a> — JavaScript rules that run while parsing files into a project, rather than after export.</li>
+</ul>

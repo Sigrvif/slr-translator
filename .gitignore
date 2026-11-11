@@ -1,0 +1,35 @@
+# --- NW.js / Chromium runtime (re-download from https://nwjs.io — see README.md) ---
+/nw
+/crashpad_handler
+/lib/
+/locales/
+/swiftshader/
+/icudtl.dat
+/resources.pak
+/nw_100_percent.pak
+/nw_200_percent.pak
+/v8_context_snapshot.bin
+/credits.html
+
+# --- Bundled interpreters and engine payloads (upstream distributions; see README.md) ---
+/php/
+/ruby/
+/runtime/
+
+# --- npm installs (regenerated with npm install; the one directly-edited
+#     vendored package is kept — see the exception below) ---
+/node_modules/
+www/core/*/node_modules/*
+!www/core/SLRtrans/node_modules/mtl-text-processor/
+
+# --- OCR models: large upstream downloads (provenance and license texts
+#     beside them ARE tracked) ---
+www/core/SEP/models/*.onnx
+
+# --- Runtime state (created at first boot) ---
+data/logs/
+data/config.json
+data/profile/
+data/llama/models/
+data/llama/slots/
+www/php/cache/

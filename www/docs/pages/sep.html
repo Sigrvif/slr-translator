@@ -1,0 +1,105 @@
+<h1>SEP Picture Translation</h1>
+
+<p>SEP turns pictures into a translation project. It scans image files with on-device OCR, turns every detected text box into a normal translatable row, and — when you export or inject — erases the original text on each image and draws your translation back onto it. Everything runs offline: the OCR models, the inpainting networks and the drawing font are bundled with the application, so there is nothing to install and no Python involved.</p>
+
+<p>Typical uses are pictures with Japanese text (title screens, UI graphics, CGs) and whole RPG Maker games whose story is told through images instead of script files.</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<ul>
+	<li>No setup: SEP ships its own models — a PP-OCRv6 detection and recognition model pair (ONNX Runtime), an AOT inpainting network (about 22&nbsp;MB) and a LaMa inpainting network (about 200&nbsp;MB) for text removal, plus a Unicode-capable TrueType font for drawing.</li>
+	<li>The first project start loads the OCR models, which takes a moment; they stay loaded afterwards.</li>
+	<li>OCR and inpainting run on the GPU when a usable one is found, using execution providers that are already bundled with SEP (WebGPU, with DirectML as a Windows fallback) — nothing extra to install and no vendor SDK required. When no GPU is available, SEP falls back to the CPU automatically. GPU acceleration is on by default and can be turned off under the SEP options.</li>
+	<li>OCR over a whole game's picture folder can take a long time — prefer the staged workflow described below for large games.</li>
+</ul>
+
+<h2 id="starting-a-project">Starting a project</h2>
+
+<p>Open <code>New Project</code> and pick the <code>SEP</code> slide. Select a folder — what happens next depends on the folder:</p>
+
+<table>
+	<tr><th>Folder type</th><th>Behavior</th></tr>
+	<tr>
+		<td>Plain image folder</td>
+		<td>The images (PNG, JPG/JPEG, BMP, WebP, TGA, PCX) directly in the folder are listed and OCR'd on <code>Start project</code>. Subfolders are not scanned.</td>
+	</tr>
+	<tr>
+		<td>RPG Maker game folder (XP/VX/VX Ace, MV, MZ)</td>
+		<td>The folder is scanned recursively. Encrypted MV/MZ images are decrypted automatically. <code>Start project</code> collects every image into a staging folder next to the game (<code>&lt;game&gt;_sep</code>) and runs OCR on all of them — the dialog itself warns this can take ages on large games.</td>
+	</tr>
+	<tr>
+		<td>Packed RGSS archive (<code>Game.rgss3a</code> etc.)</td>
+		<td>Images are extracted from the archive before OCR. Export writes the decrypted folder structure — SEP cannot re-pack the archive, so the game needs the extracted files instead.</td>
+	</tr>
+	<tr>
+		<td>SEP staging folder (created by <code>Collect only</code>)</td>
+		<td>OCR runs only on the images still present; images you deleted from the staging folder are ignored.</td>
+	</tr>
+</table>
+
+<h2 id="the-staged-workflow">The staged workflow (recommended for games)</h2>
+
+<ol>
+	<li>Select the game folder in the SEP slide and press <code>Collect only</code>. All images (encrypted ones decrypted) are copied into the staging folder <code>&lt;game&gt;_sep</code> next to the game, keeping the game's folder structure. Encrypted videos (<code>.rwebm</code> files, as produced by third-party "webmplay"-style video plugins) are collected as well, decrypted to plain <code>.webm</code> for manual editing. You can close SLR Translator at this point.</li>
+	<li>Open the staging folder and delete every image that contains no translatable text — logos, textures, system graphics. This is the step that keeps the OCR run short. Videos are never OCR'd; keep them in the staging folder if you want to work on them.</li>
+	<li>Start a SEP project on the staging folder: <code>Start project</code> OCRs exactly the images that remain.</li>
+</ol>
+
+<div class="note">Manually edited images (for example pictures you retouched in an image editor) can be pushed back into the game without any project: select the staging folder in the SEP slide and use <code>Encrypt only</code> to re-encrypt the images still present into a folder of your choice — the game folder, for instance. This also covers images with no detected text that the project filters skipped, and re-encrypts collected videos back into their original <code>.rwebm</code> files. Video translation itself is manual: replace or edit the decrypted <code>.webm</code> files in the staging folder (subtitles, re-encoded video, …), then use <code>Encrypt only</code>.</div>
+
+<div class="note">If a collection run was interrupted for an MV/MZ game, the encryption information may be missing. SEP warns about this in the slide: re-collect the game folder (or run <code>Collect only</code> again) before exporting, otherwise the exported images will be plain PNGs the game cannot load. See <a href="#encrypted-games">Encrypted &amp; Packed Games</a> for background.</div>
+
+<h2 id="the-ocr-stage">The OCR stage</h2>
+
+<ul>
+	<li>Every detected text box becomes one row. The row's context shows the image path, the box id and the OCR recognition score.</li>
+	<li>Select a row and switch to the <code>Raw</code> tab in the cell info panel: SEP shows the source image with the detected text region highlighted in red, together with its OCR score — handy for judging whether a low-confidence box needs manual fixing.</li>
+	<li>Vertical Japanese text (tategaki columns) is recognized twice — once horizontally and once in the vertical orientation — and the higher-confidence result is kept. Horizontal text is only ever recognized once.</li>
+	<li>Boxes below the <code>OCR score threshold</code> (default 0.5) are discarded.</li>
+	<li>Project filters, applied when the project is created: <code>Discard images without detected text</code> (on by default) drops images with no text at all, and <code>Discard images without Japanese text</code> (off by default) drops images whose text contains no kanji/kana — useful to skip logo-only images.</li>
+</ul>
+
+<h2 id="translating">Translating</h2>
+
+<p>From here on a SEP project behaves like any other: fill the translation column by hand, use <a href="#context-translation">Context Translation</a>, or send everything through an engine with <a href="#batch">Batch Translation</a>. The color tags described in <a href="#color-tags">Cell Color Tags</a> apply as usual.</p>
+
+<div class="note">Boxes whose translation matches the original OCR text (ignoring full-width/half-width forms, letter case, whitespace and punctuation) are left untouched on export — the already-correct original is not erased and not redrawn. Append <code>d{}</code> to a row's translation to force a redraw anyway.</div>
+
+<h2 id="export-and-inject">Export and inject</h2>
+
+<p>On <a href="#first-project">export</a> (to a folder or a zip) or injection, SEP renders every image: the original text is erased, the translation is drawn into the same region, and the file is written back in its original format.</p>
+
+<ul>
+	<li><code>Text removal method</code>: <code>none</code> (draw over the original), <code>blur</code> (fast, good on plain backgrounds), <code>AOT Inpaint</code> (compact neural network) or <code>LaMa Inpaint</code> (larger model, 512×512 crops per region — the default and usually the best reconstruction on textured backgrounds).</li>
+	<li>Solid-color backgrounds are detected automatically and filled with the exact background color instead of being blurred/inpainted — clean fills on flat UI panels without color casts.</li>
+	<li>The translation is drawn with a bundled condensed Unicode font by default; any TrueType font placed in the SEP module folder can be selected as <code>Render font</code>. Font size is auto-fitted per box (grouped so a text block shares one size) with a configurable <code>Minimum font size</code> floor.</li>
+	<li><code>Match original text color</code> detects the dominant color of the original text and reuses it; an automatic outline is added when the text would otherwise be hard to read against the new background (always on transparent images).</li>
+	<li>JPEGs are re-encoded at the estimated original quality with EXIF data preserved; BMP, TGA, PCX and WebP files are written back in their original format.</li>
+	<li>Encrypted game images are re-encrypted into their original files (e.g. <code>img/system/Window.rpgmvp</code>), and a viewable PNG copy is written under <code>decrypted/</code> mirroring the game's structure so you can check the result without launching the game.</li>
+</ul>
+
+<h2 id="per-row-overrides">Per-row overrides</h2>
+
+<p>Override tokens can be appended to a row's translated text; they stack with each other:</p>
+
+<table>
+	<tr><th>Token</th><th>Effect</th></tr>
+	<tr><td><code>r{none}</code> / <code>r{blur}</code> / <code>r{aot}</code> / <code>r{lama}</code></td><td>Text removal method for this box only.</td></tr>
+	<tr><td><code>f{18}</code></td><td>Force the font size in pixels for this box.</td></tr>
+	<tr><td><code>c{255,0,0}</code> or <code>c{white}</code></td><td>Force the text color for this box.</td></tr>
+	<tr><td><code>d{}</code></td><td>Erase and redraw even when the translation matches the original.</td></tr>
+</table>
+
+<h2 id="sep-options">SEP options</h2>
+
+<p>All SEP settings live in the Options dialog under the <code>SEP</code> tab: removal method and inpainting parameters, OCR thresholds and filters, vertical-text handling, angle snapping, font size grouping, blur strength, solid-background detection, text color matching and GPU acceleration. <code>GPU acceleration</code> is experimental: it uses the GPU through ONNX Runtime's WebGPU provider (DirectML is tried as a Windows fallback) and falls back to CPU automatically when no usable GPU is found. If you suspect GPU-related problems or incorrect results, turn it off to force CPU. Changing the render font, the outline thickness or GPU acceleration requires a restart; the project filters take effect the next time a project is created.</p>
+
+<h2 id="limitations">Limitations</h2>
+
+<ul>
+	<li>OCR quality decides row quality: misread text must be corrected by hand, and a bad box outline (extravagant fonts, flourishes) can leave artifacts — the auto-grow fill option mitigates this on solid backgrounds.</li>
+	<li>Videos are not OCR'd or otherwise translated automatically. <code>.rwebm</code> files are collected decrypted (as <code>.webm</code>) and re-encrypted by <code>Encrypt only</code>; translating their content is a manual step. Only the known third-party video encryption scheme(s) are supported — if the videos of a game use an unknown scheme, they are left in place and a message is logged.</li>
+	<li>Packed RGSS archives cannot be re-packed; export produces the decrypted folder structure.</li>
+	<li>Re-encryption needs complete collection information; interrupted collections must be re-run (see the note above).</li>
+	<li>The intermediate OCR box JSONs are project-internal data and never appear in exports.</li>
+</ul>

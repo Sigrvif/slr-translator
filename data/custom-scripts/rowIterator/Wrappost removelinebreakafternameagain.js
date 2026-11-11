@@ -1,0 +1,13 @@
+if (!this.cells[2]) return;
+this.cells[2] = this.cells[2].replaceAll(/>\n「/gi, ">「");
+this.cells[2] = this.cells[2].replaceAll(/>\n『/gi, ">『");
+this.cells[2] = this.cells[2].replaceAll(/>\n（/gi, ">（");
+this.cells[2] = this.cells[2].replaceAll(/>\n｢/gi, ">｢");
+this.cells[2] = this.cells[2].replaceAll(/\]\n「/gi, "\]「");
+this.cells[2] = this.cells[2].replaceAll(/\]\n『/gi, "\]『");
+this.cells[2] = this.cells[2].replaceAll(/\]\n（/gi, "\]（");
+this.cells[2] = this.cells[2].replaceAll(/\]\n｢/gi, "\]｢");
+this.cells[2] = this.cells[2].replaceAll(/】\n「/gi, "】「");
+this.cells[2] = this.cells[2].replaceAll(/】\n『/gi, "】『");
+this.cells[2] = this.cells[2].replaceAll(/】\n（/gi, "】（");
+this.cells[2] = this.cells[2].replaceAll(/】\n｢/gi, "】｢");

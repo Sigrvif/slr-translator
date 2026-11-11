@@ -1,0 +1,1 @@
+﻿{"files":[{"pattern":"*.txt","rules":[{"type":"regex","pattern":"/_msg,[^一-龠ぁ-ゔァ-ヴー々〆〤ヶﾚﾃﾞｨﾌｧｲｯ]*([一-龠ぁ-ゔァ-ヴー々〆〤ヶﾚﾃﾞｨﾌｧｲｯ].*?)[,|$|\\n|\\r]/gmi","captureGroups":"1"}]}]}
