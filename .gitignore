@@ -33,3 +33,7 @@ data/profile/
 data/llama/models/
 data/llama/slots/
 www/php/cache/
+
+# local test artifacts — never released (unfinished Mosaic Remover project)
+www/addons/mosaicRemover/
+data/adp.txt

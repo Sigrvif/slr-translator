@@ -3,7 +3,7 @@
     "description": "SLR, RPGM translation tool.",
     "main": "main.js",
     "homepage": "",
-    "version": "3.082",
+    "version": "3.083",
     "author": "Shisaye",
     "license": "GPL-3.0-or-later",
     "chromium-args": "--mixed-context --enable-spell-checking --disable-web-security --disable-features=nw2 --memory-pressure-off --force-dark-mode --user-data-dir=./data/profile",

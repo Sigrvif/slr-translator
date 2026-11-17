@@ -2418,18 +2418,15 @@ ui.showRecentFile = function(num, $target) {
 	}
 
 	if ($target.find("li").length == 0) {
-		let $template = $(`<li title='`+'Go to SubscribesTar donation page.'+`'>
+		let $template = $(`<li title='`+'Open the documentation.'+`'>
 		<i class='icon icon-angle-right mainIconRight'></i>
 			<span class='title'><i class="icon-info-circled-1"></i>`+'No projects yet'+`</span>
             <span>`+`<img src="img/rtfm.png"><br />
-			You can press <b>F1</b> to open the documentation window.<br /><br />
-			To support development of SLR Translator, please consider making a donation :
-			<b>https://www.subscribestar.com/shisaye</b>
+			You can press <b>F1</b> to open the documentation window.
 			`+
 			`</span>
 		</li>`);
 		$template.on("click", function() {
-			//nw.Shell.openExternal('https://www.subscribestar.com/shisaye'); Nobody donates anyway.
 			ui.openHelp();
 		})		
 		$target.append($template);		

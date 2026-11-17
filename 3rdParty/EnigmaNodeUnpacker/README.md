@@ -270,4 +270,3 @@ try {
 
 ## Credits
 Made by Shisaye
-anime-sharing.com
