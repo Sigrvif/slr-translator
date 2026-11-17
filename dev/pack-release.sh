@@ -48,16 +48,20 @@ if ! diff -rq --exclude=node_modules --exclude=mosaicRemover "$HERE/www" "$OTHER
 fi
 echo "   clean"
 
-# Runtime state and local-only content NEVER ship. The app recreates
-# data/logs, data/profile and the llama model/slot dirs on first boot;
-# data/config.json is the user's live configuration; www/addons/mosaicRemover
-# is an unfinished local project; data/adp.txt is a local scratch file.
+# Runtime state and local-only content NEVER ship. The empty data/logs
+# and data/llama/{models,slots} DIRECTORIES must ship (the app does NOT
+# recreate data/logs by itself — without it logging silently stops), so
+# only their CONTENTS are excluded ('/*' suffix keeps the dir entry);
+# data/profile is excluded entirely (the app creates it); data/config.json
+# is the user's live configuration; www/addons/mosaicRemover is an
+# unfinished local project; data/adp.txt is a local scratch file.
 # NOTE: 7za matches -xr! patterns without a leading '*' against bare
 # names only — path-qualified exclusions need the '*' prefix (verified).
 NEVER_SHIP=(
     -xr!.git -xr!vendor-source
-    -xr!*data/config.json -xr!*data/logs -xr!*data/profile
-    -xr!*data/llama/models -xr!*data/llama/slots
+    -xr!*data/config.json
+    -xr!*data/logs/* -xr!*data/llama/models/* -xr!*data/llama/slots/*
+    -xr!*data/profile
     -xr!*data/adp.txt
     -xr!mosaicRemover
 )
