@@ -47,11 +47,23 @@ if ! diff -rq --exclude=node_modules "$HERE/www" "$OTHER/www" >"$SYNC" 2>&1; the
 fi
 echo "   clean"
 
+# Runtime state and local-only content NEVER ship. The app recreates
+# data/logs, data/profile and the llama model/slot dirs on first boot;
+# data/config.json is the user's live configuration; www/addons/mosaicRemover
+# is an unfinished local project; data/adp.txt is a local scratch file.
+NEVER_SHIP=(
+    -xr!.git -xr!vendor-source
+    -xr!data/config.json -xr!data/logs -xr!data/profile
+    -xr!data/llama/models -xr!data/llama/slots
+    -xr!data/adp.txt
+    -xr!www/addons/mosaicRemover
+)
+
 pack() { # pack <src-dir>
     local src="$1" arch
     arch="$OUT/$(basename "$src") v$V.7z"
     rm -f "$arch"
-    7za a -t7z -mx=9 "$arch" "$src" -xr!.git -xr!vendor-source >/dev/null
+    7za a -t7z -mx=9 "$arch" "$src" "${NEVER_SHIP[@]}" >/dev/null
     printf '   %s  (%s bytes)\n' "$(basename "$arch")" "$(stat -c%s "$arch")"
 }
 
