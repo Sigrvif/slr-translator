@@ -40,7 +40,8 @@ done
 echo "== v$V: sync check (www/, excluding node_modules) =="
 SYNC="$(mktemp)"
 trap 'rm -f "$SYNC"' EXIT
-if ! diff -rq --exclude=node_modules "$HERE/www" "$OTHER/www" >"$SYNC" 2>&1; then
+# mosaicRemover is a local-only unfinished project (see NEVER_SHIP below)
+if ! diff -rq --exclude=node_modules --exclude=mosaicRemover "$HERE/www" "$OTHER/www" >"$SYNC" 2>&1; then
     echo "ERROR: www/ differs between the trees — fix the sync before packing:" >&2
     cat "$SYNC" >&2
     exit 1
