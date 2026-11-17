@@ -52,12 +52,14 @@ echo "   clean"
 # data/logs, data/profile and the llama model/slot dirs on first boot;
 # data/config.json is the user's live configuration; www/addons/mosaicRemover
 # is an unfinished local project; data/adp.txt is a local scratch file.
+# NOTE: 7za matches -xr! patterns without a leading '*' against bare
+# names only — path-qualified exclusions need the '*' prefix (verified).
 NEVER_SHIP=(
     -xr!.git -xr!vendor-source
-    -xr!data/config.json -xr!data/logs -xr!data/profile
-    -xr!data/llama/models -xr!data/llama/slots
-    -xr!data/adp.txt
-    -xr!www/addons/mosaicRemover
+    -xr!*data/config.json -xr!*data/logs -xr!*data/profile
+    -xr!*data/llama/models -xr!*data/llama/slots
+    -xr!*data/adp.txt
+    -xr!mosaicRemover
 )
 
 pack() { # pack <src-dir>
